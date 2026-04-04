@@ -1,6 +1,6 @@
 /**
- * AnimatedLogo — SVG draw-on reveal for the LFF lff lettermark
- * Each letter is revealed top-to-bottom in sequence via clip-path animation
+ * AnimatedLogo — Blur-to-sharp fade-up reveal for the LFF lff lettermark
+ * Smooth cinematic entrance on page load
  */
 import { motion } from "framer-motion";
 
@@ -10,21 +10,6 @@ const LETTER_PATHS = {
   f2: "M -122.0625 162.75 C 7.792969 167.945312 119.464844 100.421875 165.347656 -70.988281 L 253.648438 -398.21875 L 380.90625 -398.21875 L 391.292969 -436.308594 L 264.035156 -436.308594 L 270.097656 -460.550781 C 291.738281 -538.460938 309.054688 -603.390625 351.472656 -603.390625 C 386.101562 -603.390625 410.339844 -547.121094 432.847656 -502.96875 L 437.175781 -502.96875 L 466.609375 -612.046875 C 427.652344 -627.628906 391.292969 -638.015625 348.875 -638.015625 C 268.367188 -638.015625 183.527344 -599.0625 148.035156 -465.742188 L 140.242188 -436.308594 L 72.71875 -436.308594 L 62.328125 -398.21875 L 129.855469 -398.21875 L 42.417969 -70.988281 C 9.523438 50.210938 -36.359375 112.539062 -122.0625 162.75 Z",
 };
 
-// Clip rect that expands from top to bottom
-function ClipReveal({ id, delay }: { id: string; delay: number }) {
-  return (
-    <clipPath id={id}>
-      <motion.rect
-        x="-500"
-        width="2500"
-        initial={{ y: -1400, height: 0 }}
-        animate={{ y: -1400, height: 2800 }}
-        transition={{ duration: 1.1, delay, ease: [0.25, 0.1, 0.25, 1] }}
-      />
-    </clipPath>
-  );
-}
-
 interface AnimatedLogoProps {
   className?: string;
   style?: React.CSSProperties;
@@ -32,39 +17,29 @@ interface AnimatedLogoProps {
 
 export default function AnimatedLogo({ className, style }: AnimatedLogoProps) {
   return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 1299 1299"
+    <motion.div
       className={className}
       style={style}
-      aria-label="Lover Fighter Fitness"
+      initial={{ opacity: 0, y: 24, filter: "blur(16px)", scale: 0.95 }}
+      animate={{ opacity: 1, y: 0, filter: "blur(0px)", scale: 1 }}
+      transition={{ duration: 1.1, ease: [0.16, 1, 0.3, 1], delay: 0.1 }}
     >
-      <defs>
-        <ClipReveal id="clip-l"  delay={0.1} />
-        <ClipReveal id="clip-f1" delay={0.5} />
-        <ClipReveal id="clip-f2" delay={0.9} />
-      </defs>
-
-      {/* Letter: l */}
-      <g clipPath="url(#clip-l)">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 1299 1299"
+        className="h-full w-full"
+        aria-label="Lover Fighter Fitness"
+      >
         <g fill="#eae6d2" transform="translate(292.389555, 933.954657)">
           <path d={LETTER_PATHS.l} />
         </g>
-      </g>
-
-      {/* Letter: f (first) */}
-      <g clipPath="url(#clip-f1)">
         <g fill="#eae6d2" transform="translate(488.129927, 866.904017)">
           <path d={LETTER_PATHS.f1} />
         </g>
-      </g>
-
-      {/* Letter: f (second) */}
-      <g clipPath="url(#clip-f2)">
         <g fill="#eae6d2" transform="translate(693.263117, 866.904017)">
           <path d={LETTER_PATHS.f2} />
         </g>
-      </g>
-    </svg>
+      </svg>
+    </motion.div>
   );
 }

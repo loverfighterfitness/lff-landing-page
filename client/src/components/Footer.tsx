@@ -1,5 +1,6 @@
 /**
  * Footer — Single brown, minimal with centered logo
+ * Deploy test: Railway pipeline active
  */
 import { Instagram } from "lucide-react";
 

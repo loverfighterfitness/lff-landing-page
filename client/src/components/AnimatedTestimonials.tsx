@@ -100,7 +100,7 @@ export default function AnimatedTestimonials({ autoplay = true }: { autoplay?: b
                   key={t.src}
                   initial={{ opacity: 0, scale: 0.9, rotate: randomRotateY() }}
                   animate={{
-                    opacity: isActive ? 1 : Math.max(0, 0.15 - (distance - 1) * 0.07),
+                    opacity: isActive ? 1 : Math.max(0, 0.55 - (distance - 1) * 0.15),
                     scale: isActive ? 1 : 1 - distance * 0.04,
                     rotate: isActive ? 0 : randomRotateY(),
                     zIndex: isActive ? 10 : 10 - distance,

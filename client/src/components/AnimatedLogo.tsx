@@ -11,14 +11,14 @@ const LETTER_PATHS = {
 };
 
 // Clip rect that expands from top to bottom
-function ClipReveal({ id, delay, height = 1000 }: { id: string; delay: number; height?: number }) {
+function ClipReveal({ id, delay }: { id: string; delay: number }) {
   return (
     <clipPath id={id}>
       <motion.rect
-        x="-200"
-        width="1000"
-        initial={{ y: -height, height: 0 }}
-        animate={{ y: -height, height: height * 2 }}
+        x="-500"
+        width="2500"
+        initial={{ y: -1400, height: 0 }}
+        animate={{ y: -1400, height: 2800 }}
         transition={{ duration: 1.1, delay, ease: [0.25, 0.1, 0.25, 1] }}
       />
     </clipPath>
@@ -40,9 +40,9 @@ export default function AnimatedLogo({ className, style }: AnimatedLogoProps) {
       aria-label="Lover Fighter Fitness"
     >
       <defs>
-        <ClipReveal id="clip-l"  delay={0.1} height={1000} />
-        <ClipReveal id="clip-f1" delay={0.5} height={1000} />
-        <ClipReveal id="clip-f2" delay={0.9} height={1000} />
+        <ClipReveal id="clip-l"  delay={0.1} />
+        <ClipReveal id="clip-f1" delay={0.5} />
+        <ClipReveal id="clip-f2" delay={0.9} />
       </defs>
 
       {/* Letter: l */}

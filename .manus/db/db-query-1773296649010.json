@@ -1,0 +1,30 @@
+{
+  "query": "SELECT id, name, phone FROM calculator_leads WHERE id IN (60001, 60004, 90001, 120001);",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3Fj69ra1SNGW4TB.root --database TeiTyUgvfabHNSBnznn263 --execute SELECT id, name, phone FROM calculator_leads WHERE id IN (60001, 60004, 90001, 120001);",
+  "rows": [
+    {
+      "id": "60001",
+      "name": "Ruby Frangiosa",
+      "phone": "0412649666"
+    },
+    {
+      "id": "60004",
+      "name": "Levi",
+      "phone": "+61401478122"
+    },
+    {
+      "id": "90001",
+      "name": "Caitlin",
+      "phone": "0403506713"
+    },
+    {
+      "id": "120001",
+      "name": "Lucy",
+      "phone": "0400020917"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\tphone\n60001\tRuby Frangiosa\t0412649666\n60004\tLevi\t+61401478122\n90001\tCaitlin\t0403506713\n120001\tLucy\t0400020917\n",
+  "stderr": "",
+  "execution_time_ms": 1607
+}

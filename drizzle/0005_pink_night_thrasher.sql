@@ -1,0 +1,1 @@
+ALTER TABLE `calculator_leads` ADD `goal` varchar(30) DEFAULT 'maintain' NOT NULL;

@@ -1,0 +1,538 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@font-face {
+  font-family: "Sharpen";
+  src: url("https://d2xsxph8kpxj0f.cloudfront.net/310519663408040383/TeiTyUgvfabHNSBnznn263/Sharpen_63b681b2.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+}
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --font-sans: "Outfit", system-ui, sans-serif;
+  --font-display: "Bebas Neue", "Outfit", system-ui, sans-serif;
+
+  /* LFF Brand — Two colors only */
+  --color-lff-brown: oklch(0.390 0.038 65);  /* #54412F — exact brand brown */
+  --color-lff-cream: oklch(0.922 0.026 95);  /* #EAE6D2 — exact brand cream */
+}
+
+:root {
+  --radius: 0.625rem;
+  /* Single brown background, cream text */
+  --background: oklch(0.390 0.038 65);
+  --foreground: oklch(0.922 0.026 95);
+  --card: oklch(0.390 0.038 65);
+  --card-foreground: oklch(0.922 0.026 95);
+  --popover: oklch(0.390 0.038 65);
+  --popover-foreground: oklch(0.922 0.026 95);
+  --primary: oklch(0.922 0.026 95);
+  --primary-foreground: oklch(0.390 0.038 65);
+  --secondary: oklch(0.922 0.026 95);
+  --secondary-foreground: oklch(0.390 0.038 65);
+  --muted: oklch(0.420 0.038 65);
+  --muted-foreground: oklch(0.750 0.020 85);
+  --accent: oklch(0.922 0.026 95);
+  --accent-foreground: oklch(0.390 0.038 65);
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(0.985 0 0);
+  --border: oklch(0.922 0.026 95 / 0.15);
+  --input: oklch(0.420 0.038 65);
+  --ring: oklch(0.922 0.026 95 / 0.4);
+  --chart-1: oklch(0.922 0.026 95);
+  --chart-2: oklch(0.750 0.020 85);
+  --chart-3: oklch(0.600 0.025 75);
+  --chart-4: oklch(0.450 0.035 65);
+  --chart-5: oklch(0.390 0.038 65);
+  --sidebar: oklch(0.390 0.038 65);
+  --sidebar-foreground: oklch(0.922 0.026 95);
+  --sidebar-primary: oklch(0.922 0.026 95);
+  --sidebar-primary-foreground: oklch(0.390 0.038 65);
+  --sidebar-accent: oklch(0.420 0.038 65);
+  --sidebar-accent-foreground: oklch(0.922 0.026 95);
+  --sidebar-border: oklch(0.922 0.026 95 / 0.15);
+  --sidebar-ring: oklch(0.922 0.026 95 / 0.4);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground font-sans;
+    background-color: #54412F;
+  }
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  [type="button"]:not(:disabled),
+  [type="submit"]:not(:disabled),
+  [type="reset"]:not(:disabled),
+  a[href],
+  select:not(:disabled),
+  input[type="checkbox"]:not(:disabled),
+  input[type="radio"]:not(:disabled) {
+    @apply cursor-pointer;
+  }
+}
+
+@layer components {
+  .container {
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+
+  .flex {
+    min-height: 0;
+    min-width: 0;
+  }
+
+  @media (min-width: 640px) {
+    .container {
+      padding-left: 2rem;
+      padding-right: 2rem;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .container {
+      padding-left: 3rem;
+      padding-right: 3rem;
+      max-width: 1200px;
+    }
+  }
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 4px;
+}
+::-webkit-scrollbar-track {
+  background: #54412F;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(234, 230, 210, 0.3);
+  border-radius: 2px;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* Grainy noise texture overlay */
+.grain-overlay {
+  position: relative;
+}
+.grain-overlay::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.045;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 180px 180px;
+}
+.grain-overlay > * {
+  position: relative;
+  z-index: 2;
+}
+
+/* ── Dynamic animations ────────────────────────────────── */
+
+/* Shimmer sweep — used on coaching card hover overlay */
+@keyframes shimmer-sweep {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* Marquee — social proof ticker */
+@keyframes marquee-scroll {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.marquee-track {
+  display: flex;
+  width: max-content;
+  animation: marquee-scroll 28s linear infinite;
+}
+.marquee-track:hover {
+  animation-play-state: paused;
+}
+
+/* Pulse ring — floating CTA */
+@keyframes pulse-ring {
+  0%   { transform: scale(1);   opacity: 0.55; }
+  70%  { transform: scale(1.55); opacity: 0; }
+  100% { transform: scale(1.55); opacity: 0; }
+}
+.pulse-ring::before {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  border-radius: 9999px;
+  border: 2px solid rgba(234, 230, 210, 0.6);
+  animation: pulse-ring 2.2s ease-out infinite;
+  pointer-events: none;
+}
+
+/* Hero CTA pulse — draws eye to primary button */
+@keyframes cta-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(234,230,210,0.35); }
+  50%       { box-shadow: 0 0 0 10px rgba(234,230,210,0); }
+}
+.cta-pulse {
+  animation: cta-pulse 2.8s ease-in-out infinite;
+}
+
+/* Button shimmer sweep on hover */
+.btn-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+.btn-shimmer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.18) 50%, transparent 60%);
+  background-size: 200% 100%;
+  background-position: -200% 0;
+  transition: background-position 0s;
+}
+.btn-shimmer:hover::after {
+  background-position: 200% 0;
+  transition: background-position 0.55s ease;
+}
+
+
+/* ── Enhanced Button Interactions ────────────────────────────────── */
+
+/* Primary button hover effect — scale + shadow */
+.btn-primary-hover {
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.btn-primary-hover:hover {
+  transform: scale(1.05);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+}
+
+/* Secondary button hover effect — border glow */
+.btn-secondary-hover {
+  transition: all 0.3s ease;
+}
+.btn-secondary-hover:hover {
+  border-color: rgba(234, 230, 210, 0.8);
+  box-shadow: 0 0 16px rgba(234, 230, 210, 0.2);
+  transform: translateY(-2px);
+}
+
+/* ── Scroll Animations ────────────────────────────────── */
+
+/* Fade in on scroll */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.scroll-fade-in {
+  animation: fade-in-up 0.6s ease-out forwards;
+  opacity: 0;
+}
+
+/* Slide in from left */
+@keyframes slide-in-left {
+  from {
+    opacity: 0;
+    transform: translateX(-32px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.scroll-slide-left {
+  animation: slide-in-left 0.6s ease-out forwards;
+  opacity: 0;
+}
+
+/* Slide in from right */
+@keyframes slide-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(32px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.scroll-slide-right {
+  animation: slide-in-right 0.6s ease-out forwards;
+  opacity: 0;
+}
+
+/* ── Card Hover Effects ────────────────────────────────── */
+
+/* Testimonial card hover — lift + glow */
+.card-hover-lift {
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.card-hover-lift:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.15);
+}
+
+/* Feature card hover — scale + tint */
+.feature-card-hover {
+  transition: all 0.3s ease;
+}
+.feature-card-hover:hover {
+  transform: scale(1.03);
+  background-color: rgba(234, 230, 210, 0.12);
+}
+
+/* ── Icon Animations ────────────────────────────────── */
+
+/* Icon scale on hover */
+@keyframes icon-scale {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.15);
+  }
+}
+
+.icon-hover-scale {
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.icon-hover-scale:hover {
+  animation: icon-scale 0.3s ease-out forwards;
+}
+
+/* ── Text & Label Effects ────────────────────────────────── */
+
+/* Accent color pop on hover */
+.accent-pop {
+  transition: color 0.3s ease;
+}
+.accent-pop:hover {
+  color: rgba(234, 230, 210, 0.95);
+}
+
+/* ── Loading & Transition States ────────────────────────────────── */
+
+/* Smooth fade transition */
+.fade-transition {
+  transition: opacity 0.3s ease;
+}
+
+/* ── Sticky Mobile CTA ────────────────────────────────── */
+
+@keyframes slide-up-in {
+  from {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.sticky-cta-mobile {
+  animation: slide-up-in 0.4s ease-out;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 40;
+  padding: 1rem;
+  background: linear-gradient(to top, rgba(84, 65, 47, 0.98), rgba(84, 65, 47, 0.85));
+  backdrop-filter: blur(8px);
+  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.2);
+}
+
+/* ── Testimonial Carousel ────────────────────────────────── */
+
+@keyframes carousel-slide {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.carousel-item {
+  animation: carousel-slide 0.4s ease-out;
+}
+
+/* ── Gradient & Depth Effects ────────────────────────────────── */
+
+/* Subtle gradient background */
+.gradient-subtle {
+  background: linear-gradient(135deg, rgba(84, 65, 47, 1) 0%, rgba(84, 65, 47, 0.95) 100%);
+}
+
+/* Layered shadow for depth */
+.shadow-depth {
+  box-shadow: 
+    0 2px 4px rgba(0, 0, 0, 0.08),
+    0 8px 16px rgba(0, 0, 0, 0.12),
+    0 16px 32px rgba(0, 0, 0, 0.16);
+}
+
+/* ── Hover Glow Effects ────────────────────────────────── */
+
+/* Cream glow on hover */
+@keyframes glow-cream {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(234, 230, 210, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(234, 230, 210, 0);
+  }
+}
+
+.glow-hover:hover {
+  animation: glow-cream 1.5s ease-out;
+}
+
+
+/* ── Custom Range Slider Styling ────────────────────────────────── */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 8px;
+  border-radius: 5px;
+  background: #54412F;
+  outline: none;
+}
+
+/* Thumb styling for webkit browsers (Chrome, Safari, Edge) */
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #54412F;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(84, 65, 47, 0.3);
+  transition: all 0.2s ease;
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+  box-shadow: 0 4px 12px rgba(84, 65, 47, 0.4);
+}
+
+/* Thumb styling for Firefox */
+input[type="range"]::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #54412F;
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 2px 8px rgba(84, 65, 47, 0.3);
+  transition: all 0.2s ease;
+}
+
+input[type="range"]::-moz-range-thumb:hover {
+  transform: scale(1.15);
+  box-shadow: 0 4px 12px rgba(84, 65, 47, 0.4);
+}
+
+/* Track styling for Firefox */
+input[type="range"]::-moz-range-track {
+  background: transparent;
+  border: none;
+}
+
+
+/* ── Radio Button & Checkbox Styling ────────────────────────────────── */
+input[type="radio"],
+input[type="checkbox"] {
+  accent-color: #54412F;
+}
+
+input[type="radio"]:checked,
+input[type="checkbox"]:checked {
+  background-color: #54412F;
+  border-color: #54412F;
+}
+
+/* ── Form Input Borders ────────────────────────────────── */
+input[type="text"],
+input[type="email"],
+input[type="number"],
+input[type="password"],
+textarea,
+select {
+  border-color: #54412F;
+}
+
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="number"]:focus,
+input[type="password"]:focus,
+textarea:focus,
+select:focus {
+  border-color: #54412F;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(84, 65, 47, 0.1);
+}

@@ -1,0 +1,82 @@
+{
+  "query": "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'calculator_leads' ORDER BY ORDINAL_POSITION;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3Fj69ra1SNGW4TB.root --database TeiTyUgvfabHNSBnznn263 --execute SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'calculator_leads' ORDER BY ORDINAL_POSITION;",
+  "rows": [
+    {
+      "COLUMN_NAME": "id"
+    },
+    {
+      "COLUMN_NAME": "name"
+    },
+    {
+      "COLUMN_NAME": "email"
+    },
+    {
+      "COLUMN_NAME": "phone"
+    },
+    {
+      "COLUMN_NAME": "age"
+    },
+    {
+      "COLUMN_NAME": "weight"
+    },
+    {
+      "COLUMN_NAME": "height"
+    },
+    {
+      "COLUMN_NAME": "tdee"
+    },
+    {
+      "COLUMN_NAME": "bmr"
+    },
+    {
+      "COLUMN_NAME": "protein"
+    },
+    {
+      "COLUMN_NAME": "carbs"
+    },
+    {
+      "COLUMN_NAME": "fats"
+    },
+    {
+      "COLUMN_NAME": "smsStatus"
+    },
+    {
+      "COLUMN_NAME": "sms1SentAt"
+    },
+    {
+      "COLUMN_NAME": "sms2SentAt"
+    },
+    {
+      "COLUMN_NAME": "sms3SentAt"
+    },
+    {
+      "COLUMN_NAME": "sms1MessageId"
+    },
+    {
+      "COLUMN_NAME": "sms2MessageId"
+    },
+    {
+      "COLUMN_NAME": "sms3MessageId"
+    },
+    {
+      "COLUMN_NAME": "createdAt"
+    },
+    {
+      "COLUMN_NAME": "updatedAt"
+    },
+    {
+      "COLUMN_NAME": "goal"
+    },
+    {
+      "COLUMN_NAME": "notes"
+    },
+    {
+      "COLUMN_NAME": "leadStatus"
+    }
+  ],
+  "messages": [],
+  "stdout": "COLUMN_NAME\nid\nname\nemail\nphone\nage\nweight\nheight\ntdee\nbmr\nprotein\ncarbs\nfats\nsmsStatus\nsms1SentAt\nsms2SentAt\nsms3SentAt\nsms1MessageId\nsms2MessageId\nsms3MessageId\ncreatedAt\nupdatedAt\ngoal\nnotes\nleadStatus\n",
+  "stderr": "",
+  "execution_time_ms": 1648
+}

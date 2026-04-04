@@ -1,0 +1,8 @@
+{
+  "query": "SELECT id, name, phone, goal, tdee, protein, carbs, fats, sms1_sent_at, sms2_sent_at, sms3_sent_at, created_at FROM calculator_leads ORDER BY created_at ASC;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3Fj69ra1SNGW4TB.root --database TeiTyUgvfabHNSBnznn263 --execute SELECT id, name, phone, goal, tdee, protein, carbs, fats, sms1_sent_at, sms2_sent_at, sms3_sent_at, created_at FROM calculator_leads ORDER BY created_at ASC;",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1054 (42S22) at line 1: Unknown column 'sms1_sent_at' in 'field list'"
+  ]
+}

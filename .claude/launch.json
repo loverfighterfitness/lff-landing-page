@@ -1,0 +1,12 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "lff-landing",
+      "runtimeExecutable": "/Users/levihurst/Library/pnpm/pnpm",
+      "runtimeArgs": ["dev"],
+      "port": 3000,
+      "autoPort": false
+    }
+  ]
+}

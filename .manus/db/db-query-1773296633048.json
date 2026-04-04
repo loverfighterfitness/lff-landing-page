@@ -1,0 +1,58 @@
+{
+  "query": "SELECT l.name, j.phone, j.smsNumber, j.status, j.sentAt, j.errorMessage FROM sms_jobs j JOIN calculator_leads l ON j.leadId = l.id WHERE l.name IN ('Lucy', 'Caitlin', 'Ruby Frangiosa') ORDER BY l.name, j.smsNumber;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3Fj69ra1SNGW4TB.root --database TeiTyUgvfabHNSBnznn263 --execute SELECT l.name, j.phone, j.smsNumber, j.status, j.sentAt, j.errorMessage FROM sms_jobs j JOIN calculator_leads l ON j.leadId = l.id WHERE l.name IN ('Lucy', 'Caitlin', 'Ruby Frangiosa') ORDER BY l.name, j.smsNumber;",
+  "rows": [
+    {
+      "name": "Caitlin",
+      "phone": "0403506713",
+      "smsNumber": "2",
+      "status": "sent",
+      "sentAt": "2026-03-12 06:15:50",
+      "errorMessage": "NULL"
+    },
+    {
+      "name": "Caitlin",
+      "phone": "0403506713",
+      "smsNumber": "3",
+      "status": "sent",
+      "sentAt": "2026-03-12 06:15:52",
+      "errorMessage": "NULL"
+    },
+    {
+      "name": "Lucy",
+      "phone": "0400020917",
+      "smsNumber": "2",
+      "status": "sent",
+      "sentAt": "2026-03-12 06:15:54",
+      "errorMessage": "NULL"
+    },
+    {
+      "name": "Lucy",
+      "phone": "0400020917",
+      "smsNumber": "3",
+      "status": "sent",
+      "sentAt": "2026-03-12 06:15:55",
+      "errorMessage": "NULL"
+    },
+    {
+      "name": "Ruby Frangiosa",
+      "phone": "0412649666",
+      "smsNumber": "2",
+      "status": "sent",
+      "sentAt": "2026-03-12 06:15:42",
+      "errorMessage": "NULL"
+    },
+    {
+      "name": "Ruby Frangiosa",
+      "phone": "0412649666",
+      "smsNumber": "3",
+      "status": "sent",
+      "sentAt": "2026-03-12 06:15:44",
+      "errorMessage": "NULL"
+    }
+  ],
+  "messages": [],
+  "stdout": "name\tphone\tsmsNumber\tstatus\tsentAt\terrorMessage\nCaitlin\t0403506713\t2\tsent\t2026-03-12 06:15:50\tNULL\nCaitlin\t0403506713\t3\tsent\t2026-03-12 06:15:52\tNULL\nLucy\t0400020917\t2\tsent\t2026-03-12 06:15:54\tNULL\nLucy\t0400020917\t3\tsent\t2026-03-12 06:15:55\tNULL\nRuby Frangiosa\t0412649666\t2\tsent\t2026-03-12 06:15:42\tNULL\nRuby Frangiosa\t0412649666\t3\tsent\t2026-03-12 06:15:44\tNULL\n",
+  "stderr": "",
+  "execution_time_ms": 1494
+}

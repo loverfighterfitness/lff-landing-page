@@ -1,0 +1,64 @@
+{
+  "query": "SELECT j.id, l.name, j.phone, j.smsNumber, j.status, j.sentAt, j.errorMessage FROM sms_jobs j JOIN calculator_leads l ON j.leadId = l.id WHERE l.name IN ('Lucy', 'Caitlin', 'Ruby Frangiosa') ORDER BY l.name, j.smsNumber;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3Fj69ra1SNGW4TB.root --database TeiTyUgvfabHNSBnznn263 --execute SELECT j.id, l.name, j.phone, j.smsNumber, j.status, j.sentAt, j.errorMessage FROM sms_jobs j JOIN calculator_leads l ON j.leadId = l.id WHERE l.name IN ('Lucy', 'Caitlin', 'Ruby Frangiosa') ORDER BY l.name, j.smsNumber;",
+  "rows": [
+    {
+      "id": "7",
+      "name": "Caitlin",
+      "phone": "0403506713",
+      "smsNumber": "2",
+      "status": "sent",
+      "sentAt": "2026-03-12 06:15:50",
+      "errorMessage": "NULL"
+    },
+    {
+      "id": "8",
+      "name": "Caitlin",
+      "phone": "0403506713",
+      "smsNumber": "3",
+      "status": "sent",
+      "sentAt": "2026-03-12 06:15:52",
+      "errorMessage": "NULL"
+    },
+    {
+      "id": "9",
+      "name": "Lucy",
+      "phone": "0400020917",
+      "smsNumber": "2",
+      "status": "sent",
+      "sentAt": "2026-03-12 06:15:54",
+      "errorMessage": "NULL"
+    },
+    {
+      "id": "10",
+      "name": "Lucy",
+      "phone": "0400020917",
+      "smsNumber": "3",
+      "status": "sent",
+      "sentAt": "2026-03-12 06:15:55",
+      "errorMessage": "NULL"
+    },
+    {
+      "id": "3",
+      "name": "Ruby Frangiosa",
+      "phone": "0412649666",
+      "smsNumber": "2",
+      "status": "sent",
+      "sentAt": "2026-03-12 06:15:42",
+      "errorMessage": "NULL"
+    },
+    {
+      "id": "4",
+      "name": "Ruby Frangiosa",
+      "phone": "0412649666",
+      "smsNumber": "3",
+      "status": "sent",
+      "sentAt": "2026-03-12 06:15:44",
+      "errorMessage": "NULL"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\tphone\tsmsNumber\tstatus\tsentAt\terrorMessage\n7\tCaitlin\t0403506713\t2\tsent\t2026-03-12 06:15:50\tNULL\n8\tCaitlin\t0403506713\t3\tsent\t2026-03-12 06:15:52\tNULL\n9\tLucy\t0400020917\t2\tsent\t2026-03-12 06:15:54\tNULL\n10\tLucy\t0400020917\t3\tsent\t2026-03-12 06:15:55\tNULL\n3\tRuby Frangiosa\t0412649666\t2\tsent\t2026-03-12 06:15:42\tNULL\n4\tRuby Frangiosa\t0412649666\t3\tsent\t2026-03-12 06:15:44\tNULL\n",
+  "stderr": "",
+  "execution_time_ms": 1566
+}

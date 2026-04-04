@@ -1,0 +1,18 @@
+{
+  "query": "SHOW COLUMNS FROM calculator_leads LIKE 'goal';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3Fj69ra1SNGW4TB.root --database TeiTyUgvfabHNSBnznn263 --execute SHOW COLUMNS FROM calculator_leads LIKE 'goal';",
+  "rows": [
+    {
+      "Field": "goal",
+      "Type": "varchar(30)",
+      "Null": "NO",
+      "Key": "",
+      "Default": "maintain",
+      "Extra": ""
+    }
+  ],
+  "messages": [],
+  "stdout": "Field\tType\tNull\tKey\tDefault\tExtra\ngoal\tvarchar(30)\tNO\t\tmaintain\t\n",
+  "stderr": "",
+  "execution_time_ms": 1733
+}

@@ -1,0 +1,9 @@
+{
+  "query": "DELETE FROM calculator_leads \nWHERE id NOT IN (\n  SELECT MAX(id) FROM calculator_leads GROUP BY email\n);",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3Fj69ra1SNGW4TB.root --database TeiTyUgvfabHNSBnznn263 --execute DELETE FROM calculator_leads \nWHERE id NOT IN (\n  SELECT MAX(id) FROM calculator_leads GROUP BY email\n);",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 1638
+}

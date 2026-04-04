@@ -1,0 +1,83 @@
+{
+  "version": "7",
+  "dialect": "mysql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "5",
+      "when": 1772774511887,
+      "tag": "0000_boring_ronan",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1772774585476,
+      "tag": "0001_parallel_orphan",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1772790249873,
+      "tag": "0002_clumsy_toad_men",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "5",
+      "when": 1772790691998,
+      "tag": "0003_quick_fantastic_four",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1772954256509,
+      "tag": "0004_glorious_nicolaos",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "5",
+      "when": 1772966690795,
+      "tag": "0005_pink_night_thrasher",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "5",
+      "when": 1772967631895,
+      "tag": "0006_tearful_grey_gargoyle",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "5",
+      "when": 1772968348002,
+      "tag": "0007_messy_phil_sheldon",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "5",
+      "when": 1773295031875,
+      "tag": "0008_steep_whizzer",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "5",
+      "when": 1774874784435,
+      "tag": "0009_tiny_jimmy_woo",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "5",
+      "when": 1774874844511,
+      "tag": "0010_abnormal_nitro",
+      "breakpoints": true
+    }
+  ]
+}

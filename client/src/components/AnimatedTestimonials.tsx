@@ -86,30 +86,40 @@ export default function AnimatedTestimonials({ autoplay = true }: { autoplay?: b
         {/* Left — stacked photo carousel */}
         <div className="relative h-72 md:h-96 w-full">
           <AnimatePresence>
-            {TESTIMONIALS.map((t, index) => (
-              <motion.div
-                key={t.src}
-                initial={{ opacity: 0, scale: 0.9, rotate: randomRotateY() }}
-                animate={{
-                  opacity: index === active ? 1 : 0.5,
-                  scale: index === active ? 1 : 0.93,
-                  rotate: index === active ? 0 : randomRotateY(),
-                  zIndex: index === active ? 10 : TESTIMONIALS.length - index,
-                  y: index === active ? [0, -12, 0] : 0,
-                }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                transition={{ duration: 0.5, ease: "easeInOut" }}
-                className="absolute inset-0 origin-bottom"
-              >
-                <img
-                  src={t.src}
-                  alt={t.name}
-                  draggable={false}
-                  className="h-full w-full rounded-2xl object-cover object-top select-none"
-                  style={{ boxShadow: index === active ? "0 16px 48px rgba(0,0,0,0.22)" : "none" }}
-                />
-              </motion.div>
-            ))}
+            {TESTIMONIALS.map((t, index) => {
+              const isActive = index === active;
+              const distance = Math.min(
+                Math.abs(index - active),
+                Math.abs(index - active + TESTIMONIALS.length),
+                Math.abs(index - active - TESTIMONIALS.length)
+              );
+              const showStack = distance <= 2;
+              if (!isActive && !showStack) return null;
+              return (
+                <motion.div
+                  key={t.src}
+                  initial={{ opacity: 0, scale: 0.9, rotate: randomRotateY() }}
+                  animate={{
+                    opacity: isActive ? 1 : Math.max(0, 0.15 - (distance - 1) * 0.07),
+                    scale: isActive ? 1 : 1 - distance * 0.04,
+                    rotate: isActive ? 0 : randomRotateY(),
+                    zIndex: isActive ? 10 : 10 - distance,
+                    y: isActive ? [0, -12, 0] : distance * 6,
+                  }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  transition={{ duration: 0.5, ease: "easeInOut" }}
+                  className="absolute inset-0 origin-bottom"
+                >
+                  <img
+                    src={t.src}
+                    alt={t.name}
+                    draggable={false}
+                    className="h-full w-full rounded-2xl object-cover object-top select-none"
+                    style={{ boxShadow: isActive ? "0 16px 48px rgba(0,0,0,0.22)" : "none" }}
+                  />
+                </motion.div>
+              );
+            })}
           </AnimatePresence>
         </div>
 

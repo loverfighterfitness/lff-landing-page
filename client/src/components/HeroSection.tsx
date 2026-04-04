@@ -4,8 +4,7 @@
 import { motion } from "framer-motion";
 import { ChevronDown, Loader2 } from "lucide-react";
 import { useStripeCheckout } from "@/hooks/useStripeCheckout";
-
-const LOGO_TRANSPARENT = "https://d2xsxph8kpxj0f.cloudfront.net/310519663408040383/TeiTyUgvfabHNSBnznn263/LFFNEWLOGOCREAM_transparent_a5b72c81.png";
+import AnimatedLogo from "./AnimatedLogo";
 
 export default function HeroSection() {
   const { checkout, loading } = useStripeCheckout();
@@ -15,18 +14,9 @@ export default function HeroSection() {
       <div className="container relative z-10 pt-24 pb-16 flex flex-col items-center text-center">
 
         {/* Large Centered Logo */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
-          className="mb-10 md:mb-14"
-        >
-          <img
-            src={LOGO_TRANSPARENT}
-            alt="Lover Fighter Fitness"
-            className="h-36 sm:h-48 md:h-60 lg:h-72 w-auto object-contain"
-          />
-        </motion.div>
+        <div className="mb-10 md:mb-14">
+          <AnimatedLogo className="h-36 sm:h-48 md:h-60 lg:h-72 w-auto" />
+        </div>
 
         {/* Tagline */}
         <motion.p

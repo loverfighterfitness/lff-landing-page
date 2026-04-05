@@ -61,7 +61,7 @@ const TRANSFORMATIONS: Transformation[] = [
     before: "/transformations/leigh-before.png",
     after: "/transformations/leigh-after.png",
     beforeStyle: { position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" as const, objectPosition: "center center" },
-    afterStyle:  { position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" as const, objectPosition: "center center", transform: "scale(1.12)" },
+    afterStyle:  { position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" as const, objectPosition: "center center", transform: "scale(1.22)" },
     afterLabel: "After",
     name: "Leigh",
     tag: "Online Coaching · -14kg",

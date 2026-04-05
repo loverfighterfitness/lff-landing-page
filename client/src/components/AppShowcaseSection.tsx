@@ -192,15 +192,15 @@ export default function AppShowcaseSection() {
               </motion.div>
             </AnimatePresence>
 
-            {/* Tab pills */}
-            <div className="flex flex-wrap gap-2 mt-8 md:mt-10">
+            {/* Tab pills — 2 cols mobile, 3 cols desktop, equal width */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-8 md:mt-10 max-w-lg">
               {features.map((f, i) => {
                 const isActive = i === activeIndex;
                 return (
                   <button
                     key={i}
                     onClick={() => handleSelect(i)}
-                    className="group relative px-4 py-2.5 rounded-full text-xs tracking-[0.15em] uppercase font-semibold transition-all duration-300 cursor-pointer"
+                    className="group relative px-3 py-2.5 rounded-full text-[10px] md:text-[11px] tracking-[0.12em] uppercase font-semibold transition-all duration-300 cursor-pointer overflow-hidden"
                     style={{
                       backgroundColor: isActive ? "#EAE6D2" : "rgba(234,230,210,0.06)",
                       color: isActive ? "#54412F" : "rgba(234,230,210,0.7)",
@@ -209,9 +209,9 @@ export default function AppShowcaseSection() {
                     aria-label={`Show ${f.label}`}
                     aria-pressed={isActive}
                   >
-                    <span className="flex items-center gap-2">
-                      <f.icon size={14} strokeWidth={2} />
-                      {f.label}
+                    <span className="flex items-center justify-center gap-1.5 whitespace-nowrap">
+                      <f.icon size={13} strokeWidth={2} className="shrink-0" />
+                      <span className="truncate">{f.label}</span>
                     </span>
                     {/* Progress bar for active tab */}
                     {isActive && !userInteracted && (
@@ -220,7 +220,7 @@ export default function AppShowcaseSection() {
                         initial={{ scaleX: 0 }}
                         animate={{ scaleX: 1 }}
                         transition={{ duration: AUTO_ADVANCE_MS / 1000, ease: "linear" }}
-                        className="absolute bottom-0 left-0 h-[2px] w-full rounded-full origin-left"
+                        className="absolute bottom-0 left-0 h-[2px] w-full origin-left"
                         style={{ backgroundColor: "#54412F" }}
                       />
                     )}

@@ -177,7 +177,7 @@ export default function BeforeAfterSection() {
   const current = TRANSFORMATIONS[activeIndex];
 
   return (
-    <section className="grain-overlay relative py-24 md:py-32" style={{ backgroundColor: "#54412F" }}>
+    <section className="grain-overlay relative py-24 md:py-32 overflow-hidden" style={{ backgroundColor: "#54412F" }}>
       <div className="container">
         <div
           className="rounded-3xl px-8 py-14 md:px-14 md:py-16"
@@ -230,7 +230,7 @@ export default function BeforeAfterSection() {
               >
                 <p className="text-xs tracking-[0.3em] uppercase mb-2 font-black" style={{ color: "rgba(84,65,47,0.50)" }}>Client Results</p>
                 <p className="text-xs tracking-[0.2em] uppercase mb-4 font-bold" style={{ color: "rgba(84,65,47,0.40)" }}>{current.tag}</p>
-                <h2 className="font-display leading-[0.92] mb-6" style={{ color: "#54412F", fontSize: "clamp(2.8rem, 6vw, 4.5rem)", fontWeight: 900 }}>
+                <h2 className="font-display leading-[0.92] mb-6" style={{ color: "#54412F", fontSize: "clamp(1.6rem, 6vw, 4.5rem)", fontWeight: 900 }}>
                   THE PROOF<br /><span style={{ color: "rgba(84,65,47,0.45)" }}>IS IN THE RESULTS.</span>
                 </h2>
                 <p className="text-base leading-relaxed mb-8 font-normal" style={{ color: "rgba(84,65,47,0.75)" }}>{current.copy}</p>

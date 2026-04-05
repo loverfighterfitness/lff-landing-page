@@ -116,7 +116,7 @@ function ImageComparisonSlider({ transformation, resetKey }: SliderProps) {
       <div
         ref={containerRef}
         className="absolute inset-0 overflow-hidden rounded-2xl"
-        style={{ cursor: dragging ? "ew-resize" : "grab", touchAction: "none", backgroundColor: "#1c0f07" }}
+        style={{ cursor: dragging ? "ew-resize" : "grab", touchAction: "pan-y", backgroundColor: "#1c0f07" }}
         onMouseDown={onMouseDown}
         onTouchStart={onTouchStart}
       >

@@ -51,8 +51,9 @@ const TESTIMONIALS: Testimonial[] = [
     quote:
       "Levi has made a positive influence on my lifestyle change. A very supportive, passionate and knowledgeable trainer. He has a great understanding of Hypertrophy and is able to communicate complex ideas easily to translate into real results.",
     name: "Leigh Hill",
-    designation: "Online Coaching Client",
-    src: "https://d2xsxph8kpxj0f.cloudfront.net/310519663408040383/TeiTyUgvfabHNSBnznn263/DSC00920_e744cb35.JPG",
+    designation: "Online Coaching Client · -14kg",
+    src: "/transformations/leigh-after.png",
+    objectPosition: "15% 20%",
   },
 ];
 

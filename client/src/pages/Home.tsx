@@ -4,6 +4,7 @@
  * Dark-mode dominant, softer modern tone
  * Sections: Hero (VSL) → Why LFF → Coaching Packages → Testimonials → About → Contact → Footer
  */
+import { useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import HeroSection from "@/components/HeroSection";
 import SocialProofBar from "@/components/SocialProofBar";
@@ -19,6 +20,29 @@ import StatsSection from "@/components/StatsSection";
 import FAQSection from "@/components/FAQSection";
 
 export default function Home() {
+  // Parallax grain — shifts subtly with cursor for gritty premium feel
+  useEffect(() => {
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduceMotion) return;
+
+    let rafId = 0;
+    const onMove = (e: MouseEvent) => {
+      if (rafId) return;
+      rafId = requestAnimationFrame(() => {
+        const x = (e.clientX / window.innerWidth - 0.5) * 18; // ±9px drift
+        const y = (e.clientY / window.innerHeight - 0.5) * 18;
+        document.documentElement.style.setProperty("--grain-x", `${x}px`);
+        document.documentElement.style.setProperty("--grain-y", `${y}px`);
+        rafId = 0;
+      });
+    };
+    window.addEventListener("mousemove", onMove, { passive: true });
+    return () => {
+      window.removeEventListener("mousemove", onMove);
+      if (rafId) cancelAnimationFrame(rafId);
+    };
+  }, []);
+
   return (
     <div className="min-h-screen bg-lff-dark text-lff-cream">
       <Navbar />

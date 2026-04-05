@@ -1,125 +1,71 @@
 /**
- * Floating Mobile CTA — Landscape cream bubble with dynamic rotating text
- * Appears on scroll, disappears when near contact section
+ * Floating Mobile CTA — Modern slim pill, bottom-center
+ * Appears on scroll, hides near pricing/contact. Scrolls to coaching on click.
  */
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useStripeCheckout } from "@/hooks/useStripeCheckout";
-
-const dynamicTexts = [
-  "Get Started",
-  "Start Coaching",
-  "Transform Now",
-  "Begin Your Journey",
-  "Work With Levi",
-];
+import { ArrowRight } from "lucide-react";
 
 export default function FloatingMobileCTA() {
   const [show, setShow] = useState(false);
-  const [nearContact, setNearContact] = useState(false);
-  const [overResults, setOverResults] = useState(false);
-  const [textIndex, setTextIndex] = useState(0);
-  const { checkout, loading } = useStripeCheckout();
+  const [hideZone, setHideZone] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
       const scrollY = window.scrollY;
-      const contactSection = document.getElementById("contact");
-      setShow(scrollY > 900);
-      if (contactSection) {
-        setNearContact(scrollY > contactSection.offsetTop - 300);
+      setShow(scrollY > 700);
+
+      const coaching = document.getElementById("coaching");
+      const contact = document.getElementById("contact");
+      if (coaching && contact) {
+        const coachingTop = coaching.offsetTop - 200;
+        const contactTop = contact.offsetTop - 400;
+        // Hide when user is in coaching/pricing area OR near contact
+        setHideZone(scrollY > coachingTop && scrollY < coachingTop + 1800 || scrollY > contactTop);
       }
     };
     window.addEventListener("scroll", handleScroll, { passive: true });
+    handleScroll();
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Hide when the before/after results section is visible
-  useEffect(() => {
-    const resultsSection = Array.from(document.querySelectorAll("section")).find(
-      (s) => s.textContent?.includes("THE PROOF")
-    );
-    if (!resultsSection) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => setOverResults(entry.isIntersecting),
-      { threshold: 0.1 }
-    );
-    observer.observe(resultsSection);
-    return () => observer.disconnect();
-  }, []);
-
-  // Rotate text every 3 seconds
-  useEffect(() => {
-    if (!show) return;
-    const interval = setInterval(() => {
-      setTextIndex((prev) => (prev + 1) % dynamicTexts.length);
-    }, 3000);
-    return () => clearInterval(interval);
-  }, [show]);
+  const handleClick = () => {
+    const coaching = document.getElementById("coaching");
+    coaching?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
   return (
     <AnimatePresence>
-      {show && !nearContact && !overResults && (
+      {show && !hideZone && (
         <motion.button
-          onClick={() => checkout("standardCoaching")}
-          disabled={loading === "standardCoaching"}
-          initial={{ opacity: 0, scale: 0.8, y: 100 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.8, y: 100 }}
-          transition={{ duration: 0.4, type: "spring", stiffness: 300 }}
-          whileHover={!loading ? { scale: 1.05 } : undefined}
-          whileTap={!loading ? { scale: 0.95 } : undefined}
-          className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-40 md:hidden disabled:opacity-70 disabled:cursor-not-allowed"
+          onClick={handleClick}
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 24 }}
+          transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+          whileHover={{ scale: 1.03 }}
+          whileTap={{ scale: 0.97 }}
+          className="group fixed bottom-5 left-1/2 -translate-x-1/2 z-40 md:hidden flex items-center gap-2 pl-5 pr-4 py-3 rounded-full cursor-pointer"
           style={{
-            width: "180px",
-            height: "70px",
-            borderRadius: "50px",
             backgroundColor: "#EAE6D2",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            boxShadow: "0 12px 40px rgba(0,0,0,0.25), 0 4px 12px rgba(0,0,0,0.15)",
-            cursor: "pointer",
+            color: "#54412F",
+            boxShadow: "0 8px 28px rgba(0,0,0,0.28), 0 2px 6px rgba(0,0,0,0.12)",
+            fontWeight: 700,
+            fontSize: "13px",
+            letterSpacing: "0.06em",
+            textTransform: "uppercase",
+            backdropFilter: "blur(8px)",
           }}
         >
-          {/* Rotating text landscape */}
-          <div className="relative w-full h-full flex items-center justify-center">
-            {/* Rotating text */}
-            <motion.div
-              key={textIndex}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.3 }}
-              className="text-center flex-1"
-              style={{
-                fontSize: "13px",
-                fontWeight: "900",
-                color: "#54412F",
-                letterSpacing: "0.05em",
-                textTransform: "uppercase",
-                maxWidth: "160px",
-                lineHeight: "1.2",
-                textAlign: "center",
-              }}
-            >
-              {loading === "standardCoaching" ? "Loading..." : dynamicTexts[textIndex]}
-            </motion.div>
-          </div>
-
-          {/* Pulse animation ring */}
-          <motion.div
-            animate={{ scale: [1, 1.1, 1] }}
-            transition={{ duration: 2, repeat: Infinity }}
-            style={{
-              position: "absolute",
-              width: "100%",
-              height: "100%",
-              borderRadius: "50px",
-              border: "2px solid #54412F",
-              opacity: 0.3,
-            }}
-          />
+          <span>See Coaching</span>
+          <motion.span
+            className="flex items-center justify-center rounded-full"
+            style={{ backgroundColor: "#54412F", color: "#EAE6D2", width: 26, height: 26 }}
+            animate={{ x: [0, 3, 0] }}
+            transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
+          >
+            <ArrowRight size={14} strokeWidth={2.5} />
+          </motion.span>
         </motion.button>
       )}
     </AnimatePresence>

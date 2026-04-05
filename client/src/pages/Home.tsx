@@ -8,7 +8,7 @@ import { useEffect, useRef } from "react";
 import Navbar from "@/components/Navbar";
 import HeroSection from "@/components/HeroSection";
 import SocialProofBar from "@/components/SocialProofBar";
-import WhySection from "@/components/WhySection";
+import AppShowcaseSection from "@/components/AppShowcaseSection";
 import CoachingSection from "@/components/CoachingSection";
 import TestimonialsSection from "@/components/TestimonialsSection";
 import BeforeAfterSection from "@/components/BeforeAfterSection";
@@ -77,7 +77,7 @@ export default function Home() {
       <HeroSection />
       <SocialProofBar />
       <StatsSection />
-      <WhySection />
+      <AppShowcaseSection />
       <BeforeAfterSection />
       <TestimonialsSection />
       <AboutSection />

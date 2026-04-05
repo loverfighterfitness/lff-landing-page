@@ -29,8 +29,8 @@ export default function Home() {
     const onMove = (e: MouseEvent) => {
       if (rafId) return;
       rafId = requestAnimationFrame(() => {
-        const x = (e.clientX / window.innerWidth - 0.5) * 18; // ±9px drift
-        const y = (e.clientY / window.innerHeight - 0.5) * 18;
+        const x = (e.clientX / window.innerWidth - 0.5) * 60; // ±30px drift
+        const y = (e.clientY / window.innerHeight - 0.5) * 60;
         document.documentElement.style.setProperty("--grain-x", `${x}px`);
         document.documentElement.style.setProperty("--grain-y", `${y}px`);
         rafId = 0;

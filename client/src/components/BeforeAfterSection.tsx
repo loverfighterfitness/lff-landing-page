@@ -66,7 +66,7 @@ function ImageComparisonSlider({ transformation, resetKey }: SliderProps) {
   const [dragging, setDragging] = useState(false);
 
   const rawX = useMotionValue(0.5);
-  const springX = useSpring(rawX, { stiffness: 280, damping: 32 });
+  const springX = useSpring(rawX, { stiffness: 1400, damping: 80, mass: 0.3 });
   const [pct, setPct] = useState(50);
 
   useEffect(() => {

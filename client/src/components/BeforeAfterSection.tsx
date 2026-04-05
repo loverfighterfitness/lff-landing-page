@@ -183,10 +183,10 @@ export default function BeforeAfterSection() {
           className="rounded-3xl px-8 py-14 md:px-14 md:py-16"
           style={{ backgroundColor: "#EAE6D2", boxShadow: "0 20px 60px rgba(0,0,0,0.25), 0 4px 16px rgba(0,0,0,0.15)" }}
         >
-          <div className={`flex gap-8 sm:gap-12 items-center ${current.layout === "side" ? "flex-row" : "flex-col"}`}>
+          <div className={`flex gap-8 sm:gap-12 items-center ${current.layout === "side" ? "flex-col md:flex-row" : "flex-col"}`}>
 
             {/* Left/Top — slider + nav */}
-            <div className="flex flex-col items-center gap-4 flex-shrink-0" style={{ width: current.maxWidth, maxWidth: "100%", transition: "width 0.55s cubic-bezier(0.4,0,0.2,1)" }}>
+            <div className={`flex flex-col items-center gap-4 flex-shrink-0 w-full ${current.layout === "side" ? "md:max-w-[260px]" : ""}`} style={{ transition: "width 0.55s cubic-bezier(0.4,0,0.2,1)" }}>
               <div className="w-full flex justify-center">
                 <AnimatePresence mode="wait">
                   <motion.div

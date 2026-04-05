@@ -2,13 +2,10 @@
  * Hero Section — Large centered logo, single brown, Stan Store-inspired minimal
  */
 import { motion } from "framer-motion";
-import { ChevronDown, Loader2 } from "lucide-react";
-import { useStripeCheckout } from "@/hooks/useStripeCheckout";
+import { ChevronDown } from "lucide-react";
 import AnimatedLogo from "./AnimatedLogo";
 
 export default function HeroSection() {
-  const { checkout, loading } = useStripeCheckout();
-
   return (
     <section className="grain-overlay relative min-h-screen flex flex-col items-center justify-center" style={{ backgroundColor: '#54412F' }}>
       <div className="container relative z-10 pt-24 pb-16 flex flex-col items-center text-center">
@@ -84,34 +81,32 @@ export default function HeroSection() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.75 }}
-          className="flex flex-wrap gap-4 justify-center mb-16 md:mb-20"
+          className="flex flex-col items-center gap-3 mb-10 md:mb-12"
         >
-          {/* Primary CTA - Start Coaching */}
-          <motion.button
-            onClick={() => checkout("standardCoaching")}
-            disabled={loading === "standardCoaching"}
-            whileHover={!loading ? { scale: 1.06 } : undefined}
-            whileTap={!loading ? { scale: 0.98 } : undefined}
-            className="px-10 py-4 bg-lff-cream text-lff-brown font-bold tracking-wider uppercase text-sm rounded-full hover:opacity-90 transition-all duration-300 cta-pulse btn-shimmer shadow-lg flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
-          >
-            {loading === "standardCoaching" ? (
-              <>
-                <Loader2 size={15} className="animate-spin" />
-                Loading...
-              </>
-            ) : (
-              "Start Coaching"
-            )}
-          </motion.button>
-          {/* Secondary CTA - See Packages */}
-          <motion.a
-            href="#coaching"
-            whileHover={{ scale: 1.04 }}
-            whileTap={{ scale: 0.98 }}
-            className="px-8 py-4 border-2 border-lff-cream/40 text-lff-cream/70 font-semibold tracking-wider uppercase text-sm rounded-full transition-all duration-300"
-          >
-            See Packages
-          </motion.a>
+          <div className="flex flex-wrap gap-4 justify-center">
+            {/* Primary CTA - Scroll to coaching */}
+            <motion.a
+              href="#coaching"
+              whileHover={{ scale: 1.06 }}
+              whileTap={{ scale: 0.98 }}
+              className="px-10 py-4 bg-lff-cream text-lff-brown font-bold tracking-wider uppercase text-sm rounded-full hover:opacity-90 transition-all duration-300 cta-pulse btn-shimmer shadow-lg"
+            >
+              See The Coaching
+            </motion.a>
+            {/* Secondary CTA - Book a call */}
+            <motion.a
+              href="#contact"
+              whileHover={{ scale: 1.04 }}
+              whileTap={{ scale: 0.98 }}
+              className="px-8 py-4 border-2 border-lff-cream/40 text-lff-cream/70 font-semibold tracking-wider uppercase text-sm rounded-full transition-all duration-300"
+            >
+              Book a Call
+            </motion.a>
+          </div>
+          {/* Risk reversal micro-copy */}
+          <p className="text-lff-cream/45 text-xs tracking-wide font-medium">
+            No lock-in contracts · Cancel anytime
+          </p>
         </motion.div>
 
         {/* Social proof micro-copy — trust hook below CTAs */}
@@ -121,26 +116,38 @@ export default function HeroSection() {
           transition={{ duration: 0.6, delay: 1.1 }}
           className="flex items-center gap-3 mb-12 md:mb-16"
         >
-          {/* Avatar stack */}
+          {/* Avatar stack — real client photos */}
           <div className="flex -space-x-2">
-            {["R","K","J","A","S"].map((initial, i) => (
+            {[
+              { src: "https://d2xsxph8kpxj0f.cloudfront.net/310519663408040383/TeiTyUgvfabHNSBnznn263/ruby-comp-day_e2742a4b.jpeg", pos: "center 20%" },
+              { src: "/transformations/kim-testimonial.jpg", pos: "center 20%" },
+              { src: "/transformations/leigh-after.png", pos: "25% 20%" },
+              { src: "/transformations/laura.jpg", pos: "center 15%" },
+              { src: "https://d2xsxph8kpxj0f.cloudfront.net/310519663408040383/TeiTyUgvfabHNSBnznn263/440F56C7-42C7-4BEF-AA2B-04F320CCBC31_ddfd61dc.jpeg", pos: "center 20%" },
+            ].map((p, i) => (
               <div
                 key={i}
-                className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-black border-2 flex-shrink-0"
+                className="w-7 h-7 rounded-full overflow-hidden border-2 flex-shrink-0"
                 style={{
-                  backgroundColor: `rgba(234,230,210,${0.12 + i * 0.04})`,
-                  borderColor: "rgba(234,230,210,0.25)",
-                  color: "rgba(234,230,210,0.85)",
-                  fontSize: "9px",
+                  borderColor: "rgba(234,230,210,0.35)",
                   zIndex: 5 - i,
                 }}
               >
-                {initial}
+                <img
+                  src={p.src}
+                  alt=""
+                  className="w-full h-full object-cover"
+                  style={{ objectPosition: p.pos }}
+                  draggable={false}
+                />
               </div>
             ))}
           </div>
-          <p className="text-lff-cream/50 text-xs font-medium tracking-wide">
-            Joined by <span className="text-lff-cream/80 font-bold">100+ athletes</span> world-wide
+          <p className="text-lff-cream/55 text-xs font-medium tracking-wide flex items-center gap-1.5">
+            <span className="text-yellow-400/90 tracking-tight">★★★★★</span>
+            <span className="text-lff-cream/80 font-bold">5.0</span>
+            <span>·</span>
+            <span>16 Google reviews</span>
           </p>
         </motion.div>
 

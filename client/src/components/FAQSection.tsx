@@ -9,42 +9,27 @@ const faqs = [
   {
     question: "What's the minimum commitment?",
     answer:
-      "Both packages have a 4-week minimum — that's it. After that, you're month-to-month with no lock-in contract. You can pause or cancel anytime with 7 days' notice. I'd rather you stay because you're getting results, not because you're stuck in a contract.",
+      "4-week minimum on both packages — that's it. After that you're month-to-month with no lock-in. Pause or cancel anytime with 7 days' notice. I'd rather you stay because it's working, not because you're stuck.",
   },
   {
-    question: "What app do you use for coaching?",
+    question: "How do weekly check-ins + the app work?",
     answer:
-      "All coaching is delivered through a dedicated training app where you'll find your custom program, log your workouts, track your nutrition, and submit video form reviews. It's straightforward to use and I'll walk you through everything in your first session. You'll also have direct access to me via the app's messaging feature.",
+      "Everything runs through a dedicated coaching app — custom program, workout logs, video form reviews, and direct messaging with me. Every week you'll submit a short check-in covering training, nutrition, energy, and sleep. I review every single one and adjust your program based on what I see. Comp prep clients submit physique photos too.",
   },
   {
-    question: "How do weekly check-ins work?",
+    question: "Do you have comp prep experience?",
     answer:
-      "Every week you'll fill out a short check-in covering your training, nutrition, energy, sleep, and how you're feeling overall. I review every single one and respond with feedback, adjustments, and next steps. For comp prep clients, check-ins are more in-depth and include physique photos for progress tracking.",
-  },
-  {
-    question: "Do you have experience with competition prep?",
-    answer:
-      "Yes — I've now coached multiple clients through comp prep, both male and female. Ruby came through her debut comp and is now deep into her second prep, stepping on stage May 3rd. Dom is also heading into his first comp on the same show. Having experience with both sides means I understand how differently male and female physiques respond to prep — and I program accordingly. Comp prep is one of my core focuses and something I take seriously.",
-  },
-  {
-    question: "How is online coaching different from in-person PT?",
-    answer:
-      "Online coaching gives you a fully custom program, weekly check-ins, video form reviews, and unlimited messaging — all for less than the cost of a single in-person PT session per week. You're not paying for a gym's overheads or a trainer's travel time. You're paying for the coaching itself, and you get more of it. The main difference is flexibility — you train on your schedule, wherever you are.",
+      "Yes — I've coached multiple clients through comp prep, both male and female. Ruby placed in her debut comp and is stepping on stage again May 3rd. Dom is on the same show. Comp prep is one of my core focuses and I take it seriously.",
   },
   {
     question: "What if I'm a complete beginner?",
     answer:
-      "Beginners are welcome. I build every program from scratch based on where you're at right now — your experience level, your equipment, your schedule. You won't be handed a generic beginner template. The first thing we do is a full onboarding call so I understand exactly what you need before I write a single set.",
+      "Beginners are welcome. I build every program from scratch based on where you're at — your experience, equipment, and schedule. You won't get a generic template. We'll do a full onboarding call before I write a single set.",
   },
   {
-    question: "What does the onboarding process look like?",
+    question: "How is online coaching different from in-person PT?",
     answer:
-      "Once you sign up, We'll go over your goals, training history, lifestyle, and any injuries or limitations. From there I'll build your custom program and get you set up in the app — usually within 48 hours of that call. You'll be training with a plan built specifically for you within a few days of signing up.",
-  },
-  {
-    question: "Can I do comp prep coaching if I've never competed before?",
-    answer:
-      "Absolutely — that's actually the ideal time to start. We'll figure out which federation and division suits your physique, build your prep timeline, and take you through the whole process from start to finish. You don't need prior stage experience. You just need to be committed to the process.",
+      "You get a fully custom program, weekly check-ins, video form reviews, and unlimited messaging — all for less than one in-person PT session per week. You're not paying for gym overheads or travel time. Train on your schedule, wherever you are.",
   },
 ];
 

@@ -54,6 +54,21 @@ const TRANSFORMATIONS: Transformation[] = [
     quote: "You are more than a PT, you are my friend.",
     author: "Kim Morrison, F2F Client",
   },
+  {
+    paddingBottom: "177.78%", // portrait 9:16
+    maxWidth: "260px",
+    layout: "side" as const,
+    before: "/transformations/leigh-before.png",
+    after: "/transformations/leigh-after.png",
+    beforeStyle: { position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" as const, objectPosition: "center center" },
+    afterStyle:  { position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" as const, objectPosition: "center center" },
+    afterLabel: "After",
+    name: "Leigh",
+    tag: "Online Coaching · -14kg",
+    copy: "Leigh dropped 14kg with consistent training and dialled nutrition. Steady work, real results.",
+    quote: "Couldn't be happier with the progress.",
+    author: "Leigh, Online Coaching Client",
+  },
 ];
 
 interface SliderProps {

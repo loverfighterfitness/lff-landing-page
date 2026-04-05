@@ -14,6 +14,7 @@ type Testimonial = {
   src: string; // photo URL or avatar URL
   avatarColor?: string;
   initials?: string;
+  objectPosition?: string;
 };
 
 const TESTIMONIALS: Testimonial[] = [
@@ -30,6 +31,7 @@ const TESTIMONIALS: Testimonial[] = [
     name: "Kim Morrison",
     designation: "Online Coaching Client · 4 Months",
     src: "/transformations/kim-testimonial.jpg",
+    objectPosition: "center 20%",
   },
   {
     quote:
@@ -114,8 +116,8 @@ export default function AnimatedTestimonials({ autoplay = true }: { autoplay?: b
                     src={t.src}
                     alt={t.name}
                     draggable={false}
-                    className="h-full w-full rounded-2xl object-cover object-top select-none"
-                    style={{ boxShadow: isActive ? "0 16px 48px rgba(0,0,0,0.22)" : "none" }}
+                    className="h-full w-full rounded-2xl object-cover select-none"
+                    style={{ boxShadow: isActive ? "0 16px 48px rgba(0,0,0,0.22)" : "none", objectPosition: t.objectPosition ?? "center top" }}
                   />
                 </motion.div>
               );

@@ -6,7 +6,7 @@
  */
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from "framer-motion";
-import { LayoutGrid, Dumbbell, ClipboardCheck, Apple, TrendingDown } from "lucide-react";
+import { LayoutGrid, Dumbbell, ClipboardCheck, Apple, TrendingDown, Users } from "lucide-react";
 
 const features = [
   {
@@ -52,6 +52,15 @@ const features = [
     description:
       "Weight, photos, body stats, steps — tracked over time. See the line trending the way you want it to.",
     image: "/app/weight.png",
+    accent: "#C9A87C",
+  },
+  {
+    icon: Users,
+    label: "The LFF Team",
+    title: "COMMUNITY",
+    description:
+      "You're never training alone. Challenges, polls, wins and banter — the whole LFF crew in one feed.",
+    image: "/app/community.png",
     accent: "#EAE6D2",
   },
 ];

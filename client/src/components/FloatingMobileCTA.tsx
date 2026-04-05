@@ -45,7 +45,7 @@ export default function FloatingMobileCTA() {
           transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
           whileHover={{ scale: 1.03 }}
           whileTap={{ scale: 0.97 }}
-          className="group fixed bottom-5 left-1/2 -translate-x-1/2 z-40 md:hidden flex items-center gap-2 pl-5 pr-4 py-3 rounded-full cursor-pointer"
+          className="group fixed bottom-5 left-1/2 -translate-x-1/2 z-40 flex items-center gap-2 pl-5 pr-4 py-3 rounded-full cursor-pointer"
           style={{
             backgroundColor: "#EAE6D2",
             color: "#54412F",

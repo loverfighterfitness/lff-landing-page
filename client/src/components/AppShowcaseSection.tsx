@@ -354,12 +354,9 @@ function PhoneFrame({ image, small = false }: { image: string; small?: boolean }
   const width = small ? 220 : 280;
   const height = small ? 448 : 572;
   const padding = small ? 8 : 10;
-  const statusBarH = small ? 30 : 38;
-  const islandW = small ? 70 : 90;
-  const islandH = small ? 18 : 24;
   return (
     <div
-      className="relative rounded-[42px] overflow-hidden"
+      className="relative rounded-[42px]"
       style={{
         width,
         height,
@@ -374,34 +371,13 @@ function PhoneFrame({ image, small = false }: { image: string; small?: boolean }
         className="w-full h-full rounded-[34px] overflow-hidden relative"
         style={{ backgroundColor: "#fff" }}
       >
-        {/* Image — shifted up to hide its iOS status bar under our status strip */}
         <img
           src={image}
           alt=""
           loading="lazy"
-          className="absolute inset-0 w-full h-full object-cover object-top select-none pointer-events-none"
+          className="w-full h-full object-cover object-top select-none pointer-events-none"
           draggable={false}
         />
-        {/* Black status strip — masks the screenshot's native iOS status bar */}
-        <div
-          className="absolute top-0 left-0 right-0 flex items-center justify-center"
-          style={{
-            height: statusBarH,
-            backgroundColor: "#000",
-            zIndex: 2,
-          }}
-        >
-          {/* Dynamic Island */}
-          <div
-            className="rounded-full"
-            style={{
-              width: islandW,
-              height: islandH,
-              backgroundColor: "#000",
-              boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.04)",
-            }}
-          />
-        </div>
       </div>
     </div>
   );

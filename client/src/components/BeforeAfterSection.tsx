@@ -186,7 +186,7 @@ export default function BeforeAfterSection() {
           <div className={`flex gap-8 sm:gap-12 items-center ${current.layout === "side" ? "flex-col md:flex-row" : "flex-col"}`}>
 
             {/* Left/Top — slider + nav */}
-            <div className={`flex flex-col items-center gap-4 flex-shrink-0 mx-auto ${current.layout === "side" ? "w-full max-w-[260px]" : "w-full max-w-[480px] md:max-w-full"}`} style={{ transition: "width 0.55s cubic-bezier(0.4,0,0.2,1)" }}>
+            <div className={`flex flex-col items-center gap-4 flex-shrink-0 mx-auto ${current.layout === "side" ? "w-full max-w-[260px]" : "w-full max-w-[420px] md:max-w-[560px]"}`} style={{ transition: "width 0.55s cubic-bezier(0.4,0,0.2,1)" }}>
               <div className="w-full flex justify-center">
                 <AnimatePresence mode="wait">
                   <motion.div

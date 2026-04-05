@@ -78,10 +78,10 @@ export default function Home() {
       <SocialProofBar />
       <StatsSection />
       <WhySection />
-      <CoachingSection />
       <BeforeAfterSection />
       <TestimonialsSection />
       <AboutSection />
+      <CoachingSection />
       <FAQSection />
       <ContactSection />
       <Footer />

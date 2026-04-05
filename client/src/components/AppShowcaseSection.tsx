@@ -256,31 +256,49 @@ export default function AppShowcaseSection() {
               })}
             </div>
 
-            {/* Active phone — big, tilts with mouse */}
+            {/* Active phone — big, tilts with mouse. Crossfade swap. */}
             <motion.div
               className="relative z-20"
               style={{
                 rotateX,
                 rotateY,
                 transformStyle: "preserve-3d",
+                width: 280,
+                height: 572,
               }}
             >
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={activeIndex}
-                  initial={{ opacity: 0, scale: 0.9, rotateY: -25 }}
-                  animate={{ opacity: 1, scale: 1, rotateY: 0 }}
-                  exit={{ opacity: 0, scale: 0.9, rotateY: 25 }}
-                  transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
-                >
-                  <PhoneFrame image={active.image} />
-                </motion.div>
-              </AnimatePresence>
+              {features.map((f, i) => {
+                const isActive = i === activeIndex;
+                return (
+                  <motion.div
+                    key={i}
+                    className="absolute inset-0"
+                    initial={false}
+                    animate={{
+                      opacity: isActive ? 1 : 0,
+                      scale: isActive ? 1 : 0.96,
+                      filter: isActive ? "blur(0px)" : "blur(6px)",
+                    }}
+                    transition={{
+                      opacity: { duration: 0.5, ease: [0.22, 1, 0.36, 1] },
+                      scale: { duration: 0.6, ease: [0.22, 1, 0.36, 1] },
+                      filter: { duration: 0.45, ease: "easeOut" },
+                    }}
+                    style={{ pointerEvents: isActive ? "auto" : "none" }}
+                  >
+                    <PhoneFrame image={f.image} />
+                  </motion.div>
+                );
+              })}
 
               {/* Glow pad beneath phone */}
               <div
-                className="absolute left-1/2 -translate-x-1/2 bottom-[-40px] w-[70%] h-8 rounded-full blur-2xl"
-                style={{ backgroundColor: active.accent, opacity: 0.35 }}
+                className="absolute left-1/2 -translate-x-1/2 bottom-[-40px] w-[70%] h-8 rounded-full blur-2xl pointer-events-none"
+                style={{
+                  backgroundColor: active.accent,
+                  opacity: 0.35,
+                  transition: "background-color 0.6s ease",
+                }}
               />
             </motion.div>
 

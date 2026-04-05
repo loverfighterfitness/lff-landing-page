@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="LFF Content" />
+  <meta name="theme-color" content="#54412F" />
+  <link rel="manifest" href="/content-tracker-manifest.json" />
+  <link rel="icon" type="image/png" href="https://d2xsxph8kpxj0f.cloudfront.net/310519663408040383/TeiTyUgvfabHNSBnznn263/lff-favicon-rounded_da8ad614.png" />
+  <link rel="apple-touch-icon" href="https://d2xsxph8kpxj0f.cloudfront.net/310519663408040383/TeiTyUgvfabHNSBnznn263/apple-touch-icon_33e86517.png" />
+  <title>LFF Content Tracker</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif; background: #EAE6D2; color: #2A1F15; overflow: hidden; }
+    html, body { height: 100%; width: 100%; }
+    .wrap { display: flex; flex-direction: column; height: 100vh; }
+    header { background: #54412F; color: #EAE6D2; padding: 12px 16px; padding-top: max(12px, env(safe-area-inset-top)); display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+    header img { height: 38px; width: 38px; object-fit: contain; flex-shrink: 0; }
+    header span { font-size: 11px; opacity: 0.65; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 700; }
+    .qc { display: flex; flex: 1; max-width: 360px; background: rgba(255,255,255,0.13); border-radius: 10px; overflow: hidden; margin-left: auto; }
+    .qc input { flex: 1; background: transparent; border: none; padding: 9px 12px; font-size: 14px; color: #EAE6D2; outline: none; font-family: inherit; }
+    .qc button { background: #EAE6D2; color: #54412F; border: none; padding: 0 16px; font-size: 20px; font-weight: 700; cursor: pointer; line-height: 1; }
+    .stats { background: #3A2D20; color: #EAE6D2; display: flex; flex-shrink: 0; }
+    .stat-col { flex: 1; text-align: center; padding: 8px 6px; border-right: 1px solid rgba(255,255,255,0.08); cursor: pointer; }
+    .stat-col:last-child { border-right: none; }
+    .stat-num { font-size: 22px; font-weight: 800; line-height: 1; }
+    .stat-emoji { font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; opacity: 0.6; margin-top: 2px; }
+    .tabs { display: flex; background: #D4CEBA; padding: 8px 10px; gap: 6px; overflow-x: auto; -webkit-overflow-scrolling: touch; flex-shrink: 0; scrollbar-width: none; }
+    .tabs::-webkit-scrollbar { display: none; }
+    .tab { display: flex; align-items: center; gap: 5px; padding: 7px 14px; border-radius: 20px; border: none; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; font-family: inherit; transition: all 0.15s; }
+    .tab.active { background: #54412F; color: #EAE6D2; }
+    .tab:not(.active) { background: transparent; color: #8A7060; }
+    .badge { font-size: 10px; font-weight: 700; min-width: 18px; height: 18px; border-radius: 9px; display: flex; align-items: center; justify-content: center; padding: 0 4px; }
+    .tab.active .badge { background: rgba(255,255,255,0.22); color: #EAE6D2; }
+    .tab:not(.active) .badge { background: rgba(0,0,0,0.15); color: #2A1F15; }
+    .board { flex: 1; overflow: hidden; display: flex; }
+    .col { display: none; flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 14px; padding-bottom: max(80px, calc(20px + env(safe-area-inset-bottom))); }
+    .col.active { display: flex; flex-direction: column; }
+    @media (min-width: 768px) {
+      .tabs { display: none !important; }
+      .col { display: flex !important; flex-direction: column; border-right: 1px solid #D4CEBA; }
+      .col:last-child { border-right: none; }
+    }
+    .col-empty { text-align: center; padding: 40px 20px; color: #8A7060; }
+    .col-empty-icon { font-size: 36px; margin-bottom: 10px; }
+    .col-empty-h { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+    .col-empty-p { font-size: 13px; }
+    .card { background: #fff; border-radius: 12px; padding: 13px 14px; margin-bottom: 10px; box-shadow: 0 1px 4px rgba(84,65,47,0.1), 0 0 0 1px rgba(84,65,47,0.04); cursor: pointer; transition: transform 0.1s; border-left: 4px solid; }
+    .card:active { transform: scale(0.98); }
+    .card-header { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 7px; }
+    .card-title { flex: 1; font-size: 15px; font-weight: 700; line-height: 1.3; color: #2A1F15; }
+    .card-move { width: 28px; height: 28px; border-radius: 8px; border: none; background: #EAE6D2; color: #8A7060; font-size: 15px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .card-meta { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; font-size: 11px; color: #8A7060; }
+    .card-type { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; padding: 2px 8px; border-radius: 4px; color: #fff; }
+    .card-notes { margin-top: 8px; font-size: 13px; color: #8A7060; line-height: 1.45; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .card-sched { margin-top: 6px; font-size: 11px; color: #3A7FA8; font-weight: 600; }
+    .fab { position: fixed; bottom: max(22px, calc(18px + env(safe-area-inset-bottom))); right: 18px; width: 54px; height: 54px; border-radius: 27px; background: #54412F; color: #EAE6D2; border: none; font-size: 28px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 14px rgba(84,65,47,0.45); cursor: pointer; z-index: 100; line-height: 1; }
+    .overlay { position: fixed; inset: 0; background: rgba(42,31,21,0.55); z-index: 200; display: flex; align-items: flex-end; opacity: 0; pointer-events: none; transition: opacity 0.22s; }
+    .overlay.open { opacity: 1; pointer-events: all; }
+    .modal { background: #F5F2EA; width: 100%; border-radius: 22px 22px 0 0; padding: 20px 18px; padding-bottom: max(30px, calc(20px + env(safe-area-inset-bottom))); transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1); max-height: 92dvh; overflow-y: auto; }
+    .overlay.open .modal { transform: translateY(0); }
+    .handle { width: 36px; height: 4px; background: #D4CEBA; border-radius: 2px; margin: 0 auto 16px; }
+    .modal h2 { font-size: 20px; font-weight: 800; color: #2A1F15; margin-bottom: 20px; }
+    .form-group { margin-bottom: 16px; }
+    .form-label { display: block; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #8A7060; margin-bottom: 6px; }
+    .form-input { width: 100%; padding: 11px 13px; border-radius: 10px; border: 1.5px solid #D4CEBA; background: #fff; font-size: 15px; color: #2A1F15; outline: none; font-family: inherit; }
+    .form-input:focus { border-color: #54412F; }
+    .form-input.error { border-color: #dc3545; }
+    .form-textarea { width: 100%; padding: 11px 13px; border-radius: 10px; border: 1.5px solid #D4CEBA; background: #fff; font-size: 14px; color: #2A1F15; outline: none; font-family: inherit; resize: vertical; }
+    .form-textarea:focus { border-color: #54412F; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .grid-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 8px; }
+    .btn { padding: 13px; border-radius: 12px; font-size: 15px; font-weight: 700; cursor: pointer; font-family: inherit; border: none; transition: all 0.1s; }
+    .btn-primary { background: #54412F; color: #EAE6D2; }
+    .btn-secondary { background: transparent; color: #8A7060; border: 2px solid #D4CEBA; }
+    .btn-danger { background: #dc3545; color: #fff; }
+    .btn-type { padding: 10px 6px; border-radius: 10px; cursor: pointer; text-align: center; font-size: 12px; font-weight: 700; border: 2px solid #D4CEBA; }
+    .btn-type.active { border-color: #54412F; }
+    .btn-stage { padding: 10px 12px; border-radius: 10px; cursor: pointer; font-size: 13px; font-weight: 700; border: 2px solid #D4CEBA; }
+    .btn-stage.active { background: #54412F; color: #EAE6D2; border-color: #54412F; }
+    .btn-actions { display: flex; gap: 10px; }
+    .btn-actions .btn { flex: 1; }
+    .sheet { position: fixed; bottom: 0; left: 0; right: 0; background: #F5F2EA; border-radius: 22px 22px 0 0; padding: 20px 18px; padding-bottom: max(30px, calc(20px + env(safe-area-inset-bottom))); z-index: 301; transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1); }
+    .sheet.open { transform: translateY(0); }
+    .sheet h3 { font-size: 16px; font-weight: 800; color: #2A1F15; margin-bottom: 14px; }
+    .sheet-overlay { position: fixed; inset: 0; background: rgba(42,31,21,0.45); z-index: 300; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+    .sheet-overlay.open { opacity: 1; pointer-events: all; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <img src="https://d2xsxph8kpxj0f.cloudfront.net/310519663408040383/TeiTyUgvfabHNSBnznn263/LFFNEWLOGOCREAM_transparent_a5b72c81.png" alt="LFF" />
+      <span>Content Tracker</span>
+      <div class="qc">
+        <input id="qcInput" type="text" placeholder="Quick capture idea..." />
+        <button id="qcBtn">+</button>
+      </div>
+    </header>
+
+    <div class="stats" id="stats"></div>
+    <div class="tabs" id="tabs"></div>
+    <div class="board" id="board"></div>
+    <button class="fab" id="fab">+</button>
+  </div>
+
+  <!-- Modal -->
+  <div class="overlay" id="overlay">
+    <div class="modal" id="modal">
+      <div class="handle"></div>
+      <h2 id="modalTitle">New Idea 💡</h2>
+      <div class="form-group">
+        <label class="form-label">Title *</label>
+        <input id="fTitle" type="text" class="form-input" placeholder="What's the idea?" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Type</label>
+        <div class="grid-4" id="typeGrid"></div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Stage</label>
+        <div class="grid-2" id="stageGrid"></div>
+      </div>
+      <div class="form-group" id="dateGroup" style="display: none;">
+        <label class="form-label">Scheduled Date</label>
+        <input id="fDate" type="date" class="form-input" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Notes / Hook ideas</label>
+        <textarea id="fNotes" class="form-textarea" rows="3" placeholder="Caption ideas, hook, key points..."></textarea>
+      </div>
+      <div class="btn-actions">
+        <button class="btn btn-secondary" id="cancelBtn">Cancel</button>
+        <button class="btn btn-danger" id="deleteBtn" style="display: none;">🗑️</button>
+        <button class="btn btn-primary" id="saveBtn" style="flex: 2;">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Move Sheet -->
+  <div class="sheet-overlay" id="sheetOverlay"></div>
+  <div class="sheet" id="sheet">
+    <div class="handle"></div>
+    <h3>Move to stage</h3>
+    <div class="grid-2" id="moveGrid"></div>
+  </div>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/content-tracker-sw.js').catch(() => {});
+    }
+
+    const STORAGE_KEY = 'lff_ideas_v1';
+    const LOGO = 'https://d2xsxph8kpxj0f.cloudfront.net/310519663408040383/TeiTyUgvfabHNSBnznn263/LFFNEWLOGOCREAM_transparent_a5b72c81.png';
+
+    const COLS = {
+      ideas: { label: 'Ideas', emptyIcon: '💭', emptyH: 'No ideas yet', emptyP: 'Use the bar above or + to add one' },
+      drafting: { label: 'Drafting', emptyIcon: '✍️', emptyH: 'Nothing drafting', emptyP: 'Move an idea here when you start writing' },
+      scheduled: { label: 'Scheduled', emptyIcon: '📅', emptyH: 'Nothing scheduled', emptyP: 'Move content here when it\'s ready to go' },
+      posted: { label: 'Posted', emptyIcon: '🎉', emptyH: 'Nothing posted yet', emptyP: 'Your wins will show up here' }
+    };
+
+    const COL_EMOJI = { ideas: '💡', drafting: '✍️', scheduled: '📅', posted: '✅' };
+
+    const TYPES = {
+      reel: { label: 'Reel', emoji: '🎬', color: '#C97020' },
+      post: { label: 'Post', emoji: '🖼️', color: '#3A7FA8' },
+      story: { label: 'Story', emoji: '⭕', color: '#9040A0' },
+      carousel: { label: 'Carousel', emoji: '🎠', color: '#2A8A50' }
+    };
+
+    let cards = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+    let activeCol = 'ideas';
+    let editId = null;
+    let selType = 'reel';
+    let selStage = 'ideas';
+    let sheetCardId = null;
+
+    function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
+    function relDate(ts) {
+      const d = Date.now() - ts;
+      if (d < 86400000) return 'Today';
+      if (d < 172800000) return 'Yesterday';
+      return new Date(ts).toLocaleDateString('en-AU', { day: 'numeric', month: 'short' });
+    }
+
+    function save() { localStorage.setItem(STORAGE_KEY, JSON.stringify(cards)); render(); }
+
+    function render() {
+      const counts = {};
+      Object.keys(COLS).forEach(col => { counts[col] = cards.filter(c => c.col === col).length; });
+
+      // Stats
+      document.getElementById('stats').innerHTML = Object.keys(COLS).map((col, i) => `
+        <div class="stat-col" onclick="setActive('${col}')">
+          <div class="stat-num">${counts[col]}</div>
+          <div class="stat-emoji">${COL_EMOJI[col]}</div>
+        </div>
+      `).join('');
+
+      // Tabs
+      document.getElementById('tabs').innerHTML = Object.keys(COLS).map(col => `
+        <button class="tab${activeCol === col ? ' active' : ''}" onclick="setActive('${col}')">
+          ${COL_EMOJI[col]} ${COLS[col].label}
+          <span class="badge">${counts[col]}</span>
+        </button>
+      `).join('');
+
+      // Board
+      document.getElementById('board').innerHTML = Object.keys(COLS).map(col => {
+        const colCards = cards.filter(c => c.col === col).sort((a, b) => b.ts - a.ts);
+        return `
+          <div class="col${activeCol === col ? ' active' : ''}">
+            ${colCards.length === 0 ? `
+              <div class="col-empty">
+                <div class="col-empty-icon">${COLS[col].emptyIcon}</div>
+                <div class="col-empty-h">${COLS[col].emptyH}</div>
+                <div class="col-empty-p">${COLS[col].emptyP}</div>
+              </div>
+            ` : colCards.map(card => `
+              <div class="card" style="border-left-color: ${TYPES[card.type].color};" onclick="openEdit('${card.id}')">
+                <div class="card-header">
+                  <div class="card-title">${card.title}</div>
+                  <button class="card-move" onclick="event.stopPropagation(); openSheet('${card.id}')">→</button>
+                </div>
+                <div class="card-meta">
+                  <span class="card-type" style="background: ${TYPES[card.type].color};">${TYPES[card.type].emoji} ${TYPES[card.type].label}</span>
+                  <span>${relDate(card.ts)}</span>
+                </div>
+                ${card.notes ? `<div class="card-notes">${card.notes}</div>` : ''}
+                ${card.sched ? `<div class="card-sched">📅 ${card.sched}</div>` : ''}
+              </div>
+            `).join('')}
+          </div>
+        `;
+      }).join('');
+
+      // Type grid
+      document.getElementById('typeGrid').innerHTML = Object.keys(TYPES).map(t => `
+        <button class="btn-type${selType === t ? ' active' : ''}" style="background: ${selType === t ? TYPES[t].color : '#fff'}; color: ${selType === t ? '#fff' : '#8A7060'}; border-color: ${selType === t ? TYPES[t].color : '#D4CEBA'};" onclick="selType='${t}'; render()">
+          <div style="font-size: 22px; margin-bottom: 3px;">${TYPES[t].emoji}</div>
+          ${TYPES[t].label}
+        </button>
+      `).join('');
+
+      // Stage grid
+      document.getElementById('stageGrid').innerHTML = Object.keys(COLS).map(s => `
+        <button class="btn-stage${selStage === s ? ' active' : ''}" style="background: ${selStage === s ? '#54412F' : '#fff'}; color: ${selStage === s ? '#EAE6D2' : '#8A7060'};" onclick="selStage='${s}'; document.getElementById('dateGroup').style.display = selStage === 'scheduled' ? 'block' : 'none'; render()">
+          ${COL_EMOJI[s]} ${COLS[s].label}
+        </button>
+      `).join('');
+
+      // Move grid
+      document.getElementById('moveGrid').innerHTML = Object.keys(COLS).map(col => {
+        const cur = sheetCardId ? cards.find(c => c.id === sheetCardId)?.col === col : false;
+        return `
+          <button class="btn-stage${cur ? ' active' : ''}" style="background: ${cur ? '#54412F' : '#fff'}; color: ${cur ? '#EAE6D2' : '#2A1F15'};" onclick="moveTo('${col}')">
+            ${COL_EMOJI[col]} ${COLS[col].label} ${cur ? '✓' : ''}
+          </button>
+        `;
+      }).join('');
+    }
+
+    function setActive(col) { activeCol = col; render(); }
+    function openNew() {
+      editId = null; selType = 'reel'; selStage = activeCol;
+      document.getElementById('fTitle').value = '';
+      document.getElementById('fNotes').value = '';
+      document.getElementById('fDate').value = '';
+      document.getElementById('fTitle').classList.remove('error');
+      document.getElementById('modalTitle').textContent = 'New Idea 💡';
+      document.getElementById('deleteBtn').style.display = 'none';
+      document.getElementById('overlay').classList.add('open');
+      document.getElementById('dateGroup').style.display = selStage === 'scheduled' ? 'block' : 'none';
+      render();
+      setTimeout(() => document.getElementById('fTitle').focus(), 350);
+    }
+    function openEdit(id) {
+      const c = cards.find(x => x.id === id);
+      if (!c) return;
+      editId = id; selType = c.type; selStage = c.col;
+      document.getElementById('fTitle').value = c.title;
+      document.getElementById('fNotes').value = c.notes || '';
+      document.getElementById('fDate').value = c.sched || '';
+      document.getElementById('fTitle').classList.remove('error');
+      document.getElementById('modalTitle').textContent = 'Edit Idea ✏️';
+      document.getElementById('deleteBtn').style.display = 'block';
+      document.getElementById('overlay').classList.add('open');
+      document.getElementById('dateGroup').style.display = selStage === 'scheduled' ? 'block' : 'none';
+      render();
+      setTimeout(() => document.getElementById('fTitle').focus(), 350);
+    }
+    function saveCard() {
+      const title = document.getElementById('fTitle').value.trim();
+      if (!title) { document.getElementById('fTitle').classList.add('error'); return; }
+      const notes = document.getElementById('fNotes').value.trim();
+      const sched = selStage === 'scheduled' ? document.getElementById('fDate').value : '';
+      if (editId) {
+        const idx = cards.findIndex(c => c.id === editId);
+        cards[idx] = { ...cards[idx], title, type: selType, col: selStage, notes, sched };
+      } else {
+        cards.push({ id: uid(), title, type: selType, col: selStage, notes, sched, ts: Date.now() });
+      }
+      save();
+      document.getElementById('overlay').classList.remove('open');
+      if (window.innerWidth < 768) setActive(selStage);
+    }
+    function deleteCard() {
+      if (!confirm('Delete this idea?')) return;
+      cards = cards.filter(c => c.id !== editId);
+      save();
+      document.getElementById('overlay').classList.remove('open');
+    }
+    function openSheet(id) { sheetCardId = id; document.getElementById('sheet').classList.add('open'); document.getElementById('sheetOverlay').classList.add('open'); render(); }
+    function moveTo(col) {
+      if (!sheetCardId) return;
+      const idx = cards.findIndex(c => c.id === sheetCardId);
+      cards[idx].col = col;
+      save();
+      document.getElementById('sheet').classList.remove('open');
+      document.getElementById('sheetOverlay').classList.remove('open');
+      sheetCardId = null;
+      if (window.innerWidth < 768) setActive(col);
+    }
+    function quickCapture() {
+      const val = document.getElementById('qcInput').value.trim();
+      if (!val) return;
+      cards.push({ id: uid(), title: val, type: 'reel', col: 'ideas', notes: '', sched: '', ts: Date.now() });
+      document.getElementById('qcInput').value = '';
+      save();
+      if (window.innerWidth < 768) setActive('ideas');
+    }
+
+    document.getElementById('fab').onclick = openNew;
+    document.getElementById('qcBtn').onclick = quickCapture;
+    document.getElementById('qcInput').onkeydown = e => e.key === 'Enter' && quickCapture();
+    document.getElementById('saveBtn').onclick = saveCard;
+    document.getElementById('deleteBtn').onclick = deleteCard;
+    document.getElementById('cancelBtn').onclick = () => document.getElementById('overlay').classList.remove('open');
+    document.getElementById('overlay').onclick = e => e.target.id === 'overlay' && document.getElementById('overlay').classList.remove('open');
+    document.getElementById('sheetOverlay').onclick = () => { document.getElementById('sheet').classList.remove('open'); document.getElementById('sheetOverlay').classList.remove('open'); };
+
+    window.addEventListener('keydown', e => {
+      if (e.key === 'Escape') {
+        document.getElementById('overlay').classList.remove('open');
+        document.getElementById('sheet').classList.remove('open');
+        document.getElementById('sheetOverlay').classList.remove('open');
+      }
+      if ((e.metaKey || e.ctrlKey) && e.key === 'Enter' && document.getElementById('overlay').classList.contains('open')) saveCard();
+    });
+
+    render();
+  </script>
+</body>
+</html>

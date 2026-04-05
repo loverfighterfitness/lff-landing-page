@@ -1,0 +1,24 @@
+{
+  "name": "Lover Fighter Fitness",
+  "short_name": "LFF",
+  "description": "Online coaching, strength training & bodybuilding by Levi Hurst",
+  "start_url": "/admin/leads",
+  "display": "standalone",
+  "background_color": "#54412F",
+  "theme_color": "#54412F",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "https://d2xsxph8kpxj0f.cloudfront.net/310519663408040383/TeiTyUgvfabHNSBnznn263/icon-192_aeeeac63.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://d2xsxph8kpxj0f.cloudfront.net/310519663408040383/TeiTyUgvfabHNSBnznn263/icon-512_b1592fba.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -38,7 +38,8 @@ const TESTIMONIALS: Testimonial[] = [
       "I've had Levi as a coach for about 9 months now — probably the best thing I've ever done for my strength and health. I have learned far more than I ever expected and gained strength in ways I've never seen in my body before. I'm far more confident and excited about the gym now.",
     name: "Laura Koerbin",
     designation: "Online Coaching Client · 9 Months",
-    src: "https://d2xsxph8kpxj0f.cloudfront.net/310519663408040383/TeiTyUgvfabHNSBnznn263/3364F913-BF35-4897-B42E-9359661B16E7_41a0bda7.jpeg",
+    src: "/transformations/laura.jpg",
+    objectPosition: "center 15%",
   },
   {
     quote:

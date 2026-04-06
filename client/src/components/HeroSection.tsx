@@ -84,7 +84,7 @@ export default function HeroSection() {
             initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ type: "spring", stiffness: 100, damping: 20, delay: 1.4 }}
-            className="text-lff-cream/70 text-base md:text-lg max-w-md leading-relaxed mb-8 font-normal mx-auto lg:mx-0"
+            className="text-lff-cream/70 text-sm md:text-lg max-w-sm md:max-w-md leading-relaxed mb-8 font-normal mx-auto lg:mx-0"
           >
             Personalised strength, bodybuilding, and competition prep coaching.
             Custom programming, weekly check-ins, real results.
@@ -97,14 +97,14 @@ export default function HeroSection() {
             transition={{ type: "spring", stiffness: 100, damping: 20, delay: 1.6 }}
             className="flex flex-col items-center lg:items-start gap-3 mb-8"
           >
-            <div className="flex flex-wrap gap-3 justify-center lg:justify-start">
+            <div className="flex gap-3 justify-center lg:justify-start">
               {/* Primary */}
               <motion.a
                 href="#coaching"
                 whileHover={{ scale: 1.05, y: -2 }}
                 whileTap={{ scale: 0.97, y: 1 }}
                 transition={{ type: "spring", stiffness: 400, damping: 17 }}
-                className="px-8 py-3.5 bg-lff-cream text-lff-brown font-bold tracking-wider uppercase text-sm rounded-full shadow-lg"
+                className="px-7 py-3 bg-lff-cream text-lff-brown font-bold tracking-wider uppercase text-xs md:text-sm rounded-full shadow-lg whitespace-nowrap"
                 style={{ willChange: "transform" }}
               >
                 See The Coaching
@@ -115,7 +115,7 @@ export default function HeroSection() {
                 whileHover={{ scale: 1.04, y: -2 }}
                 whileTap={{ scale: 0.97, y: 1 }}
                 transition={{ type: "spring", stiffness: 400, damping: 17 }}
-                className="px-7 py-3.5 border-2 border-lff-cream/30 text-lff-cream/65 font-semibold tracking-wider uppercase text-sm rounded-full"
+                className="px-6 py-3 border-2 border-lff-cream/30 text-lff-cream/65 font-semibold tracking-wider uppercase text-xs md:text-sm rounded-full whitespace-nowrap"
                 style={{ willChange: "transform" }}
               >
                 Book a Call

@@ -118,7 +118,7 @@ export default function HeroSection() {
                 className="px-6 py-3 border-2 border-lff-cream/30 text-lff-cream/65 font-semibold tracking-wider uppercase text-xs md:text-sm rounded-full whitespace-nowrap"
                 style={{ willChange: "transform" }}
               >
-                Book a Call
+                Get in Touch
               </motion.a>
             </div>
             {/* Risk reversal */}

@@ -20,7 +20,7 @@ export default function HeroSection() {
       <div className="container relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-0 items-center py-24 lg:py-0">
 
         {/* ─── LEFT: Content — centered on mobile, left-aligned on desktop ─── */}
-        <div className="flex flex-col items-center text-center lg:items-start lg:text-left lg:pr-12 xl:pr-20 pt-8 lg:pt-0">
+        <div className="flex flex-col items-center text-center lg:items-start lg:text-left lg:pr-12 xl:pr-20 pt-8 lg:pt-0 w-full">
 
           {/* Logo */}
           <motion.div
@@ -51,7 +51,7 @@ export default function HeroSection() {
           >
             <span
               className="block font-display leading-[0.92] tracking-wide text-lff-cream text-center lg:text-left"
-              style={{ fontSize: "clamp(2.8rem, 7vw, 5.5rem)", fontWeight: 900 }}
+              style={{ fontSize: "clamp(2.4rem, 6.5vw, 5.5rem)", fontWeight: 900 }}
             >
               COACHING BUILT
             </span>
@@ -61,7 +61,7 @@ export default function HeroSection() {
                 fontFamily: "'Cormorant Garamond', Georgia, serif",
                 fontStyle: "italic",
                 fontWeight: 600,
-                fontSize: "clamp(3rem, 8vw, 7rem)",
+                fontSize: "clamp(2.6rem, 7.5vw, 7rem)",
                 color: "#EAE6D2",
                 opacity: 0.88,
               }}

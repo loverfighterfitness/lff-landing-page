@@ -3,22 +3,14 @@
  * Left: text + CTAs  |  Right: hero image
  * Text scramble decode on headline, spring physics on CTAs
  */
-import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 import AnimatedLogo from "./AnimatedLogo";
-import { useTextScramble } from "@/hooks/useTextScramble";
 
 const HERO_IMAGE =
   "https://d2xsxph8kpxj0f.cloudfront.net/310519663408040383/TeiTyUgvfabHNSBnznn263/3364F913-BF35-4897-B42E-9359661B16E7_41a0bda7.jpeg";
 
 export default function HeroSection() {
-  const [loaded, setLoaded] = useState(false);
-  useEffect(() => { setLoaded(true); }, []);
-
-  const line1 = useTextScramble("COACHING BUILT", loaded, { speed: 35, delay: 600, cycles: 2 });
-  const line2 = useTextScramble("FOR YOU.", loaded, { speed: 45, delay: 1000, cycles: 3 });
-
   return (
     <section
       className="grain-overlay relative min-h-[100dvh] flex items-center overflow-hidden"
@@ -50,13 +42,18 @@ export default function HeroSection() {
             Online Coaching · World-Wide
           </motion.p>
 
-          {/* Headline — scramble decode */}
-          <div className="mb-6">
+          {/* Headline */}
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ type: "spring", stiffness: 80, damping: 20, delay: 0.5 }}
+            className="mb-6"
+          >
             <span
               className="block font-display leading-[0.92] tracking-wide text-lff-cream"
-              style={{ fontSize: "clamp(2.8rem, 7vw, 5.5rem)", fontWeight: 900, minHeight: "1.1em" }}
+              style={{ fontSize: "clamp(2.8rem, 7vw, 5.5rem)", fontWeight: 900 }}
             >
-              {line1 || "\u00A0"}
+              COACHING BUILT
             </span>
             <span
               className="block leading-[1.05]"
@@ -67,12 +64,11 @@ export default function HeroSection() {
                 fontSize: "clamp(3rem, 8vw, 7rem)",
                 color: "#EAE6D2",
                 opacity: 0.88,
-                minHeight: "1.2em",
               }}
             >
-              {line2 ? line2.replace("FOR YOU.", "For You.") : "\u00A0"}
+              For You.
             </span>
-          </div>
+          </motion.div>
 
           {/* Thin rule */}
           <motion.div

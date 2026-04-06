@@ -1,16 +1,21 @@
 import express, { type Express } from "express";
 import fs from "fs";
 import { type Server } from "http";
-import { nanoid } from "nanoid";
 import path from "path";
 import { fileURLToPath } from "url";
-import { createServer as createViteServer } from "vite";
-import viteConfig from "../../vite.config";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 export async function setupVite(app: Express, server: Server) {
+  // Dynamic imports — only run in dev mode. Use variable paths so esbuild doesn't bundle them.
+  const nanoidPkg = "nanoid";
+  const vitePkg = "vite";
+  const viteConfigPath = path.resolve(__dirname, "../..", "vite.config.ts");
+  const { nanoid } = await import(nanoidPkg);
+  const { createServer: createViteServer } = await import(vitePkg);
+  const viteConfig = (await import(viteConfigPath)).default;
+
   const serverOptions = {
     middlewareMode: true,
     hmr: { server },

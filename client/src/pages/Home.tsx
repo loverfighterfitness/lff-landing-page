@@ -77,10 +77,10 @@ export default function Home() {
       <HeroSection />
       <SocialProofBar />
       <StatsSection />
-      <AppShowcaseSection />
       <BeforeAfterSection />
       <TestimonialsSection />
       <AboutSection />
+      <AppShowcaseSection />
       <CoachingSection />
       <FAQSection />
       <ContactSection />

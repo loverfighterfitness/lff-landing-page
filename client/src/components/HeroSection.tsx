@@ -13,7 +13,7 @@ const HERO_IMAGE =
 export default function HeroSection() {
   return (
     <section
-      className="grain-overlay relative min-h-[100dvh] flex items-center overflow-hidden"
+      className="grain-overlay relative min-h-[100dvh] flex flex-col justify-center overflow-hidden"
       style={{ backgroundColor: "#54412F" }}
     >
       {/* ─── Layout: text left, image right ─── */}

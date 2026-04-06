@@ -47,16 +47,16 @@ export default function HeroSection() {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ type: "spring", stiffness: 80, damping: 20, delay: 0.5 }}
-            className="mb-6"
+            className="mb-6 w-full"
           >
             <span
-              className="block font-display leading-[0.92] tracking-wide text-lff-cream"
+              className="block font-display leading-[0.92] tracking-wide text-lff-cream text-center lg:text-left"
               style={{ fontSize: "clamp(2.8rem, 7vw, 5.5rem)", fontWeight: 900 }}
             >
               COACHING BUILT
             </span>
             <span
-              className="block leading-[1.05]"
+              className="block leading-[1.05] text-center lg:text-left"
               style={{
                 fontFamily: "'Cormorant Garamond', Georgia, serif",
                 fontStyle: "italic",
@@ -132,7 +132,7 @@ export default function HeroSection() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.5, delay: 2 }}
-            className="flex items-center justify-center lg:justify-start gap-3"
+            className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-2 sm:gap-3 w-full"
           >
             {/* Avatar stack */}
             <div className="flex -space-x-2">

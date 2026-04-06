@@ -19,8 +19,8 @@ export default function HeroSection() {
       {/* ─── Layout: text left, image right ─── */}
       <div className="container relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-0 items-center py-24 lg:py-0">
 
-        {/* ─── LEFT: Content ─── */}
-        <div className="flex flex-col items-start text-left lg:pr-12 xl:pr-20 pt-8 lg:pt-0">
+        {/* ─── LEFT: Content — centered on mobile, left-aligned on desktop ─── */}
+        <div className="flex flex-col items-center text-center lg:items-start lg:text-left lg:pr-12 xl:pr-20 pt-8 lg:pt-0">
 
           {/* Logo */}
           <motion.div
@@ -84,7 +84,7 @@ export default function HeroSection() {
             initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ type: "spring", stiffness: 100, damping: 20, delay: 1.4 }}
-            className="text-lff-cream/70 text-base md:text-lg max-w-md leading-relaxed mb-8 font-normal"
+            className="text-lff-cream/70 text-base md:text-lg max-w-md leading-relaxed mb-8 font-normal mx-auto lg:mx-0"
           >
             Personalised strength, bodybuilding, and competition prep coaching.
             Custom programming, weekly check-ins, real results.
@@ -95,7 +95,7 @@ export default function HeroSection() {
             initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ type: "spring", stiffness: 100, damping: 20, delay: 1.6 }}
-            className="flex flex-col items-start gap-3 mb-8"
+            className="flex flex-col items-center lg:items-start gap-3 mb-8"
           >
             <div className="flex flex-wrap gap-3">
               {/* Primary */}

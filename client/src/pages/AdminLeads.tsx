@@ -89,7 +89,7 @@ function LeadCard({ lead }: { lead: any }) {
       utils.calculator.getLeads.invalidate();
       toast.success("Follow-up reminder saved");
     },
-    onError: () => { setSavingReminder(false); toast.error("Failed to save reminder"); },
+    onError: (err) => { setSavingReminder(false); toast.error(`Failed to save reminder: ${err.message}`); },
   });
 
   const clearReminder = trpc.calculator.updateFollowUp.useMutation({
@@ -110,12 +110,12 @@ function LeadCard({ lead }: { lead: any }) {
       utils.calculator.getLeads.invalidate();
       toast.success("Notes saved");
     },
-    onError: () => { setSaving(false); toast.error("Failed to save notes"); },
+    onError: (err) => { setSaving(false); toast.error(`Failed to save notes: ${err.message}`); },
   });
 
   const updateStatus = trpc.calculator.updateStatus.useMutation({
     onSuccess: () => utils.calculator.getLeads.invalidate(),
-    onError: () => toast.error("Failed to update status"),
+    onError: (err) => toast.error(`Failed to update status: ${err.message}`),
   });
 
   const smsStatus = getSmsStatus(lead);

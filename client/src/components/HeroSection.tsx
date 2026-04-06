@@ -132,7 +132,7 @@ export default function HeroSection() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.5, delay: 2 }}
-            className="flex items-center gap-3"
+            className="flex items-center justify-center lg:justify-start gap-3"
           >
             {/* Avatar stack */}
             <div className="flex -space-x-2">

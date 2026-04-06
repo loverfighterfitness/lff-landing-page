@@ -39,7 +39,7 @@ async function startServer() {
   // Stripe webhook MUST be registered before express.json() to preserve raw body for signature verification
   app.post("/api/stripe/webhook", express.raw({ type: "application/json" }), handleStripeWebhook);
   // Configure body parser with larger size limit for file uploads
-  app.use(express.json({ limit: "50mb" }));
+  app.use(express.json({ limit: "50mb", type: ["application/json", "text/plain"] }));
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
   // OAuth callback under /api/oauth/callback
   registerOAuthRoutes(app);

@@ -75,7 +75,7 @@ export default function HeroSection() {
             initial={{ scaleX: 0, opacity: 0 }}
             animate={{ scaleX: 1, opacity: 1 }}
             transition={{ duration: 0.6, delay: 1.2 }}
-            className="w-20 mb-6 origin-left"
+            className="w-20 mb-6 origin-center lg:origin-left mx-auto lg:mx-0"
             style={{ height: "1.5px", backgroundColor: "rgba(234,230,210,0.35)" }}
           />
 
@@ -97,7 +97,7 @@ export default function HeroSection() {
             transition={{ type: "spring", stiffness: 100, damping: 20, delay: 1.6 }}
             className="flex flex-col items-center lg:items-start gap-3 mb-8"
           >
-            <div className="flex flex-wrap gap-3">
+            <div className="flex flex-wrap gap-3 justify-center lg:justify-start">
               {/* Primary */}
               <motion.a
                 href="#coaching"

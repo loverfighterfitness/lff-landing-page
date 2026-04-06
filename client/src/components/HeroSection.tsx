@@ -8,7 +8,7 @@ import { ChevronDown } from "lucide-react";
 import AnimatedLogo from "./AnimatedLogo";
 
 const HERO_IMAGE =
-  "https://d2xsxph8kpxj0f.cloudfront.net/310519663408040383/TeiTyUgvfabHNSBnznn263/3364F913-BF35-4897-B42E-9359661B16E7_41a0bda7.jpeg";
+  "https://d2xsxph8kpxj0f.cloudfront.net/310519663408040383/TeiTyUgvfabHNSBnznn263/DSC00890_1144300a.JPG";
 
 export default function HeroSection() {
   return (

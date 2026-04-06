@@ -27,7 +27,7 @@ export default function HeroSection() {
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ type: "spring", stiffness: 120, damping: 20, delay: 0.1 }}
-            className="mb-8 md:mb-10 mt-12 lg:mt-0"
+            className="mb-8 md:mb-10 mt-12 lg:mt-0 lg:self-start lg:ml-[25%]"
           >
             <AnimatedLogo className="h-16 sm:h-20 md:h-28 w-auto" />
           </motion.div>

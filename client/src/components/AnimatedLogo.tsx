@@ -26,7 +26,7 @@ export default function AnimatedLogo({ className, style }: AnimatedLogoProps) {
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 1299 1299"
+        viewBox="270 215 920 840"
         className="h-full w-full"
         aria-label="Lover Fighter Fitness"
       >

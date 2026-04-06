@@ -2,11 +2,8 @@
  * Admin Leads Dashboard — Calculator submissions with pipeline management + SMS Jobs queue
  * Protected: only accessible to admin users
  */
-import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
-import { getLoginUrl } from "@/const";
-import { useLocation } from "wouter";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Loader2, RefreshCw, Phone, Mail, Bell, BellOff, Calendar } from "lucide-react";
 import { toast } from "sonner";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
@@ -402,41 +399,16 @@ function SmsJobRow({ job }: { job: any }) {
 }
 
 export default function AdminLeads() {
-  const { user, loading, isAuthenticated } = useAuth();
-  const [, setLocation] = useLocation();
   const [activeTab, setActiveTab] = useState<"leads" | "sms" | "referrals">("leads");
-  const isAdmin = isAuthenticated && user?.role === "admin";
   usePushNotifications();
 
-  const { data: leads, isLoading: leadsLoading } = trpc.calculator.getLeads.useQuery(undefined, { enabled: isAdmin });
-  const { data: smsJobsData, isLoading: smsLoading } = trpc.calculator.getSmsJobs.useQuery(undefined, { enabled: isAdmin && activeTab === "sms" });
+  const { data: leads, isLoading: leadsLoading } = trpc.calculator.getLeads.useQuery();
+  const { data: smsJobsData, isLoading: smsLoading } = trpc.calculator.getSmsJobs.useQuery(undefined, { enabled: activeTab === "sms" });
 
-  useEffect(() => {
-    if (!loading && !isAuthenticated) {
-      window.location.href = getLoginUrl();
-    }
-  }, [loading, isAuthenticated]);
-
-  if (loading || (activeTab === "leads" && leadsLoading)) {
+  if (activeTab === "leads" && leadsLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: "#54412F" }}>
         <Loader2 className="animate-spin" size={32} style={{ color: "#EAE6D2" }} />
-      </div>
-    );
-  }
-
-  if (!isAdmin) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center gap-6" style={{ backgroundColor: "#54412F" }}>
-        <img src={LOGO_CREAM} alt="LFF" className="h-16 opacity-60" />
-        <p className="text-sm font-semibold" style={{ color: "rgba(234,230,210,0.7)" }}>Admin access required.</p>
-        <a
-          href={getLoginUrl()}
-          className="px-6 py-3 rounded-sm text-sm font-bold tracking-wider uppercase"
-          style={{ backgroundColor: "#EAE6D2", color: "#54412F" }}
-        >
-          Sign In
-        </a>
       </div>
     );
   }
@@ -471,7 +443,7 @@ export default function AdminLeads() {
               </button>
             )}
             <button
-              onClick={() => setLocation("/admin")}
+              onClick={() => window.location.href = "/admin"}
               className="text-xs font-bold transition-colors"
               style={{ color: "rgba(234,230,210,0.75)" }}
             >

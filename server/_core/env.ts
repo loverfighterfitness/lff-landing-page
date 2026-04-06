@@ -1,12 +1,10 @@
 export const ENV = {
-  appId: process.env.VITE_APP_ID ?? "",
+  appId: process.env.VITE_APP_ID ?? "lff-landing-page",
   cookieSecret: process.env.JWT_SECRET ?? "",
   databaseUrl: process.env.DATABASE_URL ?? "",
-  oAuthServerUrl: process.env.OAUTH_SERVER_URL ?? "",
-  ownerOpenId: process.env.OWNER_OPEN_ID ?? "",
+  /** Simple admin password for CRM login (replaces Manus OAuth) */
+  adminPassword: process.env.ADMIN_PASSWORD ?? "",
   isProduction: process.env.NODE_ENV === "production",
-  forgeApiUrl: process.env.BUILT_IN_FORGE_API_URL ?? "",
-  forgeApiKey: process.env.BUILT_IN_FORGE_API_KEY ?? "",
   gmailAppPassword: process.env.GMAIL_APP_PASSWORD ?? "",
   gmailUser: process.env.GMAIL_USER ?? "loverfighterfitness@gmail.com",
   vapidPublicKey: process.env.VAPID_PUBLIC_KEY ?? "",

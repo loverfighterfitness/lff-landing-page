@@ -51,7 +51,9 @@ export const leads = mysqlTable("leads", {
   id: int("id").autoincrement().primaryKey(),
   /** Full name */
   name: varchar("name", { length: 255 }).notNull(),
-  /** Phone number */
+  /** Preferred contact method: text or instagram */
+  contactMethod: varchar("contact_method", { length: 20 }).default("text").notNull(),
+  /** Phone number or Instagram handle */
   phone: varchar("phone", { length: 30 }).notNull(),
   /** Primary goal selected from dropdown */
   goal: mysqlEnum("goal", [

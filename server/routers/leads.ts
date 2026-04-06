@@ -21,7 +21,8 @@ export const leadsRouter = router({
     .input(
       z.object({
         name: z.string().min(2, "Name must be at least 2 characters").max(255),
-        phone: z.string().min(6, "Enter a valid phone number").max(30),
+        contactMethod: z.enum(["text", "instagram"]).default("text"),
+        phone: z.string().min(2, "Enter a valid contact handle").max(30),
         goal: z.enum([
           "lose_weight",
           "build_muscle",
@@ -37,6 +38,7 @@ export const leadsRouter = router({
       try {
         await insertLead({
           name: input.name,
+          contactMethod: input.contactMethod,
           phone: input.phone,
           goal: input.goal,
           message: input.message ?? null,
@@ -49,7 +51,7 @@ export const leadsRouter = router({
           title: `New Lead: ${input.name}`,
           content: [
             `**Name:** ${input.name}`,
-            `**Phone:** ${input.phone}`,
+            `**Contact (${input.contactMethod === "instagram" ? "Instagram" : "Text"}):** ${input.phone}`,
             `**Goal:** ${goalLabel}`,
             input.message ? `**Message:** ${input.message}` : null,
           ]
@@ -70,10 +72,7 @@ export const leadsRouter = router({
   /**
    * Protected — admin only: list all leads.
    */
-  list: protectedProcedure.query(async ({ ctx }) => {
-    if (ctx.user.role !== "admin") {
-      throw new TRPCError({ code: "FORBIDDEN" });
-    }
+  list: protectedProcedure.query(async () => {
     return getLeads(200);
   }),
 });

@@ -74,9 +74,6 @@ export const calculatorRouter = router({
    * Protected query — get all calculator leads for admin dashboard
    */
   getLeads: protectedProcedure.query(async ({ ctx }) => {
-    if (ctx.user.role !== "admin") {
-      throw new TRPCError({ code: "FORBIDDEN", message: "Admin only" });
-    }
     try {
       return await getCalculatorLeads(500);
     } catch (error) {
@@ -90,7 +87,6 @@ export const calculatorRouter = router({
   updateNotes: protectedProcedure
     .input(z.object({ id: z.number().int(), notes: z.string().max(2000) }))
     .mutation(async ({ ctx, input }) => {
-      if (ctx.user.role !== "admin") throw new TRPCError({ code: "FORBIDDEN" });
       const db = await getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       await db.update(calculatorLeads).set({ notes: input.notes }).where(eq(calculatorLeads.id, input.id));
@@ -107,7 +103,6 @@ export const calculatorRouter = router({
       followUpNote: z.string().max(500).nullable(),
     }))
     .mutation(async ({ ctx, input }) => {
-      if (ctx.user.role !== "admin") throw new TRPCError({ code: "FORBIDDEN" });
       const db = await getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       await db.update(calculatorLeads).set({
@@ -123,7 +118,6 @@ export const calculatorRouter = router({
   updateStatus: protectedProcedure
     .input(z.object({ id: z.number().int(), status: z.enum(["new", "contacted", "converted", "not_interested"]) }))
     .mutation(async ({ ctx, input }) => {
-      if (ctx.user.role !== "admin") throw new TRPCError({ code: "FORBIDDEN" });
       const db = await getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       await db.update(calculatorLeads).set({ leadStatus: input.status }).where(eq(calculatorLeads.id, input.id));
@@ -165,7 +159,6 @@ export const calculatorRouter = router({
   retrySmsJob: protectedProcedure
     .input(z.object({ id: z.number().int() }))
     .mutation(async ({ ctx, input }) => {
-      if (ctx.user.role !== "admin") throw new TRPCError({ code: "FORBIDDEN" });
       const db = await getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       // Reset the job to pending and set sendAt to now so it fires on next poll

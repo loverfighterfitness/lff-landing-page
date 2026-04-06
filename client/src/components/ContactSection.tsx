@@ -4,7 +4,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { trpc } from "@/lib/trpc";
-import { ArrowRight, CheckCircle, Loader2 } from "lucide-react";
+import { ArrowRight, CheckCircle, Loader2, MessageCircle, Instagram } from "lucide-react";
 
 const GOAL_OPTIONS = [
   { value: "lose_weight", label: "Lose Weight / Tone Up" },
@@ -16,10 +16,12 @@ const GOAL_OPTIONS = [
 ] as const;
 
 type GoalValue = (typeof GOAL_OPTIONS)[number]["value"];
+type ContactMethod = "text" | "instagram";
 
 export default function ContactSection() {
   // This component is targeted by FloatingMobileCTA for scroll detection
   const [name, setName] = useState("");
+  const [contactMethod, setContactMethod] = useState<ContactMethod>("text");
   const [phone, setPhone] = useState("");
   const [goal, setGoal] = useState<GoalValue | "">("");
   const [message, setMessage] = useState("");
@@ -36,7 +38,11 @@ export default function ContactSection() {
   const validate = () => {
     const e: Record<string, string> = {};
     if (!name.trim() || name.trim().length < 2) e.name = "Enter your full name";
-    if (!phone.trim() || phone.trim().length < 6) e.phone = "Enter a valid phone number";
+    if (contactMethod === "text") {
+      if (!phone.trim() || phone.trim().length < 6) e.phone = "Enter a valid phone number";
+    } else {
+      if (!phone.trim() || phone.trim().length < 2) e.phone = "Enter your Instagram handle";
+    }
     if (!goal) e.goal = "Select your primary goal";
     return e;
   };
@@ -51,6 +57,7 @@ export default function ContactSection() {
     setErrors({});
     submitLead.mutate({
       name: name.trim(),
+      contactMethod,
       phone: phone.trim(),
       goal: goal as GoalValue,
       message: message.trim() || undefined,
@@ -120,7 +127,7 @@ export default function ContactSection() {
                   GOT IT — TALK SOON
                 </h3>
                 <p className="text-base font-normal leading-relaxed" style={{ color: 'rgba(84,65,47,0.70)' }}>
-                  I'll give you a call or text within 24 hours.
+                  I'll reach out within 24 hours.
                 </p>
               </motion.div>
             ) : (
@@ -150,17 +157,73 @@ export default function ContactSection() {
                   )}
                 </div>
 
-                {/* Phone */}
+                {/* Contact method toggle */}
+                <div className="flex gap-2">
+                  {([
+                    { value: "text" as const, label: "Text", icon: MessageCircle },
+                    { value: "instagram" as const, label: "Instagram", icon: Instagram },
+                  ]).map(({ value, label, icon: Icon }) => (
+                    <motion.button
+                      key={value}
+                      type="button"
+                      onClick={() => { setContactMethod(value); setPhone(""); setErrors({}); }}
+                      whileHover={{ scale: 1.03, y: -1 }}
+                      whileTap={{ scale: 0.97, y: 1 }}
+                      transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                      className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl border-2 text-sm font-medium tracking-wide transition-colors duration-200 cursor-pointer"
+                      style={{
+                        borderColor: contactMethod === value ? '#54412F' : 'rgba(84,65,47,0.25)',
+                        backgroundColor: contactMethod === value ? '#54412F' : 'transparent',
+                        color: contactMethod === value ? '#EAE6D2' : 'rgba(84,65,47,0.55)',
+                      }}
+                    >
+                      <Icon size={16} />
+                      {label}
+                    </motion.button>
+                  ))}
+                </div>
+
+                {/* Contact input — swaps based on method */}
                 <div>
-                  <input
-                    type="tel"
-                    placeholder="Phone number"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    className={inputStyle("phone")}
-                    style={inputInlineStyle("phone")}
-                    autoComplete="tel"
-                  />
+                  <AnimatePresence mode="wait">
+                    <motion.div
+                      key={contactMethod}
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -8 }}
+                      transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+                    >
+                      {contactMethod === "text" ? (
+                        <input
+                          type="tel"
+                          placeholder="Phone number"
+                          value={phone}
+                          onChange={(e) => setPhone(e.target.value)}
+                          className={inputStyle("phone")}
+                          style={inputInlineStyle("phone")}
+                          autoComplete="tel"
+                        />
+                      ) : (
+                        <div className="relative">
+                          <span
+                            className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-medium pointer-events-none select-none"
+                            style={{ color: 'rgba(84,65,47,0.35)' }}
+                          >
+                            @
+                          </span>
+                          <input
+                            type="text"
+                            placeholder="yourusername"
+                            value={phone}
+                            onChange={(e) => setPhone(e.target.value.replace(/^@/, ""))}
+                            className={inputStyle("phone")}
+                            style={{ ...inputInlineStyle("phone"), paddingLeft: '2rem' }}
+                            autoComplete="off"
+                          />
+                        </div>
+                      )}
+                    </motion.div>
+                  </AnimatePresence>
                   {errors.phone && (
                     <p className="mt-1.5 text-xs text-red-400/80 font-light pl-1">{errors.phone}</p>
                   )}
@@ -239,7 +302,7 @@ export default function ContactSection() {
 
                 {/* Privacy note */}
                 <p className="text-center text-sm font-normal pt-1" style={{ color: 'rgba(84,65,47,0.45)' }}>
-                  I'll call or text you within 24 hours.
+                  I'll reach out within 24 hours.
                 </p>
               </motion.form>
             )}

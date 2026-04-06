@@ -1,13 +1,10 @@
 /**
  * Admin Media Library — LFF
- * Accessible at /admin — protected, admin-only.
- * Upload, view, and manage all site media assets.
+ * Accessible at /admin — no login required (single-user site).
  */
-import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
-import { getLoginUrl } from "@/const";
 import { useRef, useState } from "react";
-import { Upload, Trash2, Copy, Check, Image, FileText, Loader2, LogOut } from "lucide-react";
+import { Upload, Trash2, Copy, Check, Image, FileText, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 const LOGO_CREAM =
@@ -42,16 +39,13 @@ function CopyButton({ text }: { text: string }) {
 }
 
 export default function Admin() {
-  const { user, loading, isAuthenticated, logout } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [label, setLabel] = useState("");
   const [dragOver, setDragOver] = useState(false);
 
   const utils = trpc.useUtils();
-  const { data: assets, isLoading: assetsLoading } = trpc.storage.list.useQuery(undefined, {
-    enabled: isAuthenticated && user?.role === "admin",
-  });
+  const { data: assets, isLoading: assetsLoading } = trpc.storage.list.useQuery();
 
   const uploadMutation = trpc.storage.upload.useMutation({
     onSuccess: () => {
@@ -93,38 +87,10 @@ export default function Admin() {
     setUploading(false);
   };
 
-  // Auth guards
-  if (loading) {
+  if (assetsLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: "#54412F" }}>
         <Loader2 className="animate-spin text-lff-cream/50" size={32} />
-      </div>
-    );
-  }
-
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center gap-6" style={{ backgroundColor: "#54412F" }}>
-        <img src={LOGO_CREAM} alt="LFF" className="h-16" />
-        <p className="text-lff-cream/60 text-sm">Admin access required</p>
-        <a
-          href={getLoginUrl()}
-          className="px-6 py-3 bg-lff-cream text-lff-dark font-medium text-sm tracking-wider uppercase rounded-sm hover:bg-lff-cream-dark transition-colors"
-        >
-          Sign In
-        </a>
-      </div>
-    );
-  }
-
-  if (user?.role !== "admin") {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center gap-4" style={{ backgroundColor: "#54412F" }}>
-        <img src={LOGO_CREAM} alt="LFF" className="h-16" />
-        <p className="text-lff-cream/60 text-sm">You don't have admin access.</p>
-        <a href="/" className="text-lff-cream/40 text-xs hover:text-lff-cream underline">
-          Back to site
-        </a>
       </div>
     );
   }
@@ -156,13 +122,6 @@ export default function Admin() {
             >
               View Site
             </a>
-            <button
-              onClick={logout}
-              className="flex items-center gap-2 text-lff-cream/40 text-xs hover:text-lff-cream transition-colors"
-            >
-              <LogOut size={14} />
-              Sign Out
-            </button>
           </div>
         </div>
       </header>

@@ -128,7 +128,6 @@ export const calculatorRouter = router({
    * Protected query — get all SMS jobs for admin dashboard
    */
   getSmsJobs: protectedProcedure.query(async ({ ctx }) => {
-    if (ctx.user.role !== "admin") throw new TRPCError({ code: "FORBIDDEN" });
     const db = await getDb();
     if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
     // Join sms_jobs with calculator_leads to get lead name

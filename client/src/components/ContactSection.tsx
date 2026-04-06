@@ -83,10 +83,10 @@ export default function ContactSection() {
         >
           {/* Header */}
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 24 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-80px" }}
-            transition={{ duration: 0.6 }}
+            transition={{ type: "spring", stiffness: 80, damping: 20 }}
             className="text-center mb-12"
           >
             <p className="text-sm tracking-[0.3em] uppercase mb-4 font-medium" style={{ color: 'rgba(84,65,47,0.55)' }}>

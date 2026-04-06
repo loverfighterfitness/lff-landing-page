@@ -154,10 +154,12 @@ function ImageComparisonSlider({ transformation, resetKey }: SliderProps) {
           style={{ left: springX.get() * 100 + "%", x: "-50%", backgroundColor: "#EAE6D2", boxShadow: "0 0 12px rgba(0,0,0,0.4)" }}
         />
 
-        {/* Handle */}
+        {/* Handle — with pulse hint */}
         <motion.div
           className="absolute top-1/2 pointer-events-none flex items-center justify-center"
           style={{ left: `${pct}%`, y: "-50%", x: "-50%", width: "44px", height: "44px", borderRadius: "50%", backgroundColor: "#EAE6D2", boxShadow: "0 4px 20px rgba(0,0,0,0.35)" }}
+          animate={!dragging ? { scale: [1, 1.08, 1] } : { scale: 1 }}
+          transition={!dragging ? { duration: 2, repeat: Infinity, ease: "easeInOut" } : {}}
         >
           <svg width="18" height="12" viewBox="0 0 18 12" fill="none">
             <path d="M5 6H1M1 6L3.5 3.5M1 6L3.5 8.5" stroke="#54412F" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
@@ -219,17 +221,31 @@ export default function BeforeAfterSection() {
 
               {/* Prev / dots / next */}
               <div className="flex items-center gap-4">
-                <button onClick={prev} className="flex items-center justify-center rounded-full transition-all" style={{ width: "38px", height: "38px", backgroundColor: "rgba(84,65,47,0.12)", color: "#54412F" }}>
+                <motion.button
+                  onClick={prev}
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.92 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                  className="flex items-center justify-center rounded-full transition-all"
+                  style={{ width: "38px", height: "38px", backgroundColor: "rgba(84,65,47,0.12)", color: "#54412F" }}
+                >
                   <ChevronLeft size={18} />
-                </button>
+                </motion.button>
                 <div className="flex gap-2">
                   {TRANSFORMATIONS.map((_, i) => (
                     <button key={i} onClick={() => go(i)} className="rounded-full transition-all" style={{ width: i === activeIndex ? "20px" : "8px", height: "8px", backgroundColor: i === activeIndex ? "#54412F" : "rgba(84,65,47,0.25)" }} />
                   ))}
                 </div>
-                <button onClick={next} className="flex items-center justify-center rounded-full transition-all" style={{ width: "38px", height: "38px", backgroundColor: "rgba(84,65,47,0.12)", color: "#54412F" }}>
+                <motion.button
+                  onClick={next}
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.92 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                  className="flex items-center justify-center rounded-full transition-all"
+                  style={{ width: "38px", height: "38px", backgroundColor: "rgba(84,65,47,0.12)", color: "#54412F" }}
+                >
                   <ChevronRight size={18} />
-                </button>
+                </motion.button>
               </div>
             </div>
 

@@ -62,10 +62,10 @@ function AnimatedStat({ stat, delay }: { stat: Stat; delay: number }) {
   return (
     <motion.div
       ref={ref}
-      initial={{ opacity: 0, y: 16 }}
+      initial={{ opacity: 0, y: 24 }}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.5, delay }}
+      viewport={{ once: true, margin: "-60px" }}
+      transition={{ type: "spring", stiffness: 100, damping: 20, delay }}
       className="flex flex-col items-center text-center"
     >
       <div className="font-display text-5xl md:text-6xl lg:text-7xl tracking-wide leading-none" style={{ color: '#54412F' }}>

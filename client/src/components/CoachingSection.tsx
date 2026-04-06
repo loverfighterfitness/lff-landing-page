@@ -109,6 +109,12 @@ function PackageCard({
     if (!rect) return;
     mouseX.set((e.clientX - rect.left) / rect.width - 0.5);
     mouseY.set((e.clientY - rect.top) / rect.height - 0.5);
+    // Update spotlight CSS vars
+    const el = cardRef.current;
+    if (el) {
+      el.style.setProperty("--spotlight-x", `${e.clientX - rect.left}px`);
+      el.style.setProperty("--spotlight-y", `${e.clientY - rect.top}px`);
+    }
   };
   const handleMouseLeave = () => { mouseX.set(0); mouseY.set(0); };
 
@@ -166,8 +172,17 @@ function PackageCard({
         </div>
       )}
 
+      {/* Spotlight border — follows cursor */}
+      <div
+        className="absolute -inset-[1px] rounded-2xl pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-400 z-0"
+        style={{
+          background: `radial-gradient(600px circle at var(--spotlight-x, 50%) var(--spotlight-y, 50%), ${
+            isInverted ? "rgba(234,230,210,0.15)" : "rgba(84,65,47,0.12)"
+          }, transparent 40%)`,
+        }}
+      />
       {/* Shimmer overlay on hover (desktop) */}
-      <div className="absolute inset-0 rounded-2xl pointer-events-none overflow-hidden opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+      <div className="absolute inset-0 rounded-2xl pointer-events-none overflow-hidden opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-0">
         <div
           className="absolute inset-0"
           style={{
@@ -238,10 +253,10 @@ function PackageCard({
             <motion.li
               key={j}
               className="flex items-start gap-3"
-              initial={{ opacity: 0, x: -6 }}
+              initial={{ opacity: 0, x: -10 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.35, delay: index * 0.12 + j * 0.04 }}
+              transition={{ type: "spring", stiffness: 100, damping: 18, delay: index * 0.1 + j * 0.05 }}
             >
               <Check
                 size={16}
@@ -273,8 +288,9 @@ function PackageCard({
         <motion.button
           onClick={() => onCheckout(pkg.productKey)}
           disabled={isLoading}
-          whileHover={!isLoading ? { scale: 1.05 } : undefined}
-          whileTap={!isLoading ? { scale: 0.97 } : undefined}
+          whileHover={!isLoading ? { scale: 1.05, y: -2 } : undefined}
+          whileTap={!isLoading ? { scale: 0.97, y: 1 } : undefined}
+          transition={{ type: "spring", stiffness: 400, damping: 17 }}
           className="flex items-center justify-center gap-2 py-4 font-black text-sm tracking-widest uppercase rounded-full transition-all duration-300 group/btn disabled:opacity-70 disabled:cursor-not-allowed"
           style={isInverted
             ? { backgroundColor: '#EAE6D2', color: '#54412F' }
@@ -320,10 +336,10 @@ export default function CoachingSection() {
         >
           {/* Section Header */}
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 24 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-80px" }}
-            transition={{ duration: 0.6 }}
+            transition={{ type: "spring", stiffness: 80, damping: 20 }}
             className="mb-16 md:mb-20 text-center"
           >
             <p className="text-xs tracking-[0.3em] uppercase mb-4 font-black" style={{ color: 'rgba(84,65,47,0.50)' }}>

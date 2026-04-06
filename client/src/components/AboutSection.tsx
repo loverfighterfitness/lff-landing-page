@@ -158,10 +158,10 @@ export default function AboutSection() {
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
           {/* Left — Carousel */}
           <motion.div
-            initial={{ opacity: 0, x: -20 }}
+            initial={{ opacity: 0, x: -30 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true, margin: "-80px" }}
-            transition={{ duration: 0.7 }}
+            transition={{ type: "spring", stiffness: 70, damping: 20 }}
             className="relative"
           >
             <PhotoCarousel />
@@ -169,10 +169,10 @@ export default function AboutSection() {
 
           {/* Right — Text */}
           <motion.div
-            initial={{ opacity: 0, x: 20 }}
+            initial={{ opacity: 0, x: 30 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true, margin: "-80px" }}
-            transition={{ duration: 0.7, delay: 0.15 }}
+            transition={{ type: "spring", stiffness: 70, damping: 20, delay: 0.15 }}
           >
             <p className="text-sm tracking-[0.3em] uppercase mb-4 font-medium" style={{ color: 'rgba(84,65,47,0.55)' }}>
               Your Coach
@@ -211,11 +211,14 @@ export default function AboutSection() {
             </div>
 
             {/* Instagram */}
-            <a
+            <motion.a
               href="https://www.instagram.com/loverfighterfitness/"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-3 px-6 py-3 border-2 rounded-full transition-all duration-300"
+              whileHover={{ scale: 1.04, y: -2 }}
+              whileTap={{ scale: 0.97, y: 1 }}
+              transition={{ type: "spring", stiffness: 400, damping: 17 }}
+              className="inline-flex items-center gap-3 px-6 py-3 border-2 rounded-full transition-colors duration-300"
               style={{ borderColor: 'rgba(84,65,47,0.35)', color: 'rgba(84,65,47,0.60)' }}
               onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(84,65,47,0.70)'; (e.currentTarget as HTMLElement).style.color = '#54412F'; }}
               onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(84,65,47,0.35)'; (e.currentTarget as HTMLElement).style.color = 'rgba(84,65,47,0.60)'; }}
@@ -224,7 +227,7 @@ export default function AboutSection() {
               <span className="text-sm font-medium tracking-wider uppercase">
                 @loverfighterfitness
               </span>
-            </a>
+            </motion.a>
           </motion.div>
         </div>
         </div> {/* end floating cream panel */}

@@ -111,10 +111,10 @@ export default function TestimonialsSection() {
 
         {/* Section Header */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-80px" }}
-          transition={{ duration: 0.6 }}
+          transition={{ type: "spring", stiffness: 80, damping: 20 }}
           className="mb-16 md:mb-20"
         >
           <p className="text-lff-cream/55 text-sm tracking-[0.3em] uppercase mb-4 font-medium">

@@ -10,6 +10,7 @@ import Calculator from "./pages/Calculator";
 import AdminLeads from "./pages/AdminLeads";
 import Success from "./pages/Success";
 import Referral from "./pages/Referral";
+import Shop from "./pages/Shop";
 
 
 function Router() {
@@ -20,6 +21,7 @@ function Router() {
       <Route path={"/calculator"} component={Calculator} />
       <Route path={"/admin"} component={Admin} />
       <Route path={"/admin/leads"} component={AdminLeads} />
+      <Route path={"/shop"} component={Shop} />
       <Route path={"/success"} component={Success} />
       <Route path={"/ref/:code"} component={Referral} />
 

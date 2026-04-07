@@ -38,8 +38,16 @@ async function startServer() {
   const server = createServer(app);
   // Stripe webhook MUST be registered before express.json() to preserve raw body for signature verification
   app.post("/api/stripe/webhook", express.raw({ type: "application/json" }), handleStripeWebhook);
-  // Configure body parser with larger size limit for file uploads
-  app.use(express.json({ limit: "50mb", type: ["application/json", "text/plain"] }));
+  // iOS WebKit sends tRPC mutations with wrong content-type (text/plain or
+  // x-www-form-urlencoded). Rewrite BEFORE body parsers so express.json()
+  // picks them up correctly instead of express.urlencoded() mangling the body.
+  app.use("/api/trpc", (req, _res, next) => {
+    if (req.method === "POST" || req.method === "PUT" || req.method === "PATCH") {
+      req.headers["content-type"] = "application/json";
+    }
+    next();
+  });
+  app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
   // OAuth callback under /api/oauth/callback
   registerOAuthRoutes(app);

@@ -24,13 +24,13 @@ export default function Footer() {
 
             {/* Links */}
             <div className="flex items-center gap-8">
-              {["#coaching", "#results", "#about", "#contact"].map((href, i) => (
+              {["#coaching", "#results", "#about", "/shop", "#contact"].map((href, i) => (
                 <a
                   key={href}
                   href={href}
                   className="text-lff-cream/55 text-sm tracking-wider uppercase hover:text-lff-cream/80 transition-colors font-normal"
                 >
-                  {["Coaching", "Results", "About", "Contact"][i]}
+                  {["Coaching", "Results", "About", "Shop", "Contact"][i]}
                 </a>
               ))}
               <a

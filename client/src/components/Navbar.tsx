@@ -6,7 +6,7 @@
  */
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Instagram, Calculator } from "lucide-react";
+import { Instagram, Calculator, ShoppingBag } from "lucide-react";
 
 const LOGO_TRANSPARENT = "https://d2xsxph8kpxj0f.cloudfront.net/310519663408040383/TeiTyUgvfabHNSBnznn263/LFFNEWLOGOCREAM_transparent_a5b72c81.png";
 
@@ -78,8 +78,18 @@ export default function Navbar() {
             </motion.div>
           </div>
 
-          {/* Right — Calculator icon (always visible) */}
+          {/* Right — Shop + Calculator icons (always visible) */}
           <div className="flex items-center justify-end gap-4" style={{ flex: 1 }}>
+            <a
+              href="/shop"
+              className="transition-colors duration-300"
+              style={{ color: "rgba(234,230,210,0.55)" }}
+              onMouseEnter={e => (e.currentTarget.style.color = "#EAE6D2")}
+              onMouseLeave={e => (e.currentTarget.style.color = "rgba(234,230,210,0.55)")}
+              aria-label="Shop Merch"
+            >
+              <ShoppingBag size={20} />
+            </a>
             <a
               href="/calculator"
               className="transition-colors duration-300"

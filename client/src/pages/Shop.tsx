@@ -89,7 +89,6 @@ const SOCKS: Product[] = [
     stock: 30,
     stripeLink: "https://buy.stripe.com/cNi8wPaYO4rtdZO1cQbwk06",
     image: "/shop/socks-cream-hero.jpg",
-    hoverVideo: "/shop/socks-video.mp4",
   },
   {
     id: "socks-brown",
@@ -833,7 +832,7 @@ function ShopHero() {
 
       {/* Bottom text block — "BRAND" below the poster + CTA */}
       <motion.div
-        className="relative z-10 text-center px-6 pb-0 mb-[-2vh]"
+        className="relative z-10 text-center px-6 pb-6 md:pb-0 md:mb-[-2vh]"
         style={{ opacity: textOpacity }}
       >
         <motion.h1
@@ -912,8 +911,8 @@ function TeeSection() {
   ];
 
   return (
-    <section className="min-h-[100dvh] flex items-center px-4 md:px-8 lg:px-16 py-16 md:py-0">
-      <div className="w-full max-w-[1400px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+    <section className="lg:min-h-[100dvh] flex items-center px-4 md:px-8 lg:px-16 py-12 md:py-16 lg:py-0">
+      <div className="w-full max-w-[1400px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-12 items-center">
         {/* Info card — left 35% */}
         <div className="lg:col-span-4 order-2 lg:order-1">
           <ProductInfoCard
@@ -983,7 +982,7 @@ function TeeSection() {
             <SpinnerCanvas
               frames={frames}
               loading={loading}
-              className="w-full aspect-square max-w-[700px] mx-auto"
+              className="w-full aspect-square max-w-[320px] lg:max-w-[700px] mx-auto"
             />
           </ScrollReveal>
         </div>
@@ -1005,7 +1004,7 @@ function StrapsSection() {
 
   return (
     <section
-      className="relative min-h-[100dvh] flex items-center px-4 md:px-8 lg:px-16 py-16 md:py-0"
+      className="relative lg:min-h-[100dvh] flex items-center px-4 md:px-8 lg:px-16 py-12 md:py-16 lg:py-0"
       style={{ backgroundColor: "#EAE6D2" }}
     >
       {/* Subtle noise texture on cream */}
@@ -1017,14 +1016,14 @@ function StrapsSection() {
           backgroundSize: "300px 300px",
         }}
       />
-      <div className="relative w-full max-w-[1400px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+      <div className="relative w-full max-w-[1400px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-12 items-center">
         {/* Spinner — left 65% */}
         <div className="lg:col-span-8">
           <ScrollReveal>
             <SpinnerCanvas
               frames={frames}
               loading={loading}
-              className="w-full aspect-square max-w-[650px] mx-auto"
+              className="w-full aspect-square max-w-[280px] lg:max-w-[650px] mx-auto"
             />
           </ScrollReveal>
         </div>
@@ -1059,8 +1058,8 @@ function CuffsSection() {
   );
 
   return (
-    <section className="min-h-[100dvh] flex items-center px-4 md:px-8 lg:px-16 py-16 md:py-0">
-      <div className="w-full max-w-[1400px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+    <section className="lg:min-h-[100dvh] flex items-center px-4 md:px-8 lg:px-16 py-12 md:py-16 lg:py-0">
+      <div className="w-full max-w-[1400px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-12 items-center">
         {/* Info card — left 35% */}
         <div className="lg:col-span-4 order-2 lg:order-1">
           <ProductInfoCard
@@ -1081,7 +1080,7 @@ function CuffsSection() {
               frames={frames}
               loading={loading}
               useBlendMode
-              className="w-full aspect-square max-w-[650px] mx-auto"
+              className="w-full aspect-square max-w-[280px] lg:max-w-[650px] mx-auto"
             />
           </ScrollReveal>
         </div>
@@ -1210,10 +1209,10 @@ function PickupStrip() {
     <ScrollReveal className="px-4 md:px-8 lg:px-16 pb-8">
       <div className="max-w-[1400px] mx-auto">
         <div
-          className="flex flex-col sm:flex-row items-center justify-between gap-4 px-8 py-5"
+          className="flex flex-col sm:flex-row items-center justify-between gap-4 px-6 sm:px-8 py-5"
           style={{
             ...frostedCard,
-            borderRadius: PILL_RADIUS,
+            borderRadius: PANEL_RADIUS,
           }}
         >
           <p className="text-lff-cream/45 text-[10px] tracking-[0.2em] uppercase">
@@ -1373,7 +1372,7 @@ export default function Shop() {
   }, []);
 
   return (
-    <div className="min-h-screen text-lff-cream" style={concreteTexture}>
+    <div className="min-h-screen text-lff-cream overflow-x-hidden" style={concreteTexture}>
       {/* Grain overlay */}
       <div
         className="pointer-events-none fixed inset-0 z-[2] opacity-[0.03]"

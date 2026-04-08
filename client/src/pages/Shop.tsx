@@ -465,7 +465,7 @@ function getCacheKey(src: string, frameCount: number, blackThreshold: number, br
 }
 
 // Cache version — bump this to wipe all cached frames
-const CACHE_VERSION = "v5";
+const CACHE_VERSION = "v6";
 
 // IndexedDB helpers
 function openFrameDB(): Promise<IDBDatabase> {
@@ -1546,7 +1546,7 @@ function GoatPackSection() {
     "/shop/straps-spin-blue.mp4", 48, true, 15, 1.4, "blue",
   );
   const { frames: cuffsFrames, loading: cuffsLoading } = useVideoFrames(
-    "/shop/cuffs-spin-blue.mp4", 48, true, 20, 1.5, "blue",
+    "/shop/cuffs-spin-blue.mp4", 48, true, 20, 1.2, "blue",
   );
 
   const fullPrice = 115;

@@ -451,9 +451,9 @@ const SockCard = memo(function SockCard({
 
 /* ─── Mobile Detection ─── */
 const IS_MOBILE = typeof window !== "undefined" && window.matchMedia("(hover: none)").matches;
-const MOBILE_FRAMES = 24;
+const MOBILE_FRAMES = 36;
 const DESKTOP_FRAMES = 48;
-const MOBILE_SCALE = 512;
+const MOBILE_SCALE = 640;
 const DESKTOP_SCALE = 768;
 
 /* ─── Frame Cache (in-memory + IndexedDB) ─── */
@@ -622,7 +622,7 @@ function useVideoFrames(
           }
           ctx.putImageData(imageData, 0, 0);
         }
-        extracted.push(canvas.toDataURL("image/webp", 0.8));
+        extracted.push(canvas.toDataURL("image/webp", 0.92));
         frameIndex++;
         if (frameIndex === 1) {
           setFrames([...extracted]);

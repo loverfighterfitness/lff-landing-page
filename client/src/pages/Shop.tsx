@@ -1083,6 +1083,7 @@ function ShopHero() {
 
 /* ─── Tee Section (Info Left / Spinner Right) ─── */
 function TeeSection() {
+  const openShippingModal = useContext(ShippingContext);
   const [selectedColour, setSelectedColour] = useState<TeeColour>("brown");
   const videoSrc = TEE_SPIN_VIDEOS[selectedColour];
   const { frames, loading } = useVideoFrames(videoSrc, 72, true);
@@ -1158,6 +1159,58 @@ function TeeSection() {
               </div>
             </div>
           </ProductInfoCard>
+
+          {/* 3-Pack Deal */}
+          <ScrollReveal delay={0.15}>
+            <div
+              className="mt-4 p-5 md:p-6"
+              style={{
+                background: "rgba(234,230,210,0.08)",
+                border: "1px solid rgba(234,230,210,0.1)",
+                borderRadius: PANEL_RADIUS,
+              }}
+            >
+              <div className="flex items-center justify-between mb-3">
+                <div>
+                  <p className="text-lff-cream text-sm font-semibold tracking-wide">
+                    3-Pack Bundle
+                  </p>
+                  <p className="text-lff-cream/40 text-xs mt-0.5">
+                    One of each colour
+                  </p>
+                </div>
+                <div className="text-right">
+                  <span className="text-lff-cream/40 text-sm line-through mr-1.5" style={{ fontFamily: "var(--font-display)" }}>
+                    $135
+                  </span>
+                  <span className="text-lff-cream text-xl" style={{ fontFamily: "var(--font-display)" }}>
+                    $120
+                  </span>
+                  <p className="text-[9px] tracking-[0.2em] uppercase text-green-400/70 font-medium">
+                    Save $15
+                  </p>
+                </div>
+              </div>
+              <motion.button
+                onClick={() =>
+                  openShippingModal(
+                    "Drop Shoulder Tee — 3-Pack",
+                    120,
+                    "https://buy.stripe.com/bJe4gz5Eu3np8FuaNqbwk0g",
+                    "https://buy.stripe.com/eVqcN5d6W5vx2h64p2bwk0h",
+                  )
+                }
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                className="w-full flex items-center justify-center gap-3 px-6 py-3.5 text-[11px] font-bold tracking-[0.2em] uppercase bg-lff-cream text-lff-brown hover:bg-lff-cream/90 transition-colors duration-300 cursor-pointer"
+                style={{ borderRadius: PILL_RADIUS }}
+              >
+                <ArrowRight size={13} />
+                <span>Pre-Order 3-Pack — $120</span>
+              </motion.button>
+            </div>
+          </ScrollReveal>
         </div>
 
         {/* Spinner — right 65%, floating on concrete */}
@@ -1238,7 +1291,7 @@ function CuffsSection() {
     72,
     true,
     20,
-    1.8,
+    2.8,
     "blue",
   );
 

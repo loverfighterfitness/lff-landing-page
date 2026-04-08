@@ -1489,7 +1489,7 @@ function CuffsSection() {
               frames={frames}
               loading={loading}
               useBlendMode
-              brightness={1.5}
+              brightness={1.65}
               className="w-full aspect-square max-w-[280px] lg:max-w-[650px] mx-auto"
             />
           </ScrollReveal>
@@ -1593,7 +1593,7 @@ function GoatPackSection() {
             </div>
             <span className="text-lff-cream/25 text-2xl md:text-3xl flex-shrink-0" style={{ fontFamily: "var(--font-display)" }}>+</span>
             <div className="flex-1 max-w-[300px]">
-              <SpinnerCanvas frames={cuffsFrames} loading={cuffsLoading} useBlendMode hideHint brightness={1.5} className="w-full aspect-square" />
+              <SpinnerCanvas frames={cuffsFrames} loading={cuffsLoading} useBlendMode hideHint brightness={1.65} className="w-full aspect-square" />
               <p className="text-center text-lff-cream/50 text-[10px] tracking-[0.2em] uppercase font-medium mt-1">Cuffs</p>
             </div>
           </div>

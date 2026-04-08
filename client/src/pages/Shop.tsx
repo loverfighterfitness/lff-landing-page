@@ -451,9 +451,9 @@ const SockCard = memo(function SockCard({
 
 /* ─── Mobile Detection ─── */
 const IS_MOBILE = typeof window !== "undefined" && window.matchMedia("(hover: none)").matches;
-const MOBILE_FRAMES = 36;
+const MOBILE_FRAMES = 48;
 const DESKTOP_FRAMES = 48;
-const MOBILE_SCALE = 640;
+const MOBILE_SCALE = 768;
 const DESKTOP_SCALE = 768;
 
 /* ─── Frame Cache (in-memory + IndexedDB) ─── */
@@ -622,7 +622,7 @@ function useVideoFrames(
           }
           ctx.putImageData(imageData, 0, 0);
         }
-        extracted.push(canvas.toDataURL("image/webp", 0.92));
+        extracted.push(canvas.toDataURL("image/webp", 0.95));
         frameIndex++;
         if (frameIndex === 1) {
           setFrames([...extracted]);
@@ -1517,7 +1517,7 @@ function GoatPackSection() {
     "/shop/straps-spin-blue.mp4", 48, true, 15, 1.4, "blue",
   );
   const { frames: cuffsFrames, loading: cuffsLoading } = useVideoFrames(
-    "/shop/cuffs-spin-blue.mp4", 48, true, 20, 4.0, "blue",
+    "/shop/cuffs-spin-blue.mp4", 48, true, 20, 5.5, "blue",
   );
 
   const fullPrice = 115;

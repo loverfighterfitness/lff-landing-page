@@ -468,11 +468,11 @@ function getCacheKey(src: string, frameCount: number, blackThreshold: number, br
 function openFrameDB(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
     // v2: bust cache from broken brightness builds
-    const req = indexedDB.open("lff-spinner-cache", 2);
+    const req = indexedDB.open("lff-spinner-cache", 3);
     req.onupgradeneeded = (e) => {
       const db = req.result;
       // Delete old store if upgrading from v1
-      if (e.oldVersion < 2 && db.objectStoreNames.contains("frames")) {
+      if (e.oldVersion < 3 && db.objectStoreNames.contains("frames")) {
         db.deleteObjectStore("frames");
       }
       if (!db.objectStoreNames.contains("frames")) {
@@ -1536,7 +1536,7 @@ function GoatPackSection() {
     "/shop/straps-spin-blue.mp4", 48, true, 15, 1.4, "blue",
   );
   const { frames: cuffsFrames, loading: cuffsLoading } = useVideoFrames(
-    "/shop/cuffs-spin-blue.mp4", 48, true, 20, 3.0, "blue",
+    "/shop/cuffs-spin-blue.mp4", 48, true, 20, 1.8, "blue",
   );
 
   const fullPrice = 115;

@@ -89,6 +89,7 @@ const SOCKS: Product[] = [
     price: 10,
     stock: 30,
     stripeLink: "https://buy.stripe.com/cNi8wPaYO4rtdZO1cQbwk06",
+    shippingStripeLink: "https://buy.stripe.com/eVqdR9d6Wgab5ti7Bebwk0b",
     image: "/shop/socks-cream-hero.jpg",
   },
   {
@@ -98,6 +99,7 @@ const SOCKS: Product[] = [
     price: 10,
     stock: 30,
     stripeLink: "https://buy.stripe.com/dRm8wP7MC0bd08Y1cQbwk07",
+    shippingStripeLink: "https://buy.stripe.com/00w8wP3wm5vx3la1cQbwk0c",
     image: "/shop/socks-brown-hero.jpg",
     hoverImage: "/shop/socks-brown-action.jpg",
   },
@@ -111,6 +113,7 @@ const STRAPS: Product[] = [
     price: 35,
     stock: 15,
     stripeLink: "https://buy.stripe.com/dRm8wP8QG9LN1d23kYbwk08",
+    shippingStripeLink: "https://buy.stripe.com/fZu00jgj86zBf3S4p2bwk0d",
     image: "/shop/straps-flatlay.jpg",
     hoverVideo: "/shop/straps-video.mp4",
   },
@@ -124,6 +127,7 @@ const CUFFS: Product[] = [
     price: 25,
     stock: 15,
     stripeLink: "https://buy.stripe.com/7sY4gz4Aq7DF8Fu1cQbwk09",
+    shippingStripeLink: "https://buy.stripe.com/fZu00j6Iy2jl8Fuf3Gbwk0e",
     image: "/shop/cuffs-flatlay.jpg",
     hoverVideo: "/shop/cuffs-video.mp4",
   },
@@ -1101,6 +1105,7 @@ function TeeSection() {
             price={45}
             stock={null}
             stripeLink="https://buy.stripe.com/cNi3cv9UKe236xm9Jmbwk0a"
+            shippingStripeLink="https://buy.stripe.com/cNi00j0ka2jl1d27Bebwk0f"
             ctaLabel="Pre-Order — $45"
           >
             {/* Colour swatches */}
@@ -1216,6 +1221,7 @@ function StrapsSection() {
             price={35}
             stock={15}
             stripeLink="https://buy.stripe.com/dRm8wP8QG9LN1d23kYbwk08"
+            shippingStripeLink="https://buy.stripe.com/fZu00jgj86zBf3S4p2bwk0d"
             ctaLabel="Order — $35"
             variant="dark"
           />
@@ -1248,6 +1254,7 @@ function CuffsSection() {
             price={25}
             stock={15}
             stripeLink="https://buy.stripe.com/7sY4gz4Aq7DF8Fu1cQbwk09"
+            shippingStripeLink="https://buy.stripe.com/fZu00j6Iy2jl8Fuf3Gbwk0e"
             ctaLabel="Order — $25"
           />
         </div>

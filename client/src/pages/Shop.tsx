@@ -550,8 +550,10 @@ function useVideoFrames(
     setFrames([]);
     const listeners: ((frames: string[]) => void)[] = [];
     frameCacheListeners.set(key, listeners);
+    let aborted = false;
 
     getFromIDB(key).then((idbFrames) => {
+      if (aborted) return;
       if (idbFrames && idbFrames.length === effectiveFrames) {
         frameCache.set(key, idbFrames);
         setFrames(idbFrames);
@@ -567,7 +569,11 @@ function useVideoFrames(
       video.muted = true;
       video.playsInline = true;
       video.preload = "auto";
+      // iOS needs these attributes to load without user gesture
+      video.setAttribute("playsinline", "");
+      video.setAttribute("webkit-playsinline", "");
       video.src = src;
+      video.load(); // Explicitly trigger load on mobile
 
       const canvas = document.createElement("canvas");
       const ctx = canvas.getContext("2d", { willReadFrequently: true })!;
@@ -575,6 +581,7 @@ function useVideoFrames(
       let frameIndex = 0;
 
       const extractFrame = () => {
+        if (aborted) return;
         const maxDim = IS_MOBILE ? MOBILE_SCALE : DESKTOP_SCALE;
         const scale = Math.min(1, maxDim / Math.max(video.videoWidth, video.videoHeight));
         const w = Math.round(video.videoWidth * scale);
@@ -634,16 +641,40 @@ function useVideoFrames(
       };
 
       video.addEventListener("seeked", extractFrame);
-      video.addEventListener(
-        "loadeddata",
-        () => {
+
+      // Use loadedmetadata (fires earlier than loadeddata on mobile)
+      const onReady = () => {
+        if (aborted) return;
+        // iOS Safari: play+pause to unlock seeking
+        const playPromise = video.play();
+        if (playPromise) {
+          playPromise.then(() => {
+            video.pause();
+            video.currentTime = 0;
+          }).catch(() => {
+            // Play blocked — try seeking directly
+            video.currentTime = 0;
+          });
+        } else {
           video.currentTime = 0;
-        },
-        { once: true },
-      );
+        }
+      };
+
+      if (video.readyState >= 1) {
+        onReady();
+      } else {
+        video.addEventListener("loadedmetadata", onReady, { once: true });
+        // Fallback timeout — if nothing fires in 5s, try anyway
+        setTimeout(() => {
+          if (extracted.length === 0 && !aborted && video.readyState >= 1) {
+            onReady();
+          }
+        }, 5000);
+      }
     });
 
     return () => {
+      aborted = true;
       frameCacheListeners.delete(key);
     };
   }, [src, effectiveFrames, visible]);

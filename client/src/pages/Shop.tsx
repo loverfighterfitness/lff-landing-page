@@ -605,6 +605,15 @@ function useVideoFrames(
                 d[i + 2] = Math.min(b, Math.round(Math.max(r, g) * 1.1));
               }
             }
+            // Apply brightness boost AFTER blue removal
+            if (brightnessBoost > 1) {
+              for (let i = 0; i < d.length; i += 4) {
+                if (d[i + 3] === 0) continue; // skip transparent pixels
+                d[i] = Math.min(255, Math.round(d[i] * brightnessBoost));
+                d[i + 1] = Math.min(255, Math.round(d[i + 1] * brightnessBoost));
+                d[i + 2] = Math.min(255, Math.round(d[i + 2] * brightnessBoost));
+              }
+            }
           } else {
             if (brightnessBoost > 1) {
               for (let i = 0; i < d.length; i += 4) {
@@ -1517,7 +1526,7 @@ function GoatPackSection() {
     "/shop/straps-spin-blue.mp4", 48, true, 15, 1.4, "blue",
   );
   const { frames: cuffsFrames, loading: cuffsLoading } = useVideoFrames(
-    "/shop/cuffs-spin-blue.mp4", 48, true, 20, 5.5, "blue",
+    "/shop/cuffs-spin-blue.mp4", 48, true, 20, 2.0, "blue",
   );
 
   const fullPrice = 115;

@@ -1293,7 +1293,7 @@ function CuffsSection() {
     72,
     true,
     20,
-    2.8,
+    4.0,
     "blue",
   );
 
@@ -1383,7 +1383,7 @@ function GoatPackSection() {
     "/shop/straps-spin-blue.mp4", 72, true, 20, 1, "blue",
   );
   const { frames: cuffsFrames, loading: cuffsLoading } = useVideoFrames(
-    "/shop/cuffs-spin-blue.mp4", 72, true, 20, 2.8, "blue",
+    "/shop/cuffs-spin-blue.mp4", 72, true, 20, 4.0, "blue",
   );
 
   const fullPrice = 115;

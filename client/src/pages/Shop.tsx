@@ -666,11 +666,13 @@ function SpinnerCanvas({
   loading,
   useBlendMode = false,
   className = "",
+  hideHint = false,
 }: {
   frames: string[];
   loading: boolean;
   useBlendMode?: boolean;
   className?: string;
+  hideHint?: boolean;
 }) {
   const {
     isDragging,
@@ -717,7 +719,7 @@ function SpinnerCanvas({
         />
       )}
       <AnimatePresence>
-        {showHint && !loading && (
+        {showHint && !loading && !hideHint && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -1417,6 +1419,7 @@ function GoatPackSection() {
                 frames={teeFrames}
                 loading={teeLoading}
                 useBlendMode
+                hideHint
                 className="w-full aspect-square"
               />
               <p className="text-center text-lff-cream/50 text-[10px] tracking-[0.2em] uppercase font-medium mt-1">
@@ -1438,6 +1441,7 @@ function GoatPackSection() {
                 frames={strapsFrames}
                 loading={strapsLoading}
                 useBlendMode
+                hideHint
                 className="w-full aspect-square"
               />
               <p className="text-center text-lff-cream/50 text-[10px] tracking-[0.2em] uppercase font-medium mt-1">
@@ -1459,6 +1463,7 @@ function GoatPackSection() {
                 frames={cuffsFrames}
                 loading={cuffsLoading}
                 useBlendMode
+                hideHint
                 className="w-full aspect-square"
               />
               <p className="text-center text-lff-cream/50 text-[10px] tracking-[0.2em] uppercase font-medium mt-1">

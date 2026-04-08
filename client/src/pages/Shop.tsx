@@ -308,13 +308,19 @@ function ShippingModal({
                   </div>
                   <div className="text-right">
                     <span
-                      className="text-lff-cream text-lg tabular-nums"
+                      className="text-lff-cream/40 text-sm tabular-nums line-through"
+                      style={{ fontFamily: "var(--font-display)" }}
+                    >
+                      ${state.price}
+                    </span>
+                    <span
+                      className="text-lff-cream text-lg tabular-nums ml-1.5"
                       style={{ fontFamily: "var(--font-display)" }}
                     >
                       ${state.price + SHIPPING_COST}
                     </span>
                     <p className="text-[9px] tracking-[0.2em] uppercase text-lff-cream/40 font-medium">
-                      +${SHIPPING_COST} shipping
+                      Includes ${SHIPPING_COST} shipping
                     </p>
                   </div>
                   <ArrowRight size={14} className="text-lff-cream/30 flex-shrink-0" />

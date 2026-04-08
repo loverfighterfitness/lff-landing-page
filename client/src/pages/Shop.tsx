@@ -464,24 +464,34 @@ function getCacheKey(src: string, frameCount: number, blackThreshold: number, br
   return `${src}|${frameCount}|${blackThreshold}|${brightnessBoost}|${chromaKey}`;
 }
 
+// Cache version — bump this to wipe all cached frames
+const CACHE_VERSION = "v5";
+
 // IndexedDB helpers
 function openFrameDB(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
-    // v2: bust cache from broken brightness builds
-    const req = indexedDB.open("lff-spinner-cache", 4);
-    req.onupgradeneeded = (e) => {
+    const req = indexedDB.open("lff-spinner-cache", 5);
+    req.onupgradeneeded = () => {
       const db = req.result;
-      // Delete old store if upgrading from v1
-      if (e.oldVersion < 4 && db.objectStoreNames.contains("frames")) {
+      if (db.objectStoreNames.contains("frames")) {
         db.deleteObjectStore("frames");
       }
-      if (!db.objectStoreNames.contains("frames")) {
-        db.createObjectStore("frames");
-      }
+      db.createObjectStore("frames");
     };
     req.onsuccess = () => resolve(req.result);
     req.onerror = () => reject(req.error);
   });
+}
+
+// Wipe stale cache on page load
+if (typeof window !== "undefined") {
+  try {
+    const lastVersion = localStorage.getItem("lff-cache-ver");
+    if (lastVersion !== CACHE_VERSION) {
+      indexedDB.deleteDatabase("lff-spinner-cache");
+      localStorage.setItem("lff-cache-ver", CACHE_VERSION);
+    }
+  } catch { /* silent */ }
 }
 
 async function getFromIDB(key: string): Promise<string[] | null> {

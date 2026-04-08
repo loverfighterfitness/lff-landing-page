@@ -1089,7 +1089,7 @@ const MarqueeBanner = memo(function MarqueeBanner({
               fontWeight: 900,
               letterSpacing: "-0.01em",
               textTransform: "uppercase" as const,
-              color: "rgba(234,230,210,0.06)",
+              color: "rgba(234,230,210,0.18)",
             }}
           >
             <span className="px-6 md:px-10">{item}</span>
@@ -1988,7 +1988,7 @@ export default function Shop() {
           "LOVER FIGHTER FITNESS",
           "LIMITED STOCK",
           "REP THE BRAND",
-          "EST. 2024",
+          "EST. 2023",
         ]}
       />
 
@@ -2046,7 +2046,7 @@ export default function Shop() {
           "LOVER FIGHTER FITNESS",
           "LIMITED STOCK",
           "REP THE BRAND",
-          "EST. 2024",
+          "EST. 2023",
         ]}
       />
 

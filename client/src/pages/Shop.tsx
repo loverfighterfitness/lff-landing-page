@@ -1410,11 +1410,10 @@ function GoatPackSection() {
           </div>
         </ScrollReveal>
 
-        {/* Spinners row: Tee + Straps + Cuffs side by side, then "+ Socks" */}
+        {/* Three spinners centred */}
         <ScrollReveal delay={0.1}>
-          <div className="flex items-center justify-center gap-0 md:gap-2 mb-4">
-            {/* Tee spinner */}
-            <div className="flex-1 max-w-[280px]">
+          <div className="flex items-center justify-center gap-0 md:gap-4 mb-8">
+            <div className="flex-1 max-w-[300px]">
               <SpinnerCanvas
                 frames={teeFrames}
                 loading={teeLoading}
@@ -1427,16 +1426,14 @@ function GoatPackSection() {
               </p>
             </div>
 
-            {/* Plus */}
             <span
-              className="text-lff-cream/25 text-2xl md:text-3xl flex-shrink-0 -mx-2"
+              className="text-lff-cream/25 text-2xl md:text-3xl flex-shrink-0"
               style={{ fontFamily: "var(--font-display)" }}
             >
               +
             </span>
 
-            {/* Straps spinner */}
-            <div className="flex-1 max-w-[280px]">
+            <div className="flex-1 max-w-[300px]">
               <SpinnerCanvas
                 frames={strapsFrames}
                 loading={strapsLoading}
@@ -1449,16 +1446,14 @@ function GoatPackSection() {
               </p>
             </div>
 
-            {/* Plus */}
             <span
-              className="text-lff-cream/25 text-2xl md:text-3xl flex-shrink-0 -mx-2"
+              className="text-lff-cream/25 text-2xl md:text-3xl flex-shrink-0"
               style={{ fontFamily: "var(--font-display)" }}
             >
               +
             </span>
 
-            {/* Cuffs spinner */}
-            <div className="flex-1 max-w-[280px]">
+            <div className="flex-1 max-w-[300px]">
               <SpinnerCanvas
                 frames={cuffsFrames}
                 loading={cuffsLoading}
@@ -1470,54 +1465,54 @@ function GoatPackSection() {
                 Cuffs
               </p>
             </div>
-
-            {/* Plus Socks */}
-            <span
-              className="text-lff-cream/25 text-2xl md:text-3xl flex-shrink-0 -mx-2"
-              style={{ fontFamily: "var(--font-display)" }}
-            >
-              +
-            </span>
-
-            <div className="flex-1 max-w-[280px]">
-              <div
-                className="aspect-square overflow-hidden flex items-center justify-center"
-                style={{ borderRadius: "1rem" }}
-              >
-                <img
-                  src="/shop/socks-brown-hero.jpg"
-                  alt="Brown Socks"
-                  className="w-[75%] h-[75%] object-cover rounded-xl"
-                />
-              </div>
-              <p className="text-center text-lff-cream/50 text-[10px] tracking-[0.2em] uppercase font-medium mt-1">
-                Socks
-              </p>
-            </div>
           </div>
         </ScrollReveal>
 
-        {/* Price + CTA card */}
+        {/* Price + socks + CTA */}
         <ScrollReveal delay={0.2}>
-          <div className="text-center space-y-5 mt-6">
-            <div>
+          <div className="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-10 mt-2">
+            {/* Socks image + label */}
+            <div className="flex items-center gap-4">
               <span
-                className="text-lff-cream/40 text-2xl line-through mr-3"
+                className="text-lff-cream/25 text-2xl md:text-3xl"
                 style={{ fontFamily: "var(--font-display)" }}
               >
-                ${fullPrice}
+                +
               </span>
-              <span
-                className="text-lff-cream text-4xl md:text-5xl"
-                style={{ fontFamily: "var(--font-display)" }}
-              >
-                ${packPrice}
-              </span>
+              <div className="w-20 h-20 md:w-24 md:h-24 overflow-hidden rounded-xl flex-shrink-0">
+                <img
+                  src="/shop/socks-brown-hero.jpg"
+                  alt="Brown Socks"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <p className="text-lff-cream/50 text-[10px] tracking-[0.2em] uppercase font-medium">
+                Socks
+              </p>
+            </div>
+
+            {/* Price */}
+            <div className="text-center">
+              <div>
+                <span
+                  className="text-lff-cream/40 text-2xl line-through mr-3"
+                  style={{ fontFamily: "var(--font-display)" }}
+                >
+                  ${fullPrice}
+                </span>
+                <span
+                  className="text-lff-cream text-4xl md:text-5xl"
+                  style={{ fontFamily: "var(--font-display)" }}
+                >
+                  ${packPrice}
+                </span>
+              </div>
               <p className="text-[10px] tracking-[0.2em] uppercase text-green-400/70 font-medium mt-1">
                 Save ${fullPrice - packPrice}
               </p>
             </div>
 
+            {/* CTA */}
             <motion.button
               onClick={() =>
                 openModal(

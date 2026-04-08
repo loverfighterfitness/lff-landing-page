@@ -1526,7 +1526,7 @@ function GoatPackSection() {
     "/shop/straps-spin-blue.mp4", 48, true, 15, 1.4, "blue",
   );
   const { frames: cuffsFrames, loading: cuffsLoading } = useVideoFrames(
-    "/shop/cuffs-spin-blue.mp4", 48, true, 20, 2.0, "blue",
+    "/shop/cuffs-spin-blue.mp4", 48, true, 20, 3.0, "blue",
   );
 
   const fullPrice = 115;

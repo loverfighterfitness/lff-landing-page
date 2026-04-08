@@ -4,7 +4,7 @@
  * Each product gets its own section with alternating left/right split
  * Frosted glass only on small info cards, never wrapping spinners
  */
-import { useRef, useEffect, useState, memo } from "react";
+import React, { useRef, useEffect, useState, memo, useContext } from "react";
 import {
   motion,
   AnimatePresence,
@@ -13,7 +13,7 @@ import {
   useInView,
   useSpring,
 } from "framer-motion";
-import { ArrowRight, Instagram, RotateCcw } from "lucide-react";
+import { ArrowRight, Instagram, RotateCcw, MapPin, Truck, X } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
@@ -73,6 +73,7 @@ interface Product {
   price: number;
   stock: number | null;
   stripeLink?: string;
+  shippingStripeLink?: string; // +$10 shipping variant
   image?: string;
   hoverImage?: string;
   hoverVideo?: string;
@@ -172,6 +173,161 @@ const BreathingDot = memo(function BreathingDot({ color }: { color: string }) {
   );
 });
 
+/* ─── Shipping Modal ─── */
+interface ShippingModalState {
+  open: boolean;
+  productName: string;
+  price: number;
+  pickupLink: string;
+  shippingLink: string;
+}
+
+const SHIPPING_COST = 10;
+
+function ShippingModal({
+  state,
+  onClose,
+}: {
+  state: ShippingModalState;
+  onClose: () => void;
+}) {
+  // Lock body scroll when open
+  useEffect(() => {
+    if (state.open) {
+      document.body.style.overflow = "hidden";
+      return () => { document.body.style.overflow = ""; };
+    }
+  }, [state.open]);
+
+  return (
+    <AnimatePresence>
+      {state.open && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.25 }}
+          className="fixed inset-0 z-[9999] flex items-center justify-center px-4"
+          onClick={onClose}
+        >
+          {/* Backdrop */}
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+
+          {/* Modal card */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.92, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.92, y: 20 }}
+            transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+            onClick={(e) => e.stopPropagation()}
+            className="relative w-full max-w-md"
+            style={{
+              background: "rgba(58,44,30,0.97)",
+              border: "1px solid rgba(234,230,210,0.1)",
+              boxShadow: "0 32px 80px rgba(0,0,0,0.4)",
+              borderRadius: PANEL_RADIUS,
+            }}
+          >
+            {/* Close button */}
+            <button
+              onClick={onClose}
+              className="absolute top-4 right-4 text-lff-cream/40 hover:text-lff-cream transition-colors"
+            >
+              <X size={18} />
+            </button>
+
+            <div className="p-8 space-y-6">
+              {/* Header */}
+              <div>
+                <p className="text-lff-cream/40 text-[10px] tracking-[0.35em] uppercase font-medium mb-2">
+                  How are you getting it?
+                </p>
+                <h3
+                  className="text-lff-cream text-2xl tracking-[-0.02em]"
+                  style={{ fontFamily: "var(--font-display)" }}
+                >
+                  {state.productName}
+                </h3>
+              </div>
+
+              {/* Options */}
+              <div className="space-y-3">
+                {/* Local Pickup */}
+                <motion.a
+                  href={state.pickupLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="flex items-center gap-4 w-full p-5 rounded-2xl border border-lff-cream/10 hover:border-lff-cream/25 bg-lff-cream/5 hover:bg-lff-cream/10 transition-all duration-300 text-left"
+                >
+                  <div className="flex-shrink-0 w-11 h-11 rounded-full bg-lff-cream/10 flex items-center justify-center">
+                    <MapPin size={18} className="text-lff-cream" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-lff-cream text-sm font-semibold tracking-wide">
+                      Local Pickup
+                    </p>
+                    <p className="text-lff-cream/40 text-xs mt-0.5">
+                      Mount Barker, SA
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <span
+                      className="text-lff-cream text-lg tabular-nums"
+                      style={{ fontFamily: "var(--font-display)" }}
+                    >
+                      ${state.price}
+                    </span>
+                    <p className="text-[9px] tracking-[0.2em] uppercase text-green-400/70 font-medium">
+                      Free
+                    </p>
+                  </div>
+                  <ArrowRight size={14} className="text-lff-cream/30 flex-shrink-0" />
+                </motion.a>
+
+                {/* Australia-Wide Shipping */}
+                <motion.a
+                  href={state.shippingLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="flex items-center gap-4 w-full p-5 rounded-2xl border border-lff-cream/10 hover:border-lff-cream/25 bg-lff-cream/5 hover:bg-lff-cream/10 transition-all duration-300 text-left"
+                >
+                  <div className="flex-shrink-0 w-11 h-11 rounded-full bg-lff-cream/10 flex items-center justify-center">
+                    <Truck size={18} className="text-lff-cream" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-lff-cream text-sm font-semibold tracking-wide">
+                      Aus-Wide Shipping
+                    </p>
+                    <p className="text-lff-cream/40 text-xs mt-0.5">
+                      Delivered to your door
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <span
+                      className="text-lff-cream text-lg tabular-nums"
+                      style={{ fontFamily: "var(--font-display)" }}
+                    >
+                      ${state.price + SHIPPING_COST}
+                    </span>
+                    <p className="text-[9px] tracking-[0.2em] uppercase text-lff-cream/40 font-medium">
+                      +${SHIPPING_COST} shipping
+                    </p>
+                  </div>
+                  <ArrowRight size={14} className="text-lff-cream/30 flex-shrink-0" />
+                </motion.a>
+              </div>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
+
 /* ─── Sock Card (hover video support) ─── */
 const SockCard = memo(function SockCard({
   product,
@@ -194,6 +350,8 @@ const SockCard = memo(function SockCard({
     }
   }, [showVideo]);
 
+  const openModal = useContext(ShippingContext);
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 30 }}
@@ -203,9 +361,16 @@ const SockCard = memo(function SockCard({
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
-      <a
-        href={product.stripeLink || "#"}
-        className="block relative overflow-hidden aspect-[4/5] cursor-pointer"
+      <button
+        onClick={() =>
+          openModal(
+            `${product.name} — ${product.tagline}`,
+            product.price,
+            product.stripeLink || "#",
+            product.shippingStripeLink || product.stripeLink || "#",
+          )
+        }
+        className="block relative overflow-hidden aspect-[4/5] cursor-pointer w-full text-left"
         style={{ borderRadius: "1.5rem" }}
       >
         <img
@@ -246,7 +411,7 @@ const SockCard = memo(function SockCard({
             <ArrowRight size={12} strokeWidth={2.5} />
           </div>
         </div>
-      </a>
+      </button>
 
       <div className="mt-3 space-y-0.5 px-1">
         <div className="flex items-baseline justify-between">
@@ -571,6 +736,7 @@ function ProductInfoCard({
   subtitle,
   price,
   stripeLink,
+  shippingStripeLink,
   ctaLabel,
   stock,
   children,
@@ -581,11 +747,13 @@ function ProductInfoCard({
   subtitle: string;
   price: number;
   stripeLink?: string;
+  shippingStripeLink?: string;
   ctaLabel: string;
   stock?: number | null;
   children?: React.ReactNode;
   variant?: "default" | "dark";
 }) {
+  const openModal = useContext(ShippingContext);
   const isLow = stock !== null && stock !== undefined && stock <= 15;
   const isDark = variant === "dark";
 
@@ -644,14 +812,19 @@ function ProductInfoCard({
 
         {/* CTA */}
         {stripeLink && (
-          <motion.a
-            href={stripeLink}
-            target="_blank"
-            rel="noopener noreferrer"
+          <motion.button
+            onClick={() =>
+              openModal(
+                title,
+                price,
+                stripeLink,
+                shippingStripeLink || stripeLink, // fallback to same link if no shipping link set yet
+              )
+            }
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.97 }}
             transition={{ type: "spring", stiffness: 400, damping: 17 }}
-            className={`inline-flex items-center gap-3 px-8 py-4 text-[11px] font-bold tracking-[0.2em] uppercase transition-colors duration-300 ${
+            className={`inline-flex items-center gap-3 px-8 py-4 text-[11px] font-bold tracking-[0.2em] uppercase transition-colors duration-300 cursor-pointer ${
               isDark
                 ? "bg-lff-cream text-lff-brown hover:bg-lff-cream/90"
                 : "bg-lff-cream text-lff-brown hover:bg-lff-cream/90"
@@ -660,7 +833,7 @@ function ProductInfoCard({
           >
             <ArrowRight size={13} />
             <span>{ctaLabel}</span>
-          </motion.a>
+          </motion.button>
         )}
       </div>
     </ScrollReveal>
@@ -1337,8 +1510,35 @@ function BrandStrip() {
 /* ═══════════════════════════════════════════════════════════
    MAIN SHOP PAGE
    ═══════════════════════════════════════════════════════════ */
+/* ─── Shipping Context ─── */
+const ShippingContext = React.createContext<
+  (name: string, price: number, pickupLink: string, shippingLink: string) => void
+>(() => {});
+
 export default function Shop() {
   const spotlightRef = useRef<HTMLDivElement>(null);
+  const [shippingModal, setShippingModal] = useState<ShippingModalState>({
+    open: false,
+    productName: "",
+    price: 0,
+    pickupLink: "",
+    shippingLink: "",
+  });
+
+  const openShippingModal = (
+    productName: string,
+    price: number,
+    pickupLink: string,
+    shippingLink: string,
+  ) => {
+    setShippingModal({
+      open: true,
+      productName,
+      price,
+      pickupLink,
+      shippingLink,
+    });
+  };
 
   useEffect(() => {
     const reduceMotion = window.matchMedia(
@@ -1372,6 +1572,7 @@ export default function Shop() {
   }, []);
 
   return (
+    <ShippingContext.Provider value={openShippingModal}>
     <div className="min-h-screen text-lff-cream overflow-x-hidden" style={concreteTexture}>
       {/* Grain overlay */}
       <div
@@ -1402,6 +1603,11 @@ export default function Shop() {
           mixBlendMode: "overlay",
           willChange: "transform",
         }}
+      />
+
+      <ShippingModal
+        state={shippingModal}
+        onClose={() => setShippingModal((s) => ({ ...s, open: false }))}
       />
 
       <Navbar />
@@ -1477,5 +1683,6 @@ export default function Shop() {
 
       <Footer />
     </div>
+    </ShippingContext.Provider>
   );
 }

@@ -465,7 +465,7 @@ function getCacheKey(src: string, frameCount: number, blackThreshold: number, br
 }
 
 // Cache version — bump this to wipe all cached frames
-const CACHE_VERSION = "v6";
+const CACHE_VERSION = "v7";
 
 // IndexedDB helpers
 function openFrameDB(): Promise<IDBDatabase> {
@@ -830,12 +830,14 @@ function SpinnerCanvas({
   useBlendMode = false,
   className = "",
   hideHint = false,
+  brightness,
 }: {
   frames: string[];
   loading: boolean;
   useBlendMode?: boolean;
   className?: string;
   hideHint?: boolean;
+  brightness?: number;
 }) {
   const {
     isDragging,
@@ -878,7 +880,10 @@ function SpinnerCanvas({
         <canvas
           ref={canvasRef}
           className="w-full h-full object-contain pointer-events-none"
-          style={useBlendMode ? { mixBlendMode: "lighten" } : undefined}
+          style={{
+            ...(useBlendMode ? { mixBlendMode: "lighten" as const } : {}),
+            ...(brightness ? { filter: `brightness(${brightness})` } : {}),
+          }}
         />
       )}
       <AnimatePresence>
@@ -1456,7 +1461,7 @@ function CuffsSection() {
     48,
     true,
     20,
-    4.0,
+    1,
     "blue",
   );
 
@@ -1484,6 +1489,7 @@ function CuffsSection() {
               frames={frames}
               loading={loading}
               useBlendMode
+              brightness={1.5}
               className="w-full aspect-square max-w-[280px] lg:max-w-[650px] mx-auto"
             />
           </ScrollReveal>
@@ -1546,7 +1552,7 @@ function GoatPackSection() {
     "/shop/straps-spin-blue.mp4", 48, true, 15, 1.4, "blue",
   );
   const { frames: cuffsFrames, loading: cuffsLoading } = useVideoFrames(
-    "/shop/cuffs-spin-blue.mp4", 48, true, 20, 1.2, "blue",
+    "/shop/cuffs-spin-blue.mp4", 48, true, 20, 1, "blue",
   );
 
   const fullPrice = 115;
@@ -1587,7 +1593,7 @@ function GoatPackSection() {
             </div>
             <span className="text-lff-cream/25 text-2xl md:text-3xl flex-shrink-0" style={{ fontFamily: "var(--font-display)" }}>+</span>
             <div className="flex-1 max-w-[300px]">
-              <SpinnerCanvas frames={cuffsFrames} loading={cuffsLoading} useBlendMode hideHint className="w-full aspect-square" />
+              <SpinnerCanvas frames={cuffsFrames} loading={cuffsLoading} useBlendMode hideHint brightness={1.5} className="w-full aspect-square" />
               <p className="text-center text-lff-cream/50 text-[10px] tracking-[0.2em] uppercase font-medium mt-1">Cuffs</p>
             </div>
           </div>

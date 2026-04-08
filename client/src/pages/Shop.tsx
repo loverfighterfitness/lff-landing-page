@@ -449,6 +449,44 @@ const SockCard = memo(function SockCard({
   );
 });
 
+/* ─── Frame Cache (in-memory + IndexedDB) ─── */
+const frameCache = new Map<string, string[]>();
+const frameCacheListeners = new Map<string, ((frames: string[]) => void)[]>();
+
+function getCacheKey(src: string, frameCount: number, blackThreshold: number, brightnessBoost: number, chromaKey: string) {
+  return `${src}|${frameCount}|${blackThreshold}|${brightnessBoost}|${chromaKey}`;
+}
+
+// IndexedDB helpers
+function openFrameDB(): Promise<IDBDatabase> {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open("lff-spinner-cache", 1);
+    req.onupgradeneeded = () => req.result.createObjectStore("frames");
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function getFromIDB(key: string): Promise<string[] | null> {
+  try {
+    const db = await openFrameDB();
+    return new Promise((resolve) => {
+      const tx = db.transaction("frames", "readonly");
+      const req = tx.objectStore("frames").get(key);
+      req.onsuccess = () => resolve(req.result || null);
+      req.onerror = () => resolve(null);
+    });
+  } catch { return null; }
+}
+
+async function saveToIDB(key: string, frames: string[]) {
+  try {
+    const db = await openFrameDB();
+    const tx = db.transaction("frames", "readwrite");
+    tx.objectStore("frames").put(frames, key);
+  } catch { /* silent */ }
+}
+
 /* ─── Frame Extraction Hook ─── */
 function useVideoFrames(
   src: string,
@@ -462,86 +500,122 @@ function useVideoFrames(
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const key = getCacheKey(src, frameCount, blackThreshold, brightnessBoost, chromaKey);
+
+    // 1. Check in-memory cache (instant — same page session)
+    const cached = frameCache.get(key);
+    if (cached && cached.length === frameCount) {
+      setFrames(cached);
+      setLoading(false);
+      return;
+    }
+
+    // 2. If another hook is already extracting this exact video, just listen
+    if (frameCacheListeners.has(key)) {
+      const listener = (f: string[]) => { setFrames(f); setLoading(false); };
+      frameCacheListeners.get(key)!.push(listener);
+      return;
+    }
+
+    // 3. Check IndexedDB (fast — returning visitors)
     setLoading(true);
     setFrames([]);
-    const video = document.createElement("video");
-    video.crossOrigin = "anonymous";
-    video.muted = true;
-    video.playsInline = true;
-    video.preload = "auto";
-    video.src = src;
+    const listeners: ((frames: string[]) => void)[] = [];
+    frameCacheListeners.set(key, listeners);
 
-    const canvas = document.createElement("canvas");
-    const ctx = canvas.getContext("2d", { willReadFrequently: true })!;
-    const extracted: string[] = [];
-    let frameIndex = 0;
-
-    const extractFrame = () => {
-      const scale = Math.min(1, 768 / Math.max(video.videoWidth, video.videoHeight));
-      const w = Math.round(video.videoWidth * scale);
-      const h = Math.round(video.videoHeight * scale);
-      canvas.width = w;
-      canvas.height = h;
-      ctx.drawImage(video, 0, 0, w, h);
-      const imageData = ctx.getImageData(0, 0, w, h);
-      const d = imageData.data;
-      if (removeBlackBg) {
-        if (chromaKey === "blue") {
-          for (let i = 0; i < d.length; i += 4) {
-            const r = d[i], g = d[i + 1], b = d[i + 2];
-            if (b > 100 && b > r * 1.5 && b > g * 1.3) {
-              d[i + 3] = 0;
-            } else if (b > 80 && b > r * 1.2 && b > g * 1.1) {
-              const blueness = (b - Math.max(r, g)) / b;
-              d[i + 3] = Math.round((1 - blueness) * 255);
-              d[i + 2] = Math.min(d[i + 2], Math.max(d[i], d[i + 1]));
-            } else if (b > r && b > g) {
-              d[i + 2] = Math.min(b, Math.round(Math.max(r, g) * 1.1));
-            }
-          }
-        } else {
-          if (brightnessBoost > 1) {
-            for (let i = 0; i < d.length; i += 4) {
-              d[i] = Math.min(255, Math.round(d[i] * brightnessBoost));
-              d[i + 1] = Math.min(255, Math.round(d[i + 1] * brightnessBoost));
-              d[i + 2] = Math.min(255, Math.round(d[i + 2] * brightnessBoost));
-            }
-          }
-          for (let i = 0; i < d.length; i += 4) {
-            const maxCh = Math.max(d[i], d[i + 1], d[i + 2]);
-            if (maxCh <= blackThreshold) {
-              d[i + 3] = 0;
-            }
-          }
-        }
-        ctx.putImageData(imageData, 0, 0);
-      }
-      extracted.push(canvas.toDataURL("image/webp", 0.9));
-      frameIndex++;
-      if (frameIndex === 1) {
-        setFrames([...extracted]);
+    getFromIDB(key).then((idbFrames) => {
+      if (idbFrames && idbFrames.length === frameCount) {
+        frameCache.set(key, idbFrames);
+        setFrames(idbFrames);
         setLoading(false);
+        listeners.forEach((fn) => fn(idbFrames));
+        frameCacheListeners.delete(key);
+        return;
       }
-      if (frameIndex < frameCount) {
-        video.currentTime = (frameIndex / frameCount) * video.duration;
-      } else {
-        setFrames([...extracted]);
-        video.remove();
-      }
-    };
 
-    video.addEventListener("seeked", extractFrame);
-    video.addEventListener(
-      "loadeddata",
-      () => {
-        video.currentTime = 0;
-      },
-      { once: true },
-    );
+      // 4. Extract from video
+      const video = document.createElement("video");
+      video.crossOrigin = "anonymous";
+      video.muted = true;
+      video.playsInline = true;
+      video.preload = "auto";
+      video.src = src;
+
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d", { willReadFrequently: true })!;
+      const extracted: string[] = [];
+      let frameIndex = 0;
+
+      const extractFrame = () => {
+        const scale = Math.min(1, 768 / Math.max(video.videoWidth, video.videoHeight));
+        const w = Math.round(video.videoWidth * scale);
+        const h = Math.round(video.videoHeight * scale);
+        canvas.width = w;
+        canvas.height = h;
+        ctx.drawImage(video, 0, 0, w, h);
+        const imageData = ctx.getImageData(0, 0, w, h);
+        const d = imageData.data;
+        if (removeBlackBg) {
+          if (chromaKey === "blue") {
+            for (let i = 0; i < d.length; i += 4) {
+              const r = d[i], g = d[i + 1], b = d[i + 2];
+              if (b > 100 && b > r * 1.5 && b > g * 1.3) {
+                d[i + 3] = 0;
+              } else if (b > 80 && b > r * 1.2 && b > g * 1.1) {
+                const blueness = (b - Math.max(r, g)) / b;
+                d[i + 3] = Math.round((1 - blueness) * 255);
+                d[i + 2] = Math.min(d[i + 2], Math.max(d[i], d[i + 1]));
+              } else if (b > r && b > g) {
+                d[i + 2] = Math.min(b, Math.round(Math.max(r, g) * 1.1));
+              }
+            }
+          } else {
+            if (brightnessBoost > 1) {
+              for (let i = 0; i < d.length; i += 4) {
+                d[i] = Math.min(255, Math.round(d[i] * brightnessBoost));
+                d[i + 1] = Math.min(255, Math.round(d[i + 1] * brightnessBoost));
+                d[i + 2] = Math.min(255, Math.round(d[i + 2] * brightnessBoost));
+              }
+            }
+            for (let i = 0; i < d.length; i += 4) {
+              const maxCh = Math.max(d[i], d[i + 1], d[i + 2]);
+              if (maxCh <= blackThreshold) {
+                d[i + 3] = 0;
+              }
+            }
+          }
+          ctx.putImageData(imageData, 0, 0);
+        }
+        extracted.push(canvas.toDataURL("image/webp", 0.8));
+        frameIndex++;
+        if (frameIndex === 1) {
+          setFrames([...extracted]);
+          setLoading(false);
+        }
+        if (frameIndex < frameCount) {
+          video.currentTime = (frameIndex / frameCount) * video.duration;
+        } else {
+          frameCache.set(key, extracted);
+          setFrames([...extracted]);
+          listeners.forEach((fn) => fn(extracted));
+          frameCacheListeners.delete(key);
+          saveToIDB(key, extracted);
+          video.remove();
+        }
+      };
+
+      video.addEventListener("seeked", extractFrame);
+      video.addEventListener(
+        "loadeddata",
+        () => {
+          video.currentTime = 0;
+        },
+        { once: true },
+      );
+    });
 
     return () => {
-      video.removeEventListener("seeked", extractFrame);
-      video.remove();
+      frameCacheListeners.delete(key);
     };
   }, [src, frameCount]);
 
@@ -1088,7 +1162,7 @@ function TeeSection() {
   const openShippingModal = useContext(ShippingContext);
   const [selectedColour, setSelectedColour] = useState<TeeColour>("brown");
   const videoSrc = TEE_SPIN_VIDEOS[selectedColour];
-  const { frames, loading } = useVideoFrames(videoSrc, 72, true);
+  const { frames, loading } = useVideoFrames(videoSrc, 48, true);
 
   const colourSwatches: { key: TeeColour; color: string; label: string }[] = [
     { key: "brown", color: "#54412F", label: "Brown" },
@@ -1234,7 +1308,7 @@ function TeeSection() {
 function StrapsSection() {
   const { frames, loading } = useVideoFrames(
     "/shop/straps-spin-blue.mp4",
-    72,
+    48,
     true,
     15,
     1.4,
@@ -1290,7 +1364,7 @@ function StrapsSection() {
 function CuffsSection() {
   const { frames, loading } = useVideoFrames(
     "/shop/cuffs-spin-blue.mp4",
-    72,
+    48,
     true,
     20,
     4.0,
@@ -1377,13 +1451,13 @@ function GoatPackSection() {
 
   // Spinners for tee, straps, cuffs
   const { frames: teeFrames, loading: teeLoading } = useVideoFrames(
-    TEE_SPIN_VIDEOS.brown, 72, true,
+    TEE_SPIN_VIDEOS.brown, 48, true,
   );
   const { frames: strapsFrames, loading: strapsLoading } = useVideoFrames(
-    "/shop/straps-spin-blue.mp4", 72, true, 20, 1, "blue",
+    "/shop/straps-spin-blue.mp4", 48, true, 15, 1.4, "blue",
   );
   const { frames: cuffsFrames, loading: cuffsLoading } = useVideoFrames(
-    "/shop/cuffs-spin-blue.mp4", 72, true, 20, 4.0, "blue",
+    "/shop/cuffs-spin-blue.mp4", 48, true, 20, 4.0, "blue",
   );
 
   const fullPrice = 115;

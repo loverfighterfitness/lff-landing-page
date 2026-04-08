@@ -1369,6 +1369,175 @@ function SocksSection() {
   );
 }
 
+/* ─── GOAT Pack Section ─── */
+function GoatPackSection() {
+  const openModal = useContext(ShippingContext);
+
+  // Spinners for tee, straps, cuffs
+  const { frames: teeFrames, loading: teeLoading } = useVideoFrames(
+    TEE_SPIN_VIDEOS.brown, 72, true,
+  );
+  const { frames: strapsFrames, loading: strapsLoading } = useVideoFrames(
+    "/shop/straps-spin-blue.mp4", 72, true, 20, 1, "blue",
+  );
+  const { frames: cuffsFrames, loading: cuffsLoading } = useVideoFrames(
+    "/shop/cuffs-spin-blue.mp4", 72, true, 20, 2.8, "blue",
+  );
+
+  const fullPrice = 115;
+  const packPrice = 99;
+
+  return (
+    <section className="py-20 md:py-28 px-4 md:px-8 lg:px-16" style={concreteTexture}>
+      <div className="max-w-[1200px] mx-auto">
+        {/* Header */}
+        <ScrollReveal>
+          <div className="text-center mb-6 md:mb-10">
+            <p className="text-lff-cream/40 text-[10px] tracking-[0.35em] uppercase font-medium mb-3">
+              The Ultimate Bundle
+            </p>
+            <h2
+              className="text-lff-cream text-4xl md:text-5xl lg:text-7xl tracking-[-0.02em] leading-[0.95] mb-3"
+              style={{ fontFamily: "var(--font-display)" }}
+            >
+              THE GOAT PACK
+            </h2>
+            <p className="text-lff-cream/50 text-sm tracking-wide max-w-[45ch] mx-auto">
+              Everything you need. One price. No brainer.
+            </p>
+          </div>
+        </ScrollReveal>
+
+        {/* Spinners row: Tee + Straps + Cuffs side by side, then "+ Socks" */}
+        <ScrollReveal delay={0.1}>
+          <div className="flex items-center justify-center gap-0 md:gap-2 mb-4">
+            {/* Tee spinner */}
+            <div className="flex-1 max-w-[280px]">
+              <SpinnerCanvas
+                frames={teeFrames}
+                loading={teeLoading}
+                useBlendMode
+                className="w-full aspect-square"
+              />
+              <p className="text-center text-lff-cream/50 text-[10px] tracking-[0.2em] uppercase font-medium mt-1">
+                Tee
+              </p>
+            </div>
+
+            {/* Plus */}
+            <span
+              className="text-lff-cream/25 text-2xl md:text-3xl flex-shrink-0 -mx-2"
+              style={{ fontFamily: "var(--font-display)" }}
+            >
+              +
+            </span>
+
+            {/* Straps spinner */}
+            <div className="flex-1 max-w-[280px]">
+              <SpinnerCanvas
+                frames={strapsFrames}
+                loading={strapsLoading}
+                useBlendMode
+                className="w-full aspect-square"
+              />
+              <p className="text-center text-lff-cream/50 text-[10px] tracking-[0.2em] uppercase font-medium mt-1">
+                Straps
+              </p>
+            </div>
+
+            {/* Plus */}
+            <span
+              className="text-lff-cream/25 text-2xl md:text-3xl flex-shrink-0 -mx-2"
+              style={{ fontFamily: "var(--font-display)" }}
+            >
+              +
+            </span>
+
+            {/* Cuffs spinner */}
+            <div className="flex-1 max-w-[280px]">
+              <SpinnerCanvas
+                frames={cuffsFrames}
+                loading={cuffsLoading}
+                useBlendMode
+                className="w-full aspect-square"
+              />
+              <p className="text-center text-lff-cream/50 text-[10px] tracking-[0.2em] uppercase font-medium mt-1">
+                Cuffs
+              </p>
+            </div>
+
+            {/* Plus Socks */}
+            <span
+              className="text-lff-cream/25 text-2xl md:text-3xl flex-shrink-0 -mx-2"
+              style={{ fontFamily: "var(--font-display)" }}
+            >
+              +
+            </span>
+
+            <div className="flex-1 max-w-[280px]">
+              <div
+                className="aspect-square overflow-hidden flex items-center justify-center"
+                style={{ borderRadius: "1rem" }}
+              >
+                <img
+                  src="/shop/socks-brown-hero.jpg"
+                  alt="Brown Socks"
+                  className="w-[75%] h-[75%] object-cover rounded-xl"
+                />
+              </div>
+              <p className="text-center text-lff-cream/50 text-[10px] tracking-[0.2em] uppercase font-medium mt-1">
+                Socks
+              </p>
+            </div>
+          </div>
+        </ScrollReveal>
+
+        {/* Price + CTA card */}
+        <ScrollReveal delay={0.2}>
+          <div className="text-center space-y-5 mt-6">
+            <div>
+              <span
+                className="text-lff-cream/40 text-2xl line-through mr-3"
+                style={{ fontFamily: "var(--font-display)" }}
+              >
+                ${fullPrice}
+              </span>
+              <span
+                className="text-lff-cream text-4xl md:text-5xl"
+                style={{ fontFamily: "var(--font-display)" }}
+              >
+                ${packPrice}
+              </span>
+              <p className="text-[10px] tracking-[0.2em] uppercase text-green-400/70 font-medium mt-1">
+                Save ${fullPrice - packPrice}
+              </p>
+            </div>
+
+            <motion.button
+              onClick={() =>
+                openModal(
+                  "THE GOAT PACK",
+                  packPrice,
+                  "https://buy.stripe.com/7sY00jaYOe236xm08Mbwk0i",
+                  "https://buy.stripe.com/9B65kDgj8e234pe9Jmbwk0j",
+                )
+              }
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+              transition={{ type: "spring", stiffness: 400, damping: 17 }}
+              className="inline-flex items-center gap-3 px-10 py-4 text-[11px] font-bold tracking-[0.2em] uppercase bg-lff-cream text-lff-brown hover:bg-lff-cream/90 transition-colors duration-300 cursor-pointer"
+              style={{ borderRadius: PILL_RADIUS }}
+            >
+              <ArrowRight size={13} />
+              <span>Get the GOAT Pack — ${packPrice}</span>
+            </motion.button>
+          </div>
+        </ScrollReveal>
+      </div>
+    </section>
+  );
+}
+
 /* ─── Coming Soon Section (Hoodie) ─── */
 function ComingSoonSection() {
   return (
@@ -1712,6 +1881,9 @@ export default function Shop() {
         {/* Socks — Lifestyle Grid (CREAM bg) */}
         <SocksSection />
       </div>
+
+      {/* GOAT Pack Bundle */}
+      <GoatPackSection />
 
       {/* Brand statement (CREAM full-bleed) */}
       <BrandStatement />

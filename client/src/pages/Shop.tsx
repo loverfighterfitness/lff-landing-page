@@ -467,8 +467,18 @@ function getCacheKey(src: string, frameCount: number, blackThreshold: number, br
 // IndexedDB helpers
 function openFrameDB(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
-    const req = indexedDB.open("lff-spinner-cache", 1);
-    req.onupgradeneeded = () => req.result.createObjectStore("frames");
+    // v2: bust cache from broken brightness builds
+    const req = indexedDB.open("lff-spinner-cache", 2);
+    req.onupgradeneeded = (e) => {
+      const db = req.result;
+      // Delete old store if upgrading from v1
+      if (e.oldVersion < 2 && db.objectStoreNames.contains("frames")) {
+        db.deleteObjectStore("frames");
+      }
+      if (!db.objectStoreNames.contains("frames")) {
+        db.createObjectStore("frames");
+      }
+    };
     req.onsuccess = () => resolve(req.result);
     req.onerror = () => reject(req.error);
   });

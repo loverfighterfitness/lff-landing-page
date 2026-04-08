@@ -449,6 +449,13 @@ const SockCard = memo(function SockCard({
   );
 });
 
+/* ─── Mobile Detection ─── */
+const IS_MOBILE = typeof window !== "undefined" && window.matchMedia("(hover: none)").matches;
+const MOBILE_FRAMES = 24;
+const DESKTOP_FRAMES = 48;
+const MOBILE_SCALE = 512;
+const DESKTOP_SCALE = 768;
+
 /* ─── Frame Cache (in-memory + IndexedDB) ─── */
 const frameCache = new Map<string, string[]>();
 const frameCacheListeners = new Map<string, ((frames: string[]) => void)[]>();
@@ -495,16 +502,37 @@ function useVideoFrames(
   blackThreshold = 2,
   brightnessBoost = 1,
   chromaKey: "black" | "blue" = "black",
+  /** Set true to defer extraction until element is near viewport */
+  lazy = false,
 ) {
   const [frames, setFrames] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
+  const [visible, setVisible] = useState(!lazy);
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
+
+  // Lazy loading — observe a sentinel element
+  useEffect(() => {
+    if (!lazy || visible) return;
+    const el = sentinelRef.current;
+    if (!el) { setVisible(true); return; }
+    const obs = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) { setVisible(true); obs.disconnect(); } },
+      { rootMargin: "600px" },
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [lazy, visible]);
+
+  // Override frame count on mobile
+  const effectiveFrames = IS_MOBILE ? Math.min(frameCount, MOBILE_FRAMES) : frameCount;
 
   useEffect(() => {
-    const key = getCacheKey(src, frameCount, blackThreshold, brightnessBoost, chromaKey);
+    if (!visible) return;
+    const key = getCacheKey(src, effectiveFrames, blackThreshold, brightnessBoost, chromaKey);
 
     // 1. Check in-memory cache (instant — same page session)
     const cached = frameCache.get(key);
-    if (cached && cached.length === frameCount) {
+    if (cached && cached.length === effectiveFrames) {
       setFrames(cached);
       setLoading(false);
       return;
@@ -524,7 +552,7 @@ function useVideoFrames(
     frameCacheListeners.set(key, listeners);
 
     getFromIDB(key).then((idbFrames) => {
-      if (idbFrames && idbFrames.length === frameCount) {
+      if (idbFrames && idbFrames.length === effectiveFrames) {
         frameCache.set(key, idbFrames);
         setFrames(idbFrames);
         setLoading(false);
@@ -547,7 +575,8 @@ function useVideoFrames(
       let frameIndex = 0;
 
       const extractFrame = () => {
-        const scale = Math.min(1, 768 / Math.max(video.videoWidth, video.videoHeight));
+        const maxDim = IS_MOBILE ? MOBILE_SCALE : DESKTOP_SCALE;
+        const scale = Math.min(1, maxDim / Math.max(video.videoWidth, video.videoHeight));
         const w = Math.round(video.videoWidth * scale);
         const h = Math.round(video.videoHeight * scale);
         canvas.width = w;
@@ -592,8 +621,8 @@ function useVideoFrames(
           setFrames([...extracted]);
           setLoading(false);
         }
-        if (frameIndex < frameCount) {
-          video.currentTime = (frameIndex / frameCount) * video.duration;
+        if (frameIndex < effectiveFrames) {
+          video.currentTime = (frameIndex / effectiveFrames) * video.duration;
         } else {
           frameCache.set(key, extracted);
           setFrames([...extracted]);
@@ -617,9 +646,9 @@ function useVideoFrames(
     return () => {
       frameCacheListeners.delete(key);
     };
-  }, [src, frameCount]);
+  }, [src, effectiveFrames, visible]);
 
-  return { frames, loading };
+  return { frames, loading, sentinelRef };
 }
 
 /* ─── Shared Spinner Canvas Logic ─── */
@@ -1449,7 +1478,7 @@ function SocksSection() {
 function GoatPackSection() {
   const openModal = useContext(ShippingContext);
 
-  // Spinners for tee, straps, cuffs
+  // Spinners — will use cache from individual sections above
   const { frames: teeFrames, loading: teeLoading } = useVideoFrames(
     TEE_SPIN_VIDEOS.brown, 48, true,
   );
@@ -1488,56 +1517,18 @@ function GoatPackSection() {
         <ScrollReveal delay={0.1}>
           <div className="flex items-center justify-center gap-0 md:gap-4 mb-8">
             <div className="flex-1 max-w-[300px]">
-              <SpinnerCanvas
-                frames={teeFrames}
-                loading={teeLoading}
-                useBlendMode
-                hideHint
-                className="w-full aspect-square"
-              />
-              <p className="text-center text-lff-cream/50 text-[10px] tracking-[0.2em] uppercase font-medium mt-1">
-                Tee
-              </p>
+              <SpinnerCanvas frames={teeFrames} loading={teeLoading} useBlendMode hideHint className="w-full aspect-square" />
+              <p className="text-center text-lff-cream/50 text-[10px] tracking-[0.2em] uppercase font-medium mt-1">Tee</p>
             </div>
-
-            <span
-              className="text-lff-cream/25 text-2xl md:text-3xl flex-shrink-0"
-              style={{ fontFamily: "var(--font-display)" }}
-            >
-              +
-            </span>
-
+            <span className="text-lff-cream/25 text-2xl md:text-3xl flex-shrink-0" style={{ fontFamily: "var(--font-display)" }}>+</span>
             <div className="flex-1 max-w-[300px]">
-              <SpinnerCanvas
-                frames={strapsFrames}
-                loading={strapsLoading}
-                useBlendMode
-                hideHint
-                className="w-full aspect-square"
-              />
-              <p className="text-center text-lff-cream/50 text-[10px] tracking-[0.2em] uppercase font-medium mt-1">
-                Straps
-              </p>
+              <SpinnerCanvas frames={strapsFrames} loading={strapsLoading} useBlendMode hideHint className="w-full aspect-square" />
+              <p className="text-center text-lff-cream/50 text-[10px] tracking-[0.2em] uppercase font-medium mt-1">Straps</p>
             </div>
-
-            <span
-              className="text-lff-cream/25 text-2xl md:text-3xl flex-shrink-0"
-              style={{ fontFamily: "var(--font-display)" }}
-            >
-              +
-            </span>
-
+            <span className="text-lff-cream/25 text-2xl md:text-3xl flex-shrink-0" style={{ fontFamily: "var(--font-display)" }}>+</span>
             <div className="flex-1 max-w-[300px]">
-              <SpinnerCanvas
-                frames={cuffsFrames}
-                loading={cuffsLoading}
-                useBlendMode
-                hideHint
-                className="w-full aspect-square"
-              />
-              <p className="text-center text-lff-cream/50 text-[10px] tracking-[0.2em] uppercase font-medium mt-1">
-                Cuffs
-              </p>
+              <SpinnerCanvas frames={cuffsFrames} loading={cuffsLoading} useBlendMode hideHint className="w-full aspect-square" />
+              <p className="text-center text-lff-cream/50 text-[10px] tracking-[0.2em] uppercase font-medium mt-1">Cuffs</p>
             </div>
           </div>
         </ScrollReveal>

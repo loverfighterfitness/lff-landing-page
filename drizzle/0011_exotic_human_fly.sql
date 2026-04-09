@@ -51,6 +51,5 @@ CREATE TABLE `shop_variants` (
 	CONSTRAINT `shop_variants_id` PRIMARY KEY(`id`)
 );
 --> statement-breakpoint
-ALTER TABLE `leads` ADD `contact_method` varchar(20) DEFAULT 'text' NOT NULL;--> statement-breakpoint
 ALTER TABLE `shop_order_items` ADD CONSTRAINT `shop_order_items_orderId_shop_orders_id_fk` FOREIGN KEY (`orderId`) REFERENCES `shop_orders`(`id`) ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE `shop_variants` ADD CONSTRAINT `shop_variants_productId_shop_products_id_fk` FOREIGN KEY (`productId`) REFERENCES `shop_products`(`id`) ON DELETE no action ON UPDATE no action;

@@ -4,7 +4,7 @@
  * Each product gets its own section with alternating left/right split
  * Frosted glass only on small info cards, never wrapping spinners
  */
-import React, { useRef, useEffect, useState, memo, useContext } from "react";
+import React, { useRef, useEffect, useState, memo, useContext, useCallback, createContext } from "react";
 import {
   motion,
   AnimatePresence,
@@ -13,9 +13,10 @@ import {
   useInView,
   useSpring,
 } from "framer-motion";
-import { ArrowRight, Instagram, RotateCcw, MapPin, Truck, X } from "lucide-react";
+import { ArrowRight, Instagram, RotateCcw, MapPin, Truck, X, ShoppingBag, Plus, Minus, Trash2, Check } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { trpc } from "@/lib/trpc";
 
 /* ─── CDN Assets ─── */
 const LOGO_TRANSPARENT =
@@ -72,13 +73,121 @@ interface Product {
   tagline: string;
   price: number;
   stock: number | null;
-  stripeLink?: string;
-  shippingStripeLink?: string; // +$10 shipping variant
+  priceId: string;
   image?: string;
   hoverImage?: string;
   hoverVideo?: string;
   placeholderStyle?: React.CSSProperties;
 }
+
+/* ─── Cart Types & Context ─── */
+interface CartItem {
+  id: string;
+  name: string;
+  price: number;
+  priceId: string;
+  quantity: number;
+  image?: string;
+}
+
+interface CartContextType {
+  cartItems: CartItem[];
+  addToCart: (item: Omit<CartItem, "quantity">) => void;
+  removeFromCart: (id: string) => void;
+  updateQuantity: (id: string, qty: number) => void;
+  clearCart: () => void;
+  cartTotal: number;
+  cartCount: number;
+  isCartOpen: boolean;
+  setCartOpen: (open: boolean) => void;
+}
+
+const CartContext = createContext<CartContextType>({
+  cartItems: [],
+  addToCart: () => {},
+  removeFromCart: () => {},
+  updateQuantity: () => {},
+  clearCart: () => {},
+  cartTotal: 0,
+  cartCount: 0,
+  isCartOpen: false,
+  setCartOpen: () => {},
+});
+
+const CART_STORAGE_KEY = "lff-cart";
+
+function useCartState(): CartContextType {
+  const [cartItems, setCartItems] = useState<CartItem[]>(() => {
+    try {
+      const stored = localStorage.getItem(CART_STORAGE_KEY);
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
+  });
+  const [isCartOpen, setCartOpen] = useState(false);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cartItems));
+    } catch { /* silent */ }
+  }, [cartItems]);
+
+  const addToCart = useCallback((item: Omit<CartItem, "quantity">) => {
+    setCartItems((prev) => {
+      const existing = prev.find((i) => i.id === item.id);
+      if (existing) {
+        return prev.map((i) =>
+          i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i
+        );
+      }
+      return [...prev, { ...item, quantity: 1 }];
+    });
+    setCartOpen(true);
+  }, []);
+
+  const removeFromCart = useCallback((id: string) => {
+    setCartItems((prev) => prev.filter((i) => i.id !== id));
+  }, []);
+
+  const updateQuantity = useCallback((id: string, qty: number) => {
+    if (qty <= 0) {
+      setCartItems((prev) => prev.filter((i) => i.id !== id));
+    } else {
+      setCartItems((prev) =>
+        prev.map((i) => (i.id === id ? { ...i, quantity: qty } : i))
+      );
+    }
+  }, []);
+
+  const clearCart = useCallback(() => setCartItems([]), []);
+
+  const cartTotal = cartItems.reduce((sum, i) => sum + i.price * i.quantity, 0);
+  const cartCount = cartItems.reduce((sum, i) => sum + i.quantity, 0);
+
+  return {
+    cartItems,
+    addToCart,
+    removeFromCart,
+    updateQuantity,
+    clearCart,
+    cartTotal,
+    cartCount,
+    isCartOpen,
+    setCartOpen,
+  };
+}
+
+/* ─── Stripe Price IDs ─── */
+const PRICE_IDS = {
+  socksCream: "price_1TJP0dELc7CqpluZ2XgJcnke",
+  socksBrown: "price_1TJP0eELc7CqpluZeQeIQm3B",
+  liftingStraps: "price_1TJP0fELc7CqpluZACOnKwEj",
+  cuffs: "price_1TJP0gELc7CqpluZtNGU2oTn",
+  dropShoulderTee: "price_1TJSwbELc7CqpluZt72mBtdW",
+  tee3Pack: "price_1TK7R7ELc7CqpluZYSUNLcWj",
+  goatPack: "price_1TJoJJELc7CqpluZsFeM7SfV",
+} as const;
 
 /* ─── Product Catalog ─── */
 const SOCKS: Product[] = [
@@ -88,8 +197,7 @@ const SOCKS: Product[] = [
     tagline: "Cream",
     price: 10,
     stock: 30,
-    stripeLink: "https://buy.stripe.com/cNi8wPaYO4rtdZO1cQbwk06",
-    shippingStripeLink: "https://buy.stripe.com/eVqdR9d6Wgab5ti7Bebwk0b",
+    priceId: PRICE_IDS.socksCream,
     image: "/shop/socks-cream-hero.jpg",
   },
   {
@@ -98,8 +206,7 @@ const SOCKS: Product[] = [
     tagline: "Brown",
     price: 10,
     stock: 30,
-    stripeLink: "https://buy.stripe.com/dRm8wP7MC0bd08Y1cQbwk07",
-    shippingStripeLink: "https://buy.stripe.com/00w8wP3wm5vx3la1cQbwk0c",
+    priceId: PRICE_IDS.socksBrown,
     image: "/shop/socks-brown-hero.jpg",
     hoverImage: "/shop/socks-brown-action.jpg",
   },
@@ -112,8 +219,7 @@ const STRAPS: Product[] = [
     tagline: "Built to pull heavy",
     price: 35,
     stock: 15,
-    stripeLink: "https://buy.stripe.com/dRm8wP8QG9LN1d23kYbwk08",
-    shippingStripeLink: "https://buy.stripe.com/fZu00jgj86zBf3S4p2bwk0d",
+    priceId: PRICE_IDS.liftingStraps,
     image: "/shop/straps-flatlay.jpg",
     hoverVideo: "/shop/straps-video.mp4",
   },
@@ -126,8 +232,7 @@ const CUFFS: Product[] = [
     tagline: "Lock in. Lift more.",
     price: 25,
     stock: 15,
-    stripeLink: "https://buy.stripe.com/7sY4gz4Aq7DF8Fu1cQbwk09",
-    shippingStripeLink: "https://buy.stripe.com/fZu00j6Iy2jl8Fuf3Gbwk0e",
+    priceId: PRICE_IDS.cuffs,
     image: "/shop/cuffs-flatlay.jpg",
     hoverVideo: "/shop/cuffs-video.mp4",
   },
@@ -177,161 +282,379 @@ const BreathingDot = memo(function BreathingDot({ color }: { color: string }) {
   );
 });
 
-/* ─── Shipping Modal ─── */
-interface ShippingModalState {
-  open: boolean;
-  productName: string;
-  price: number;
-  pickupLink: string;
-  shippingLink: string;
-}
-
 const SHIPPING_COST = 10;
 
-function ShippingModal({
-  state,
-  onClose,
-}: {
-  state: ShippingModalState;
-  onClose: () => void;
-}) {
+/* ─── Cart Drawer ─── */
+function CartDrawer() {
+  const {
+    cartItems, cartTotal, cartCount, isCartOpen, setCartOpen,
+    removeFromCart, updateQuantity, clearCart,
+  } = useContext(CartContext);
+  const [shipping, setShipping] = useState(false);
+  const checkoutMutation = trpc.stripe.createShopCheckout.useMutation();
+
   // Lock body scroll when open
   useEffect(() => {
-    if (state.open) {
+    if (isCartOpen) {
       document.body.style.overflow = "hidden";
       return () => { document.body.style.overflow = ""; };
     }
-  }, [state.open]);
+  }, [isCartOpen]);
+
+  const handleCheckout = async () => {
+    if (cartItems.length === 0) return;
+    try {
+      const result = await checkoutMutation.mutateAsync({
+        items: cartItems.map((i) => ({ priceId: i.priceId, quantity: i.quantity })),
+        shipping,
+        origin: window.location.origin,
+      });
+      if (result.url) {
+        clearCart();
+        window.location.href = result.url;
+      }
+    } catch (err) {
+      console.error("Checkout error:", err);
+    }
+  };
+
+  const total = cartTotal + (shipping ? SHIPPING_COST : 0);
 
   return (
     <AnimatePresence>
-      {state.open && (
+      {isCartOpen && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.25 }}
-          className="fixed inset-0 z-[9999] flex items-center justify-center px-4"
-          onClick={onClose}
+          className="fixed inset-0 z-[9999]"
+          onClick={() => setCartOpen(false)}
         >
           {/* Backdrop */}
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
 
-          {/* Modal card */}
+          {/* Drawer */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.92, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.92, y: 20 }}
-            transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+            initial={{ x: "100%" }}
+            animate={{ x: 0 }}
+            exit={{ x: "100%" }}
+            transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
             onClick={(e) => e.stopPropagation()}
-            className="relative w-full max-w-md"
+            className="absolute right-0 top-0 bottom-0 w-full max-w-md flex flex-col"
             style={{
               background: "rgba(58,44,30,0.97)",
-              border: "1px solid rgba(234,230,210,0.1)",
-              boxShadow: "0 32px 80px rgba(0,0,0,0.4)",
-              borderRadius: PANEL_RADIUS,
+              backdropFilter: "blur(24px)",
+              WebkitBackdropFilter: "blur(24px)",
+              borderLeft: "1px solid rgba(234,230,210,0.08)",
+              boxShadow: "-24px 0 60px rgba(0,0,0,0.3)",
             }}
           >
-            {/* Close button */}
-            <button
-              onClick={onClose}
-              className="absolute top-4 right-4 text-lff-cream/40 hover:text-lff-cream transition-colors"
-            >
-              <X size={18} />
-            </button>
-
-            <div className="p-8 space-y-6">
-              {/* Header */}
-              <div>
-                <p className="text-lff-cream/40 text-[10px] tracking-[0.35em] uppercase font-medium mb-2">
-                  How are you getting it?
-                </p>
+            {/* Header */}
+            <div className="flex items-center justify-between px-6 py-5 border-b border-lff-cream/8">
+              <div className="flex items-center gap-3">
+                <ShoppingBag size={18} className="text-lff-cream/60" />
                 <h3
-                  className="text-lff-cream text-2xl tracking-[-0.02em]"
+                  className="text-lff-cream text-xl tracking-wide"
                   style={{ fontFamily: "var(--font-display)" }}
                 >
-                  {state.productName}
+                  YOUR CART
                 </h3>
+                {cartCount > 0 && (
+                  <span className="text-lff-cream/40 text-xs">
+                    ({cartCount} {cartCount === 1 ? "item" : "items"})
+                  </span>
+                )}
               </div>
-
-              {/* Options */}
-              <div className="space-y-3">
-                {/* Local Pickup */}
-                <motion.a
-                  href={state.pickupLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  className="flex items-center gap-4 w-full p-5 rounded-2xl border border-lff-cream/10 hover:border-lff-cream/25 bg-lff-cream/5 hover:bg-lff-cream/10 transition-all duration-300 text-left"
-                >
-                  <div className="flex-shrink-0 w-11 h-11 rounded-full bg-lff-cream/10 flex items-center justify-center">
-                    <MapPin size={18} className="text-lff-cream" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-lff-cream text-sm font-semibold tracking-wide">
-                      Local Pickup
-                    </p>
-                    <p className="text-lff-cream/40 text-xs mt-0.5">
-                      Mount Barker, SA
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <span
-                      className="text-lff-cream text-lg tabular-nums"
-                      style={{ fontFamily: "var(--font-display)" }}
-                    >
-                      ${state.price}
-                    </span>
-                    <p className="text-[9px] tracking-[0.2em] uppercase text-green-400/70 font-medium">
-                      Free
-                    </p>
-                  </div>
-                  <ArrowRight size={14} className="text-lff-cream/30 flex-shrink-0" />
-                </motion.a>
-
-                {/* Australia-Wide Shipping */}
-                <motion.a
-                  href={state.shippingLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  className="flex items-center gap-4 w-full p-5 rounded-2xl border border-lff-cream/10 hover:border-lff-cream/25 bg-lff-cream/5 hover:bg-lff-cream/10 transition-all duration-300 text-left"
-                >
-                  <div className="flex-shrink-0 w-11 h-11 rounded-full bg-lff-cream/10 flex items-center justify-center">
-                    <Truck size={18} className="text-lff-cream" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-lff-cream text-sm font-semibold tracking-wide">
-                      Aus-Wide Shipping
-                    </p>
-                    <p className="text-lff-cream/40 text-xs mt-0.5">
-                      Delivered to your door
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <span
-                      className="text-lff-cream/40 text-sm tabular-nums line-through"
-                      style={{ fontFamily: "var(--font-display)" }}
-                    >
-                      ${state.price}
-                    </span>
-                    <span
-                      className="text-lff-cream text-lg tabular-nums ml-1.5"
-                      style={{ fontFamily: "var(--font-display)" }}
-                    >
-                      ${state.price + SHIPPING_COST}
-                    </span>
-                    <p className="text-[9px] tracking-[0.2em] uppercase text-lff-cream/40 font-medium">
-                      Includes ${SHIPPING_COST} shipping
-                    </p>
-                  </div>
-                  <ArrowRight size={14} className="text-lff-cream/30 flex-shrink-0" />
-                </motion.a>
-              </div>
+              <button
+                onClick={() => setCartOpen(false)}
+                className="text-lff-cream/40 hover:text-lff-cream transition-colors p-1"
+              >
+                <X size={18} />
+              </button>
             </div>
+
+            {/* Items */}
+            <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
+              {cartItems.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-full gap-4 text-center">
+                  <ShoppingBag size={40} className="text-lff-cream/15" />
+                  <p className="text-lff-cream/35 text-sm tracking-wide">
+                    Your cart is empty
+                  </p>
+                  <button
+                    onClick={() => setCartOpen(false)}
+                    className="text-lff-cream/50 text-[11px] tracking-[0.2em] uppercase font-medium hover:text-lff-cream transition-colors"
+                  >
+                    Continue Shopping
+                  </button>
+                </div>
+              ) : (
+                cartItems.map((item) => (
+                  <motion.div
+                    key={item.id}
+                    layout
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, x: 50 }}
+                    className="flex gap-4 p-4 rounded-2xl"
+                    style={{
+                      background: "rgba(234,230,210,0.05)",
+                      border: "1px solid rgba(234,230,210,0.06)",
+                    }}
+                  >
+                    {/* Product image */}
+                    {item.image && (
+                      <div className="w-16 h-16 rounded-xl overflow-hidden flex-shrink-0">
+                        <img
+                          src={item.image}
+                          alt={item.name}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-lff-cream text-sm font-medium tracking-wide truncate">
+                        {item.name}
+                      </p>
+                      <p
+                        className="text-lff-cream/60 text-sm tabular-nums mt-0.5"
+                        style={{ fontFamily: "var(--font-display)" }}
+                      >
+                        ${item.price}
+                      </p>
+                      {/* Quantity controls */}
+                      <div className="flex items-center gap-3 mt-2">
+                        <button
+                          onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                          className="w-7 h-7 rounded-full border border-lff-cream/15 flex items-center justify-center text-lff-cream/50 hover:text-lff-cream hover:border-lff-cream/30 transition-colors"
+                        >
+                          <Minus size={12} />
+                        </button>
+                        <span className="text-lff-cream text-sm tabular-nums w-6 text-center">
+                          {item.quantity}
+                        </span>
+                        <button
+                          onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                          className="w-7 h-7 rounded-full border border-lff-cream/15 flex items-center justify-center text-lff-cream/50 hover:text-lff-cream hover:border-lff-cream/30 transition-colors"
+                        >
+                          <Plus size={12} />
+                        </button>
+                        <button
+                          onClick={() => removeFromCart(item.id)}
+                          className="ml-auto text-lff-cream/25 hover:text-red-400/70 transition-colors"
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      </div>
+                    </div>
+                    <div className="flex-shrink-0 text-right">
+                      <span
+                        className="text-lff-cream text-sm tabular-nums"
+                        style={{ fontFamily: "var(--font-display)" }}
+                      >
+                        ${item.price * item.quantity}
+                      </span>
+                    </div>
+                  </motion.div>
+                ))
+              )}
+            </div>
+
+            {/* Footer — shipping + total + checkout */}
+            {cartItems.length > 0 && (
+              <div className="px-6 py-5 border-t border-lff-cream/8 space-y-4">
+                {/* Shipping toggle */}
+                <div className="space-y-2">
+                  <p className="text-lff-cream/40 text-[10px] tracking-[0.3em] uppercase font-medium">
+                    Delivery
+                  </p>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setShipping(false)}
+                      className="flex-1 flex items-center gap-3 p-3 rounded-xl border transition-all duration-300"
+                      style={{
+                        borderColor: !shipping ? "rgba(234,230,210,0.25)" : "rgba(234,230,210,0.08)",
+                        background: !shipping ? "rgba(234,230,210,0.1)" : "transparent",
+                      }}
+                    >
+                      <MapPin size={14} className="text-lff-cream/60 flex-shrink-0" />
+                      <div className="text-left">
+                        <p className="text-lff-cream text-xs font-medium">Pickup</p>
+                        <p className="text-green-400/70 text-[9px] tracking-wider uppercase font-medium">
+                          Free
+                        </p>
+                      </div>
+                    </button>
+                    <button
+                      onClick={() => setShipping(true)}
+                      className="flex-1 flex items-center gap-3 p-3 rounded-xl border transition-all duration-300"
+                      style={{
+                        borderColor: shipping ? "rgba(234,230,210,0.25)" : "rgba(234,230,210,0.08)",
+                        background: shipping ? "rgba(234,230,210,0.1)" : "transparent",
+                      }}
+                    >
+                      <Truck size={14} className="text-lff-cream/60 flex-shrink-0" />
+                      <div className="text-left">
+                        <p className="text-lff-cream text-xs font-medium">Shipping</p>
+                        <p className="text-lff-cream/40 text-[9px] tracking-wider uppercase font-medium">
+                          +${SHIPPING_COST}
+                        </p>
+                      </div>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Totals */}
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-lff-cream/45 text-xs tracking-wider">
+                      Subtotal
+                    </span>
+                    <span
+                      className="text-lff-cream/60 text-sm tabular-nums"
+                      style={{ fontFamily: "var(--font-display)" }}
+                    >
+                      ${cartTotal}
+                    </span>
+                  </div>
+                  {shipping && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-lff-cream/45 text-xs tracking-wider">
+                        Shipping
+                      </span>
+                      <span
+                        className="text-lff-cream/60 text-sm tabular-nums"
+                        style={{ fontFamily: "var(--font-display)" }}
+                      >
+                        ${SHIPPING_COST}
+                      </span>
+                    </div>
+                  )}
+                  <div className="flex items-center justify-between pt-2 border-t border-lff-cream/8">
+                    <span className="text-lff-cream text-sm font-medium tracking-wide">
+                      Total
+                    </span>
+                    <span
+                      className="text-lff-cream text-2xl"
+                      style={{ fontFamily: "var(--font-display)" }}
+                    >
+                      ${total}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Checkout button */}
+                <motion.button
+                  onClick={handleCheckout}
+                  disabled={checkoutMutation.isPending}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.97 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                  className="w-full flex items-center justify-center gap-3 px-8 py-4 text-[11px] font-bold tracking-[0.2em] uppercase bg-lff-cream text-lff-brown hover:bg-lff-cream/90 transition-colors duration-300 cursor-pointer disabled:opacity-50"
+                  style={{ borderRadius: PILL_RADIUS }}
+                >
+                  {checkoutMutation.isPending ? (
+                    <motion.div
+                      animate={{ rotate: 360 }}
+                      transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+                      className="w-4 h-4 border-2 border-lff-brown/30 border-t-lff-brown rounded-full"
+                    />
+                  ) : (
+                    <>
+                      <ArrowRight size={13} />
+                      <span>Checkout — ${total}</span>
+                    </>
+                  )}
+                </motion.button>
+              </div>
+            )}
           </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
+
+/* ─── Floating Cart Button ─── */
+function FloatingCartButton() {
+  const { cartCount, setCartOpen } = useContext(CartContext);
+
+  return (
+    <motion.button
+      onClick={() => setCartOpen(true)}
+      initial={{ scale: 0, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
+      transition={{ delay: 1.5, type: "spring", stiffness: 300, damping: 20 }}
+      whileHover={{ scale: 1.08 }}
+      whileTap={{ scale: 0.92 }}
+      className="fixed bottom-6 right-6 z-[999] flex items-center justify-center w-14 h-14 cursor-pointer"
+      style={{
+        background: "rgba(84,65,47,0.9)",
+        backdropFilter: "blur(16px)",
+        WebkitBackdropFilter: "blur(16px)",
+        border: "1px solid rgba(234,230,210,0.12)",
+        boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
+        borderRadius: "50%",
+      }}
+    >
+      <ShoppingBag size={20} className="text-lff-cream/80" />
+      <AnimatePresence>
+        {cartCount > 0 && (
+          <motion.span
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            exit={{ scale: 0 }}
+            className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-lff-cream text-lff-brown text-[10px] font-bold flex items-center justify-center"
+          >
+            {cartCount}
+          </motion.span>
+        )}
+      </AnimatePresence>
+    </motion.button>
+  );
+}
+
+/* ─── Checkout Success Toast ─── */
+function CheckoutSuccessToast() {
+  const [show, setShow] = useState(false);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("checkout") === "success") {
+      setShow(true);
+      // Clean URL
+      const url = new URL(window.location.href);
+      url.searchParams.delete("checkout");
+      window.history.replaceState({}, "", url.pathname);
+      const t = setTimeout(() => setShow(false), 5000);
+      return () => clearTimeout(t);
+    }
+  }, []);
+
+  return (
+    <AnimatePresence>
+      {show && (
+        <motion.div
+          initial={{ opacity: 0, y: -30 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -30 }}
+          transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+          className="fixed top-6 left-1/2 -translate-x-1/2 z-[9998] flex items-center gap-3 px-6 py-4"
+          style={{
+            background: "rgba(58,44,30,0.95)",
+            backdropFilter: "blur(16px)",
+            border: "1px solid rgba(234,230,210,0.15)",
+            boxShadow: "0 16px 48px rgba(0,0,0,0.3)",
+            borderRadius: PILL_RADIUS,
+          }}
+        >
+          <div className="w-6 h-6 rounded-full bg-green-500/20 flex items-center justify-center">
+            <Check size={13} className="text-green-400" />
+          </div>
+          <span className="text-lff-cream text-sm font-medium tracking-wide">
+            Order confirmed — you're repping the brand!
+          </span>
         </motion.div>
       )}
     </AnimatePresence>
@@ -360,7 +683,7 @@ const SockCard = memo(function SockCard({
     }
   }, [showVideo]);
 
-  const openModal = useContext(ShippingContext);
+  const { addToCart } = useContext(CartContext);
 
   return (
     <motion.div
@@ -373,12 +696,13 @@ const SockCard = memo(function SockCard({
     >
       <button
         onClick={() =>
-          openModal(
-            `${product.name} — ${product.tagline}`,
-            product.price,
-            product.stripeLink || "#",
-            product.shippingStripeLink || product.stripeLink || "#",
-          )
+          addToCart({
+            id: product.id,
+            name: `${product.name} — ${product.tagline}`,
+            price: product.price,
+            priceId: product.priceId,
+            image: product.image,
+          })
         }
         className="block relative overflow-hidden aspect-[4/5] cursor-pointer w-full text-left"
         style={{ borderRadius: "1.5rem" }}
@@ -409,16 +733,16 @@ const SockCard = memo(function SockCard({
           />
         )}
 
-        {/* Hover: Order Now pill slides up */}
+        {/* Hover: Add to Cart pill slides up */}
         <div className="absolute bottom-3 left-3 right-3 translate-y-[calc(100%+1rem)] group-hover:translate-y-0 transition-transform duration-500 ease-out">
           <div
             className="bg-lff-cream text-lff-brown py-3 flex items-center justify-center gap-2"
             style={{ borderRadius: PILL_RADIUS }}
           >
+            <ShoppingBag size={12} strokeWidth={2.5} />
             <span className="text-[11px] font-bold tracking-[0.2em] uppercase">
-              Order Now
+              Add to Cart
             </span>
-            <ArrowRight size={12} strokeWidth={2.5} />
           </div>
         </div>
       </button>
@@ -915,25 +1239,29 @@ function ProductInfoCard({
   title,
   subtitle,
   price,
-  stripeLink,
-  shippingStripeLink,
+  priceId,
+  productId,
   ctaLabel,
   stock,
+  image,
   children,
   variant = "default",
+  onAddToCart,
 }: {
   overline: string;
   title: string;
   subtitle: string;
   price: number;
-  stripeLink?: string;
-  shippingStripeLink?: string;
+  priceId?: string;
+  productId?: string;
   ctaLabel: string;
   stock?: number | null;
+  image?: string;
   children?: React.ReactNode;
   variant?: "default" | "dark";
+  onAddToCart?: () => void;
 }) {
-  const openModal = useContext(ShippingContext);
+  const { addToCart } = useContext(CartContext);
   const isLow = stock !== null && stock !== undefined && stock <= 15;
   const isDark = variant === "dark";
 
@@ -991,16 +1319,21 @@ function ProductInfoCard({
         </div>
 
         {/* CTA */}
-        {stripeLink && (
+        {(priceId || onAddToCart) && (
           <motion.button
-            onClick={() =>
-              openModal(
-                title,
-                price,
-                stripeLink,
-                shippingStripeLink || stripeLink, // fallback to same link if no shipping link set yet
-              )
-            }
+            onClick={() => {
+              if (onAddToCart) {
+                onAddToCart();
+              } else if (priceId && productId) {
+                addToCart({
+                  id: productId,
+                  name: title,
+                  price,
+                  priceId,
+                  image,
+                });
+              }
+            }}
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.97 }}
             transition={{ type: "spring", stiffness: 400, damping: 17 }}
@@ -1011,7 +1344,7 @@ function ProductInfoCard({
             }`}
             style={{ borderRadius: PILL_RADIUS }}
           >
-            <ArrowRight size={13} />
+            <ShoppingBag size={13} />
             <span>{ctaLabel}</span>
           </motion.button>
         )}
@@ -1253,7 +1586,7 @@ function ShopHero() {
 
 /* ─── Tee Section (Info Left / Spinner Right) ─── */
 function TeeSection() {
-  const openShippingModal = useContext(ShippingContext);
+  const { addToCart } = useContext(CartContext);
   const [selectedColour, setSelectedColour] = useState<TeeColour>("brown");
   const videoSrc = TEE_SPIN_VIDEOS[selectedColour];
   const { frames, loading } = useVideoFrames(videoSrc, 48, true);
@@ -1275,9 +1608,15 @@ function TeeSection() {
             subtitle="Heavyweight garment-dyed cotton. Oversized fit. Double-sided print."
             price={45}
             stock={null}
-            stripeLink="https://buy.stripe.com/cNi3cv9UKe236xm9Jmbwk0a"
-            shippingStripeLink="https://buy.stripe.com/cNi00j0ka2jl1d27Bebwk0f"
-            ctaLabel="Pre-Order — $45"
+            ctaLabel="Add to Cart — $45"
+            onAddToCart={() =>
+              addToCart({
+                id: `drop-shoulder-tee-${selectedColour}`,
+                name: `Drop Shoulder Tee — ${selectedColour.charAt(0).toUpperCase() + selectedColour.slice(1)}`,
+                price: 45,
+                priceId: PRICE_IDS.dropShoulderTee,
+              })
+            }
           >
             {/* Colour swatches */}
             <div>
@@ -1363,12 +1702,12 @@ function TeeSection() {
               </div>
               <motion.button
                 onClick={() =>
-                  openShippingModal(
-                    "Drop Shoulder Tee — 3-Pack",
-                    120,
-                    "https://buy.stripe.com/bJe4gz5Eu3np8FuaNqbwk0g",
-                    "https://buy.stripe.com/eVqcN5d6W5vx2h64p2bwk0h",
-                  )
+                  addToCart({
+                    id: "tee-3-pack",
+                    name: "Drop Shoulder Tee — 3-Pack",
+                    price: 120,
+                    priceId: PRICE_IDS.tee3Pack,
+                  })
                 }
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
@@ -1376,8 +1715,8 @@ function TeeSection() {
                 className="w-full flex items-center justify-center gap-3 px-6 py-3.5 text-[11px] font-bold tracking-[0.2em] uppercase bg-lff-cream text-lff-brown hover:bg-lff-cream/90 transition-colors duration-300 cursor-pointer"
                 style={{ borderRadius: PILL_RADIUS }}
               >
-                <ArrowRight size={13} />
-                <span>Pre-Order 3-Pack — $120</span>
+                <ShoppingBag size={13} />
+                <span>Add 3-Pack — $120</span>
               </motion.button>
             </div>
           </ScrollReveal>
@@ -1443,9 +1782,10 @@ function StrapsSection() {
             subtitle="Built to pull heavy. Premium construction with LFF branding."
             price={35}
             stock={15}
-            stripeLink="https://buy.stripe.com/dRm8wP8QG9LN1d23kYbwk08"
-            shippingStripeLink="https://buy.stripe.com/fZu00jgj86zBf3S4p2bwk0d"
-            ctaLabel="Order — $35"
+            priceId={PRICE_IDS.liftingStraps}
+            productId="lifting-straps"
+            image="/shop/straps-flatlay.jpg"
+            ctaLabel="Add to Cart — $35"
             variant="dark"
           />
         </div>
@@ -1476,9 +1816,10 @@ function CuffsSection() {
             subtitle="Lock in. Lift more. Reinforced wrist support for heavy lifts."
             price={25}
             stock={15}
-            stripeLink="https://buy.stripe.com/7sY4gz4Aq7DF8Fu1cQbwk09"
-            shippingStripeLink="https://buy.stripe.com/fZu00j6Iy2jl8Fuf3Gbwk0e"
-            ctaLabel="Order — $25"
+            priceId={PRICE_IDS.cuffs}
+            productId="cuffs"
+            image="/shop/cuffs-flatlay.jpg"
+            ctaLabel="Add to Cart — $25"
           />
         </div>
 
@@ -1542,7 +1883,7 @@ function SocksSection() {
 
 /* ─── GOAT Pack Section ─── */
 function GoatPackSection() {
-  const openModal = useContext(ShippingContext);
+  const { addToCart } = useContext(CartContext);
 
   // Spinners — will use cache from individual sections above
   const { frames: teeFrames, loading: teeLoading } = useVideoFrames(
@@ -1646,12 +1987,13 @@ function GoatPackSection() {
             {/* CTA */}
             <motion.button
               onClick={() =>
-                openModal(
-                  "THE GOAT PACK",
-                  packPrice,
-                  "https://buy.stripe.com/7sY00jaYOe236xm08Mbwk0i",
-                  "https://buy.stripe.com/9B65kDgj8e234pe9Jmbwk0j",
-                )
+                addToCart({
+                  id: "goat-pack",
+                  name: "THE GOAT PACK",
+                  price: packPrice,
+                  priceId: PRICE_IDS.goatPack,
+                  image: "/shop/socks-brown-hero.jpg",
+                })
               }
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
@@ -1659,8 +2001,8 @@ function GoatPackSection() {
               className="inline-flex items-center gap-3 px-10 py-4 text-[11px] font-bold tracking-[0.2em] uppercase bg-lff-cream text-lff-brown hover:bg-lff-cream/90 transition-colors duration-300 cursor-pointer"
               style={{ borderRadius: PILL_RADIUS }}
             >
-              <ArrowRight size={13} />
-              <span>Get the GOAT Pack — ${packPrice}</span>
+              <ShoppingBag size={13} />
+              <span>Add GOAT Pack — ${packPrice}</span>
             </motion.button>
           </div>
         </ScrollReveal>
@@ -1876,35 +2218,9 @@ function BrandStrip() {
 /* ═══════════════════════════════════════════════════════════
    MAIN SHOP PAGE
    ═══════════════════════════════════════════════════════════ */
-/* ─── Shipping Context ─── */
-const ShippingContext = React.createContext<
-  (name: string, price: number, pickupLink: string, shippingLink: string) => void
->(() => {});
-
 export default function Shop() {
   const spotlightRef = useRef<HTMLDivElement>(null);
-  const [shippingModal, setShippingModal] = useState<ShippingModalState>({
-    open: false,
-    productName: "",
-    price: 0,
-    pickupLink: "",
-    shippingLink: "",
-  });
-
-  const openShippingModal = (
-    productName: string,
-    price: number,
-    pickupLink: string,
-    shippingLink: string,
-  ) => {
-    setShippingModal({
-      open: true,
-      productName,
-      price,
-      pickupLink,
-      shippingLink,
-    });
-  };
+  const cart = useCartState();
 
   useEffect(() => {
     const reduceMotion = window.matchMedia(
@@ -1938,8 +2254,17 @@ export default function Shop() {
   }, []);
 
   return (
-    <ShippingContext.Provider value={openShippingModal}>
+    <CartContext.Provider value={cart}>
     <div className="min-h-screen text-lff-cream overflow-x-hidden" style={concreteTexture}>
+      {/* Checkout success toast */}
+      <CheckoutSuccessToast />
+
+      {/* Cart drawer */}
+      <CartDrawer />
+
+      {/* Floating cart button */}
+      <FloatingCartButton />
+
       {/* Grain overlay */}
       <div
         className="pointer-events-none fixed inset-0 z-[2] opacity-[0.03]"
@@ -1969,11 +2294,6 @@ export default function Shop() {
           mixBlendMode: "overlay",
           willChange: "transform",
         }}
-      />
-
-      <ShippingModal
-        state={shippingModal}
-        onClose={() => setShippingModal((s) => ({ ...s, open: false }))}
       />
 
       <Navbar />
@@ -2052,6 +2372,6 @@ export default function Shop() {
 
       <Footer />
     </div>
-    </ShippingContext.Provider>
+    </CartContext.Provider>
   );
 }

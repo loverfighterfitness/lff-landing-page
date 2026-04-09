@@ -14,6 +14,61 @@ function getStripe() {
 }
 
 export const stripeRouter = router({
+  createShopCheckout: publicProcedure
+    .input(
+      z.object({
+        items: z.array(
+          z.object({
+            priceId: z.string(),
+            quantity: z.number().int().min(1),
+          })
+        ).min(1),
+        shipping: z.boolean(),
+        origin: z.string().url(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const stripe = getStripe();
+
+      const line_items: Stripe.Checkout.SessionCreateParams.LineItem[] =
+        input.items.map((item) => ({
+          price: item.priceId,
+          quantity: item.quantity,
+        }));
+
+      // Add flat-rate $10 shipping as ad-hoc line item
+      if (input.shipping) {
+        line_items.push({
+          price_data: {
+            currency: "aud",
+            product_data: {
+              name: "Aus-Wide Shipping",
+              description: "Flat-rate shipping Australia-wide",
+            },
+            unit_amount: 1000, // $10
+          },
+          quantity: 1,
+        });
+      }
+
+      const sessionParams: Stripe.Checkout.SessionCreateParams = {
+        mode: "payment",
+        line_items,
+        success_url: `${input.origin}/shop?checkout=success`,
+        cancel_url: `${input.origin}/shop`,
+        ...(input.shipping
+          ? {
+              shipping_address_collection: {
+                allowed_countries: ["AU"],
+              },
+            }
+          : {}),
+      };
+
+      const session = await stripe.checkout.sessions.create(sessionParams);
+      return { url: session.url };
+    }),
+
   createCheckoutSession: publicProcedure
     .input(
       z.object({

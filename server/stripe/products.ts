@@ -46,6 +46,18 @@ export const STRIPE_PRODUCTS = {
     priceId: "price_1TJSwbELc7CqpluZt72mBtdW",
     paymentLinkUrl: "https://buy.stripe.com/cNi3cv9UKe236xm9Jmbwk0a",
   },
+  tee3Pack: {
+    name: "LFF Tee 3-Pack",
+    description: "Three LFF Drop Shoulder Tees — one of each colour (Brown, Black, Cream). Save $15.",
+    priceId: "price_1TK7R7ELc7CqpluZYSUNLcWj",
+    paymentLinkUrl: "",
+  },
+  goatPack: {
+    name: "THE GOAT PACK",
+    description: "Tee + Straps + Cuffs + Socks — the ultimate LFF bundle.",
+    priceId: "price_1TJoJJELc7CqpluZsFeM7SfV",
+    paymentLinkUrl: "",
+  },
 } as const;
 
 export type ProductKey = keyof typeof STRIPE_PRODUCTS;

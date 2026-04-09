@@ -41,7 +41,7 @@ type TeeSize = (typeof TEE_SIZES)[number];
 
 const TEE_STOCK: Record<TeeColour, Record<TeeSize, number>> = {
   brown: { S: 5, M: 7, L: 12, XL: 11, "2XL": 5 },
-  cream: { S: 3, M: 3, L: 6, XL: 5, "2XL": 3 },
+  cream: { S: 2, M: 3, L: 6, XL: 5, "2XL": 3 },
   black: { S: 3, M: 3, L: 6, XL: 5, "2XL": 3 },
 };
 

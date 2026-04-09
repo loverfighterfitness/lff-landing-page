@@ -78,6 +78,13 @@
       "when": 1774874844511,
       "tag": "0010_abnormal_nitro",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "5",
+      "when": 1775700375715,
+      "tag": "0011_exotic_human_fly",
+      "breakpoints": true
     }
   ]
 }

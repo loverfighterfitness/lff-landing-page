@@ -8,6 +8,7 @@ import { calculatorRouter } from "./routers/calculator";
 import { pushRouter } from "./routers/push";
 import { stripeRouter } from "./routers/stripe";
 import { referralRouter } from "./routers/referral";
+import { shopRouter } from "./routers/shop";
 
 export const appRouter = router({
   system: systemRouter,
@@ -25,6 +26,7 @@ export const appRouter = router({
   push: pushRouter,
   stripe: stripeRouter,
   referral: referralRouter,
+  shop: shopRouter,
 });
 
 export type AppRouter = typeof appRouter;

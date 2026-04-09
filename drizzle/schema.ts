@@ -1,4 +1,4 @@
-import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, bigint } from "drizzle-orm/mysql-core";
+import { boolean, int, mysqlEnum, mysqlTable, text, timestamp, varchar, bigint } from "drizzle-orm/mysql-core";
 
 /**
  * Core user table backing auth flow.
@@ -200,3 +200,85 @@ export const smsJobs = mysqlTable("sms_jobs", {
 
 export type SmsJob = typeof smsJobs.$inferSelect;
 export type InsertSmsJob = typeof smsJobs.$inferInsert;
+
+// ─── Shop ────────────────────────────────────────────────────────────────────
+
+/**
+ * Shop Products — each sellable item in the LFF merch store.
+ */
+export const shopProducts = mysqlTable("shop_products", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 255 }).notNull(),
+  slug: varchar("slug", { length: 128 }).notNull().unique(),
+  /** Price in cents (AUD) */
+  price: int("price").notNull(),
+  /** Stripe Price ID */
+  priceId: varchar("priceId", { length: 128 }).notNull(),
+  category: mysqlEnum("category", ["socks", "straps", "cuffs", "tee", "bundle"]).notNull(),
+  active: boolean("active").default(true).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type ShopProduct = typeof shopProducts.$inferSelect;
+export type InsertShopProduct = typeof shopProducts.$inferInsert;
+
+/**
+ * Shop Variants — colour/size combinations with stock tracking.
+ */
+export const shopVariants = mysqlTable("shop_variants", {
+  id: int("id").autoincrement().primaryKey(),
+  productId: int("productId").notNull().references(() => shopProducts.id),
+  colour: varchar("colour", { length: 64 }),
+  size: varchar("size", { length: 16 }),
+  stock: int("stock").default(0).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type ShopVariant = typeof shopVariants.$inferSelect;
+export type InsertShopVariant = typeof shopVariants.$inferInsert;
+
+/**
+ * Shop Orders — tracks completed Stripe checkout sessions for merch purchases.
+ */
+export const shopOrders = mysqlTable("shop_orders", {
+  id: int("id").autoincrement().primaryKey(),
+  stripeSessionId: varchar("stripeSessionId", { length: 255 }).notNull().unique(),
+  stripePaymentIntent: varchar("stripePaymentIntent", { length: 255 }),
+  customerEmail: varchar("customerEmail", { length: 320 }).notNull(),
+  customerName: varchar("customerName", { length: 255 }).notNull(),
+  /** JSON-encoded shipping address */
+  shippingAddress: text("shippingAddress"),
+  isShipping: boolean("isShipping").default(false).notNull(),
+  /** Shipping cost in cents */
+  shippingCost: int("shippingCost").default(0).notNull(),
+  /** Subtotal in cents (before shipping) */
+  subtotal: int("subtotal").default(0).notNull(),
+  /** Total in cents (including shipping) */
+  total: int("total").default(0).notNull(),
+  status: mysqlEnum("status", ["unfulfilled", "shipped", "delivered"]).default("unfulfilled").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type ShopOrder = typeof shopOrders.$inferSelect;
+export type InsertShopOrder = typeof shopOrders.$inferInsert;
+
+/**
+ * Shop Order Items — individual line items within an order.
+ */
+export const shopOrderItems = mysqlTable("shop_order_items", {
+  id: int("id").autoincrement().primaryKey(),
+  orderId: int("orderId").notNull().references(() => shopOrders.id),
+  productName: varchar("productName", { length: 255 }).notNull(),
+  /** Variant descriptor e.g. "Brown / L" */
+  variant: varchar("variant", { length: 128 }),
+  quantity: int("quantity").notNull(),
+  /** Unit price in cents */
+  unitPrice: int("unitPrice").notNull(),
+  /** Stripe Price ID for this line item */
+  priceId: varchar("priceId", { length: 128 }).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type ShopOrderItem = typeof shopOrderItems.$inferSelect;
+export type InsertShopOrderItem = typeof shopOrderItems.$inferInsert;

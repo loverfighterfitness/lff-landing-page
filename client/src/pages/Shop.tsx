@@ -39,11 +39,75 @@ const TEE_SPIN_VIDEOS: Record<TeeColour, string> = {
 const TEE_SIZES = ["S", "M", "L", "XL", "2XL"] as const;
 type TeeSize = (typeof TEE_SIZES)[number];
 
-const TEE_STOCK: Record<TeeColour, Record<TeeSize, number>> = {
+/** Hardcoded fallback stock — used while the API is loading */
+const TEE_STOCK_FALLBACK: Record<TeeColour, Record<TeeSize, number>> = {
   brown: { S: 5, M: 7, L: 12, XL: 11, "2XL": 5 },
   cream: { S: 2, M: 3, L: 6, XL: 5, "2XL": 3 },
   black: { S: 3, M: 3, L: 6, XL: 5, "2XL": 3 },
 };
+
+const ACCESSORY_STOCK_FALLBACK: Record<string, number> = {
+  "socks-cream": 30,
+  "socks-brown": 30,
+  "lifting-straps": 15,
+  "wrist-cuffs": 15,
+};
+
+/* ─── Live Stock Context ─── */
+interface StockData {
+  teeStock: Record<TeeColour, Record<TeeSize, number>>;
+  accessoryStock: Record<string, number>;
+  isLoading: boolean;
+}
+
+const StockContext = createContext<StockData>({
+  teeStock: TEE_STOCK_FALLBACK,
+  accessoryStock: ACCESSORY_STOCK_FALLBACK,
+  isLoading: true,
+});
+
+function useStockData(): StockData {
+  const { data, isLoading } = trpc.shop.getStock.useQuery();
+
+  if (!data || isLoading) {
+    return {
+      teeStock: TEE_STOCK_FALLBACK,
+      accessoryStock: ACCESSORY_STOCK_FALLBACK,
+      isLoading: true,
+    };
+  }
+
+  // Build tee stock from live data
+  const teeProduct = data.find((p) => p.slug === "drop-shoulder-tee");
+  const teeStock: Record<TeeColour, Record<TeeSize, number>> = {
+    brown: { S: 0, M: 0, L: 0, XL: 0, "2XL": 0 },
+    cream: { S: 0, M: 0, L: 0, XL: 0, "2XL": 0 },
+    black: { S: 0, M: 0, L: 0, XL: 0, "2XL": 0 },
+  };
+
+  if (teeProduct) {
+    for (const v of teeProduct.variants) {
+      const colour = v.colour as TeeColour | null;
+      const size = v.size as TeeSize | null;
+      if (colour && size && teeStock[colour] !== undefined) {
+        teeStock[colour][size] = v.stock;
+      }
+    }
+  }
+
+  // Build accessory stock
+  const accessoryStock: Record<string, number> = {};
+  for (const product of data) {
+    if (product.slug === "drop-shoulder-tee") continue;
+    // Sum all variant stock for the product
+    const totalStock = product.variants.reduce((sum, v) => sum + v.stock, 0);
+    accessoryStock[product.slug] = totalStock;
+  }
+
+  return { teeStock, accessoryStock, isLoading: false };
+}
+
+/* TEE_STOCK_FALLBACK is used by StockContext as the loading fallback */
 
 /* ─── Design Tokens ─── */
 const PILL_RADIUS = "9999px";
@@ -315,7 +379,7 @@ function CartDrawer() {
     if (cartItems.length === 0) return;
     try {
       const result = await checkoutMutation.mutateAsync({
-        items: cartItems.map((i) => ({ priceId: i.priceId, quantity: i.quantity })),
+        items: cartItems.map((i) => ({ id: i.id, name: i.name, price: i.price, priceId: i.priceId, quantity: i.quantity })),
         shipping,
         origin: window.location.origin,
       });
@@ -1600,6 +1664,7 @@ function ShopHero() {
 
 /* ─── 3-Pack Size Selector ─── */
 function ThreePackSelector({ addToCart }: { addToCart: (item: { id: string; name: string; price: number; priceId: string }) => void }) {
+  const { teeStock } = useContext(StockContext);
   const [brownSize, setBrownSize] = useState<TeeSize | null>(null);
   const [creamSize, setCreamSize] = useState<TeeSize | null>(null);
   const [blackSize, setBlackSize] = useState<TeeSize | null>(null);
@@ -1655,7 +1720,7 @@ function ThreePackSelector({ addToCart }: { addToCart: (item: { id: string; name
               </p>
               <div className="flex flex-wrap items-center gap-1.5">
                 {TEE_SIZES.map((s) => {
-                  const stock = TEE_STOCK[colour][s];
+                  const stock = teeStock[colour][s];
                   const soldOut = stock === 0;
                   const low = stock > 0 && stock <= 3;
                   const isSelected = size === s;
@@ -1686,7 +1751,7 @@ function ThreePackSelector({ addToCart }: { addToCart: (item: { id: string; name
                 })}
                 {size && (
                   <span className="text-lff-cream/30 text-[9px] tracking-wider ml-1">
-                    {TEE_STOCK[colour][size]} left
+                    {teeStock[colour][size]} left
                   </span>
                 )}
               </div>
@@ -1726,6 +1791,7 @@ function ThreePackSelector({ addToCart }: { addToCart: (item: { id: string; name
 /* ─── Tee Section (Info Left / Spinner Right) ─── */
 function TeeSection() {
   const { addToCart } = useContext(CartContext);
+  const { teeStock } = useContext(StockContext);
   const [selectedColour, setSelectedColour] = useState<TeeColour>("brown");
   const [selectedSize, setSelectedSize] = useState<TeeSize | null>(null);
   const videoSrc = TEE_SPIN_VIDEOS[selectedColour];
@@ -1737,7 +1803,7 @@ function TeeSection() {
     { key: "cream", color: "#EAE6D2", label: "Cream" },
   ];
 
-  const currentStock = selectedSize ? TEE_STOCK[selectedColour][selectedSize] : null;
+  const currentStock = selectedSize ? teeStock[selectedColour][selectedSize] : null;
   const isSoldOut = currentStock === 0;
   const isLowStock = currentStock !== null && currentStock > 0 && currentStock <= 3;
   const colourLabel = selectedColour.charAt(0).toUpperCase() + selectedColour.slice(1);
@@ -1814,7 +1880,7 @@ function TeeSection() {
               </p>
               <div className="flex flex-wrap items-center gap-2">
                 {TEE_SIZES.map((size) => {
-                  const stock = TEE_STOCK[selectedColour][size];
+                  const stock = teeStock[selectedColour][size];
                   const soldOut = stock === 0;
                   const low = stock > 0 && stock <= 3;
                   const isSelected = selectedSize === size;
@@ -1951,6 +2017,8 @@ function TeeSection() {
 
 /* ─── Straps Section (Spinner Left / Info Right) — CREAM BG ─── */
 function StrapsSection() {
+  const { accessoryStock } = useContext(StockContext);
+  const strapsStock = accessoryStock["lifting-straps"] ?? 15;
   const { frames, loading } = useVideoFrames(
     "/shop/straps-spin-blue.mp4",
     48,
@@ -1993,7 +2061,7 @@ function StrapsSection() {
             title="LIFTING STRAPS"
             subtitle="Built to pull heavy. Premium construction with LFF branding."
             price={35}
-            stock={15}
+            stock={strapsStock}
             priceId={PRICE_IDS.liftingStraps}
             productId="lifting-straps"
             image="/shop/straps-flatlay.jpg"
@@ -2008,6 +2076,8 @@ function StrapsSection() {
 
 /* ─── Cuffs Section (Info Left / Spinner Right) ─── */
 function CuffsSection() {
+  const { accessoryStock } = useContext(StockContext);
+  const cuffsStock = accessoryStock["wrist-cuffs"] ?? 15;
   const { frames, loading } = useVideoFrames(
     "/shop/cuffs-spin-blue.mp4",
     48,
@@ -2027,7 +2097,7 @@ function CuffsSection() {
             title="WRIST CUFFS"
             subtitle="Lock in. Lift more. Reinforced wrist support for heavy lifts."
             price={25}
-            stock={15}
+            stock={cuffsStock}
             priceId={PRICE_IDS.cuffs}
             productId="cuffs"
             image="/shop/cuffs-flatlay.jpg"
@@ -2054,6 +2124,14 @@ function CuffsSection() {
 
 /* ─── Socks Section (Lifestyle Grid, cream bg) ─── */
 function SocksSection() {
+  const { accessoryStock } = useContext(StockContext);
+
+  // Override hardcoded stock with live data
+  const liveSocks = SOCKS.map((sock) => ({
+    ...sock,
+    stock: accessoryStock[sock.id] ?? sock.stock,
+  }));
+
   return (
     <section className="relative py-20 md:py-28 px-4 md:px-8 lg:px-16" style={{ backgroundColor: "#EAE6D2" }}>
       {/* Noise on cream */}
@@ -2084,7 +2162,7 @@ function SocksSection() {
         </ScrollReveal>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 max-w-[800px]">
-          {SOCKS.map((sock, i) => (
+          {liveSocks.map((sock, i) => (
             <SockCard key={sock.id} product={sock} index={i} />
           ))}
         </div>
@@ -2465,8 +2543,11 @@ export default function Shop() {
     };
   }, []);
 
+  const stockData = useStockData();
+
   return (
     <CartContext.Provider value={cart}>
+    <StockContext.Provider value={stockData}>
     <div className="min-h-screen text-lff-cream overflow-x-hidden" style={concreteTexture}>
       {/* Checkout success toast */}
       <CheckoutSuccessToast />
@@ -2584,6 +2665,7 @@ export default function Shop() {
 
       <Footer />
     </div>
+    </StockContext.Provider>
     </CartContext.Provider>
   );
 }

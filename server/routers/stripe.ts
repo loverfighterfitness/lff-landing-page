@@ -19,6 +19,9 @@ export const stripeRouter = router({
       z.object({
         items: z.array(
           z.object({
+            id: z.string(),
+            name: z.string(),
+            price: z.number(),
             priceId: z.string(),
             quantity: z.number().int().min(1),
           })
@@ -51,11 +54,25 @@ export const stripeRouter = router({
         });
       }
 
+      // Build items_json metadata (Stripe metadata values max 500 chars)
+      const itemsForMeta = input.items.map((i) => ({
+        id: i.id,
+        name: i.name,
+        price: i.price,
+        priceId: i.priceId,
+        quantity: i.quantity,
+      }));
+
       const sessionParams: Stripe.Checkout.SessionCreateParams = {
         mode: "payment",
         line_items,
         success_url: `${input.origin}/shop?checkout=success`,
         cancel_url: `${input.origin}/shop`,
+        metadata: {
+          type: "shop_order",
+          items_json: JSON.stringify(itemsForMeta),
+          is_shipping: input.shipping ? "true" : "false",
+        },
         ...(input.shipping
           ? {
               shipping_address_collection: {

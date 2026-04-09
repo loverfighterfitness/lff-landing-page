@@ -8,6 +8,8 @@ import { Loader2, RefreshCw, Phone, Mail, Bell, BellOff, Calendar } from "lucide
 import { toast } from "sonner";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 import ReferralsTab from "@/components/ReferralsTab";
+import ShopOrdersTab from "@/components/ShopOrdersTab";
+import ShopInventoryTab from "@/components/ShopInventoryTab";
 
 const LOGO_CREAM =
   "https://d2xsxph8kpxj0f.cloudfront.net/310519663408040383/TeiTyUgvfabHNSBnznn263/LFFNEWLOGOCREAM_59ca0122.png";
@@ -399,7 +401,7 @@ function SmsJobRow({ job }: { job: any }) {
 }
 
 export default function AdminLeads() {
-  const [activeTab, setActiveTab] = useState<"leads" | "sms" | "referrals">("leads");
+  const [activeTab, setActiveTab] = useState<"leads" | "sms" | "referrals" | "orders" | "inventory">("leads");
   usePushNotifications();
 
   const { data: leads, isLoading: leadsLoading } = trpc.calculator.getLeads.useQuery();
@@ -457,24 +459,33 @@ export default function AdminLeads() {
 
         {/* Tabs */}
         <div className="max-w-5xl mx-auto px-4 flex gap-1 pb-2">
-          {(["leads", "sms", "referrals"] as const).map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className="text-xs font-bold px-4 py-1.5 rounded-lg transition-all capitalize flex items-center gap-1.5"
-              style={{
-                backgroundColor: activeTab === tab ? "#EAE6D2" : "transparent",
-                color: activeTab === tab ? "#54412F" : "rgba(234,230,210,0.75)",
-              }}
-            >
-              {tab === "sms" ? "SMS Queue" : tab.charAt(0).toUpperCase() + tab.slice(1)}
-              {tab === "sms" && failedJobs > 0 && (
-                <span className="text-xs font-black px-1.5 py-0.5 rounded-full" style={{ backgroundColor: "#b91c1c", color: "#fff" }}>
-                  {failedJobs}
-                </span>
-              )}
-            </button>
-          ))}
+          {(["leads", "sms", "referrals", "orders", "inventory"] as const).map((tab) => {
+            const tabLabels: Record<string, string> = {
+              leads: "Leads",
+              sms: "SMS Queue",
+              referrals: "Referrals",
+              orders: "Orders",
+              inventory: "Inventory",
+            };
+            return (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className="text-xs font-bold px-4 py-1.5 rounded-lg transition-all capitalize flex items-center gap-1.5"
+                style={{
+                  backgroundColor: activeTab === tab ? "#EAE6D2" : "transparent",
+                  color: activeTab === tab ? "#54412F" : "rgba(234,230,210,0.75)",
+                }}
+              >
+                {tabLabels[tab]}
+                {tab === "sms" && failedJobs > 0 && (
+                  <span className="text-xs font-black px-1.5 py-0.5 rounded-full" style={{ backgroundColor: "#b91c1c", color: "#fff" }}>
+                    {failedJobs}
+                  </span>
+                )}
+              </button>
+            );
+          })}
         </div>
       </header>
 
@@ -595,6 +606,12 @@ export default function AdminLeads() {
             )}
           </>
         )}
+
+        {/* ORDERS TAB */}
+        {activeTab === "orders" && <ShopOrdersTab />}
+
+        {/* INVENTORY TAB */}
+        {activeTab === "inventory" && <ShopInventoryTab />}
       </div>
     </div>
   );

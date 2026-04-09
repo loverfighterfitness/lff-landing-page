@@ -1598,6 +1598,131 @@ function ShopHero() {
    PRODUCT SECTIONS — Full Viewport, Alternating Layout
    ───────────────────────────────────────────────────────── */
 
+/* ─── 3-Pack Size Selector ─── */
+function ThreePackSelector({ addToCart }: { addToCart: (item: { id: string; name: string; price: number; priceId: string }) => void }) {
+  const [brownSize, setBrownSize] = useState<TeeSize | null>(null);
+  const [creamSize, setCreamSize] = useState<TeeSize | null>(null);
+  const [blackSize, setBlackSize] = useState<TeeSize | null>(null);
+
+  const allSelected = brownSize && creamSize && blackSize;
+  const canAdd = !!allSelected;
+
+  const colourPicks: { colour: TeeColour; label: string; size: TeeSize | null; setSize: (s: TeeSize) => void }[] = [
+    { colour: "brown", label: "Brown", size: brownSize, setSize: setBrownSize },
+    { colour: "cream", label: "Cream", size: creamSize, setSize: setCreamSize },
+    { colour: "black", label: "Black", size: blackSize, setSize: setBlackSize },
+  ];
+
+  return (
+    <ScrollReveal delay={0.15}>
+      <div
+        className="mt-4 p-5 md:p-6"
+        style={{
+          background: "rgba(234,230,210,0.08)",
+          border: "1px solid rgba(234,230,210,0.1)",
+          borderRadius: PANEL_RADIUS,
+        }}
+      >
+        {/* Header + price */}
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <p className="text-lff-cream text-sm font-semibold tracking-wide">
+              3-Pack Bundle
+            </p>
+            <p className="text-lff-cream/40 text-xs mt-0.5">
+              One of each colour · Pick your sizes
+            </p>
+          </div>
+          <div className="text-right">
+            <span className="text-lff-cream/40 text-sm line-through mr-1.5" style={{ fontFamily: "var(--font-display)" }}>
+              $135
+            </span>
+            <span className="text-lff-cream text-xl" style={{ fontFamily: "var(--font-display)" }}>
+              $120
+            </span>
+            <p className="text-[9px] tracking-[0.2em] uppercase text-green-400/70 font-medium">
+              Save $15
+            </p>
+          </div>
+        </div>
+
+        {/* Size selectors per colour */}
+        <div className="space-y-3 mb-4">
+          {colourPicks.map(({ colour, label, size, setSize }) => (
+            <div key={colour}>
+              <p className="text-lff-cream/50 text-[10px] tracking-[0.2em] uppercase font-medium mb-1.5">
+                {label} Tee
+              </p>
+              <div className="flex flex-wrap items-center gap-1.5">
+                {TEE_SIZES.map((s) => {
+                  const stock = TEE_STOCK[colour][s];
+                  const soldOut = stock === 0;
+                  const low = stock > 0 && stock <= 3;
+                  const isSelected = size === s;
+
+                  return (
+                    <button
+                      key={s}
+                      disabled={soldOut}
+                      onClick={() => setSize(s)}
+                      className={`relative px-3 py-1.5 text-[10px] font-bold tracking-[0.15em] uppercase transition-all duration-200 ${
+                        soldOut
+                          ? "opacity-30 cursor-not-allowed line-through"
+                          : isSelected
+                            ? "bg-lff-cream text-lff-brown"
+                            : "text-lff-cream/60 hover:text-lff-cream hover:border-lff-cream/30"
+                      }`}
+                      style={{
+                        borderRadius: PILL_RADIUS,
+                        border: isSelected ? "1px solid transparent" : "1px solid rgba(234,230,210,0.15)",
+                      }}
+                    >
+                      {s}
+                      {low && !isSelected && (
+                        <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-amber-400/80" />
+                      )}
+                    </button>
+                  );
+                })}
+                {size && (
+                  <span className="text-lff-cream/30 text-[9px] tracking-wider ml-1">
+                    {TEE_STOCK[colour][size]} left
+                  </span>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* CTA */}
+        <motion.button
+          onClick={() => {
+            if (!canAdd) return;
+            addToCart({
+              id: `tee-3-pack-${brownSize}-${creamSize}-${blackSize}`,
+              name: `Tee 3-Pack — Brown ${brownSize}, Cream ${creamSize}, Black ${blackSize}`,
+              price: 120,
+              priceId: PRICE_IDS.tee3Pack,
+            });
+          }}
+          whileHover={canAdd ? { scale: 1.03 } : {}}
+          whileTap={canAdd ? { scale: 0.97 } : {}}
+          transition={{ type: "spring", stiffness: 400, damping: 17 }}
+          className={`w-full flex items-center justify-center gap-3 px-6 py-3.5 text-[11px] font-bold tracking-[0.2em] uppercase transition-colors duration-300 ${
+            canAdd
+              ? "bg-lff-cream text-lff-brown hover:bg-lff-cream/90 cursor-pointer"
+              : "bg-lff-cream/20 text-lff-cream/30 cursor-not-allowed"
+          }`}
+          style={{ borderRadius: PILL_RADIUS }}
+        >
+          <ShoppingBag size={13} />
+          <span>{canAdd ? "Add 3-Pack — $120" : "Select All 3 Sizes"}</span>
+        </motion.button>
+      </div>
+    </ScrollReveal>
+  );
+}
+
 /* ─── Tee Section (Info Left / Spinner Right) ─── */
 function TeeSection() {
   const { addToCart } = useContext(CartContext);
@@ -1806,56 +1931,7 @@ function TeeSection() {
           </ProductInfoCard>
 
           {/* 3-Pack Deal */}
-          <ScrollReveal delay={0.15}>
-            <div
-              className="mt-4 p-5 md:p-6"
-              style={{
-                background: "rgba(234,230,210,0.08)",
-                border: "1px solid rgba(234,230,210,0.1)",
-                borderRadius: PANEL_RADIUS,
-              }}
-            >
-              <div className="flex items-center justify-between mb-3">
-                <div>
-                  <p className="text-lff-cream text-sm font-semibold tracking-wide">
-                    3-Pack Bundle
-                  </p>
-                  <p className="text-lff-cream/40 text-xs mt-0.5">
-                    One of each colour · Sizes confirmed via DM
-                  </p>
-                </div>
-                <div className="text-right">
-                  <span className="text-lff-cream/40 text-sm line-through mr-1.5" style={{ fontFamily: "var(--font-display)" }}>
-                    $135
-                  </span>
-                  <span className="text-lff-cream text-xl" style={{ fontFamily: "var(--font-display)" }}>
-                    $120
-                  </span>
-                  <p className="text-[9px] tracking-[0.2em] uppercase text-green-400/70 font-medium">
-                    Save $15
-                  </p>
-                </div>
-              </div>
-              <motion.button
-                onClick={() =>
-                  addToCart({
-                    id: "tee-3-pack",
-                    name: "Drop Shoulder Tee — 3-Pack (Sizes confirmed via DM)",
-                    price: 120,
-                    priceId: PRICE_IDS.tee3Pack,
-                  })
-                }
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.97 }}
-                transition={{ type: "spring", stiffness: 400, damping: 17 }}
-                className="w-full flex items-center justify-center gap-3 px-6 py-3.5 text-[11px] font-bold tracking-[0.2em] uppercase bg-lff-cream text-lff-brown hover:bg-lff-cream/90 transition-colors duration-300 cursor-pointer"
-                style={{ borderRadius: PILL_RADIUS }}
-              >
-                <ShoppingBag size={13} />
-                <span>Add 3-Pack — $120</span>
-              </motion.button>
-            </div>
-          </ScrollReveal>
+          <ThreePackSelector addToCart={addToCart} />
         </div>
 
         {/* Spinner — right 65%, floating on concrete */}

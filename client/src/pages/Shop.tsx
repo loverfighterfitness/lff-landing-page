@@ -35,6 +35,16 @@ const TEE_SPIN_VIDEOS: Record<TeeColour, string> = {
   cream: "/shop/tee-cream-spin.mp4",
 };
 
+/* ─── Tee Size & Stock ─── */
+const TEE_SIZES = ["S", "M", "L", "XL", "2XL"] as const;
+type TeeSize = (typeof TEE_SIZES)[number];
+
+const TEE_STOCK: Record<TeeColour, Record<TeeSize, number>> = {
+  brown: { S: 5, M: 7, L: 12, XL: 11, "2XL": 5 },
+  cream: { S: 3, M: 3, L: 6, XL: 5, "2XL": 3 },
+  black: { S: 3, M: 3, L: 6, XL: 5, "2XL": 3 },
+};
+
 /* ─── Design Tokens ─── */
 const PILL_RADIUS = "9999px";
 const PANEL_RADIUS = "2rem";
@@ -1247,6 +1257,7 @@ function ProductInfoCard({
   children,
   variant = "default",
   onAddToCart,
+  hidePrice = false,
 }: {
   overline: string;
   title: string;
@@ -1260,6 +1271,7 @@ function ProductInfoCard({
   children?: React.ReactNode;
   variant?: "default" | "dark";
   onAddToCart?: () => void;
+  hidePrice?: boolean;
 }) {
   const { addToCart } = useContext(CartContext);
   const isLow = stock !== null && stock !== undefined && stock <= 15;
@@ -1296,27 +1308,29 @@ function ProductInfoCard({
         {children}
 
         {/* Price + stock */}
-        <div className="flex items-center gap-4">
-          <span
-            className="text-lff-cream text-2xl tabular-nums"
-            style={{ fontFamily: "var(--font-display)" }}
-          >
-            ${price}
-          </span>
-          {stock !== null && stock !== undefined && (
-            <div className="flex items-center gap-1.5">
-              <BreathingDot color={isLow ? "#D4A574" : "#7CAE7A"} />
-              <span className="text-[9px] tracking-[0.15em] uppercase text-lff-cream/45 font-medium">
-                {isLow ? `${stock} left` : "In Stock"}
-              </span>
-            </div>
-          )}
-          {stock === null && (
-            <span className="text-[9px] tracking-[0.15em] uppercase text-lff-cream/40 font-medium">
-              Pre-Order
+        {!hidePrice && (
+          <div className="flex items-center gap-4">
+            <span
+              className="text-lff-cream text-2xl tabular-nums"
+              style={{ fontFamily: "var(--font-display)" }}
+            >
+              ${price}
             </span>
-          )}
-        </div>
+            {stock !== null && stock !== undefined && (
+              <div className="flex items-center gap-1.5">
+                <BreathingDot color={isLow ? "#D4A574" : "#7CAE7A"} />
+                <span className="text-[9px] tracking-[0.15em] uppercase text-lff-cream/45 font-medium">
+                  {isLow ? `${stock} left` : "In Stock"}
+                </span>
+              </div>
+            )}
+            {stock === null && (
+              <span className="text-[9px] tracking-[0.15em] uppercase text-lff-cream/40 font-medium">
+                Pre-Order
+              </span>
+            )}
+          </div>
+        )}
 
         {/* CTA */}
         {(priceId || onAddToCart) && (
@@ -1588,6 +1602,7 @@ function ShopHero() {
 function TeeSection() {
   const { addToCart } = useContext(CartContext);
   const [selectedColour, setSelectedColour] = useState<TeeColour>("brown");
+  const [selectedSize, setSelectedSize] = useState<TeeSize | null>(null);
   const videoSrc = TEE_SPIN_VIDEOS[selectedColour];
   const { frames, loading } = useVideoFrames(videoSrc, 48, true);
 
@@ -1597,26 +1612,25 @@ function TeeSection() {
     { key: "cream", color: "#EAE6D2", label: "Cream" },
   ];
 
+  const currentStock = selectedSize ? TEE_STOCK[selectedColour][selectedSize] : null;
+  const isSoldOut = currentStock === 0;
+  const isLowStock = currentStock !== null && currentStock > 0 && currentStock <= 3;
+  const colourLabel = selectedColour.charAt(0).toUpperCase() + selectedColour.slice(1);
+
+  const canAdd = selectedSize !== null && !isSoldOut;
+
   return (
     <section className="lg:min-h-[100dvh] flex items-center px-4 md:px-8 lg:px-16 py-12 md:py-16 lg:py-0">
       <div className="w-full max-w-[1400px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-12 items-center">
         {/* Info card — left 35% */}
         <div className="lg:col-span-4 order-2 lg:order-1">
           <ProductInfoCard
-            overline="360 View · Pre-Order"
+            overline="360 View · In Stock"
             title="DROP SHOULDER TEE"
             subtitle="Heavyweight garment-dyed cotton. Oversized fit. Double-sided print."
             price={45}
-            stock={null}
-            ctaLabel="Add to Cart — $45"
-            onAddToCart={() =>
-              addToCart({
-                id: `drop-shoulder-tee-${selectedColour}`,
-                name: `Drop Shoulder Tee — ${selectedColour.charAt(0).toUpperCase() + selectedColour.slice(1)}`,
-                price: 45,
-                priceId: PRICE_IDS.dropShoulderTee,
-              })
-            }
+            ctaLabel=""
+            hidePrice
           >
             {/* Colour swatches */}
             <div>
@@ -1667,6 +1681,128 @@ function TeeSection() {
                 ))}
               </div>
             </div>
+
+            {/* Size selector */}
+            <div>
+              <p className="text-lff-cream/35 text-[9px] tracking-[0.3em] uppercase font-medium mb-3">
+                Size
+              </p>
+              <div className="flex flex-wrap items-center gap-2">
+                {TEE_SIZES.map((size) => {
+                  const stock = TEE_STOCK[selectedColour][size];
+                  const soldOut = stock === 0;
+                  const low = stock > 0 && stock <= 3;
+                  const isSelected = selectedSize === size;
+
+                  return (
+                    <button
+                      key={size}
+                      onClick={() => !soldOut && setSelectedSize(size)}
+                      disabled={soldOut}
+                      className="relative px-4 py-2 text-[10px] font-bold tracking-[0.2em] uppercase transition-all duration-300"
+                      style={{
+                        borderRadius: PILL_RADIUS,
+                        background: isSelected
+                          ? "rgba(234,230,210,0.95)"
+                          : "transparent",
+                        color: isSelected
+                          ? "#54412F"
+                          : soldOut
+                            ? "rgba(234,230,210,0.2)"
+                            : "rgba(234,230,210,0.7)",
+                        border: isSelected
+                          ? "1px solid rgba(234,230,210,0.9)"
+                          : "1px solid rgba(234,230,210,0.15)",
+                        opacity: soldOut ? 0.4 : 1,
+                        textDecoration: soldOut ? "line-through" : "none",
+                        cursor: soldOut ? "not-allowed" : "pointer",
+                      }}
+                    >
+                      {size}
+                      {low && !isSelected && (
+                        <span
+                          className="absolute -top-1 -right-1 w-1.5 h-1.5 rounded-full"
+                          style={{ backgroundColor: "#D4A574" }}
+                        />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Stock indicator for selected size */}
+              <AnimatePresence mode="wait">
+                {selectedSize && (
+                  <motion.div
+                    key={`${selectedColour}-${selectedSize}`}
+                    initial={{ opacity: 0, y: -4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -4 }}
+                    transition={{ duration: 0.2 }}
+                    className="flex items-center gap-1.5 mt-3"
+                  >
+                    {isSoldOut ? (
+                      <span className="text-[9px] tracking-[0.15em] uppercase text-red-400/80 font-medium">
+                        Sold Out
+                      </span>
+                    ) : (
+                      <>
+                        <BreathingDot color={isLowStock ? "#D4A574" : "#7CAE7A"} />
+                        <span className="text-[9px] tracking-[0.15em] uppercase text-lff-cream/45 font-medium">
+                          {isLowStock
+                            ? `${currentStock} left`
+                            : `${currentStock} in stock`}
+                        </span>
+                      </>
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            {/* Price */}
+            <div className="flex items-center gap-4">
+              <span
+                className="text-lff-cream text-2xl tabular-nums"
+                style={{ fontFamily: "var(--font-display)" }}
+              >
+                $45
+              </span>
+            </div>
+
+            {/* Custom CTA — replaces ProductInfoCard default */}
+            <motion.button
+              onClick={() => {
+                if (!canAdd) return;
+                addToCart({
+                  id: `tee-${selectedColour}-${selectedSize}`,
+                  name: `Drop Shoulder Tee — ${colourLabel} — ${selectedSize}`,
+                  price: 45,
+                  priceId: PRICE_IDS.dropShoulderTee,
+                });
+              }}
+              whileHover={canAdd ? { scale: 1.03 } : {}}
+              whileTap={canAdd ? { scale: 0.97 } : {}}
+              transition={{ type: "spring", stiffness: 400, damping: 17 }}
+              className="w-full flex items-center justify-center gap-3 px-8 py-4 text-[11px] font-bold tracking-[0.2em] uppercase transition-all duration-300"
+              style={{
+                borderRadius: PILL_RADIUS,
+                background: canAdd
+                  ? "rgba(234,230,210,0.95)"
+                  : "rgba(234,230,210,0.15)",
+                color: canAdd ? "#54412F" : "rgba(234,230,210,0.35)",
+                cursor: canAdd ? "pointer" : "default",
+              }}
+            >
+              <ShoppingBag size={13} />
+              <span>
+                {isSoldOut
+                  ? "Sold Out"
+                  : selectedSize
+                    ? `Add to Cart — $45`
+                    : "Select a Size"}
+              </span>
+            </motion.button>
           </ProductInfoCard>
 
           {/* 3-Pack Deal */}
@@ -1685,7 +1821,7 @@ function TeeSection() {
                     3-Pack Bundle
                   </p>
                   <p className="text-lff-cream/40 text-xs mt-0.5">
-                    One of each colour
+                    One of each colour · Sizes confirmed via DM
                   </p>
                 </div>
                 <div className="text-right">
@@ -1704,7 +1840,7 @@ function TeeSection() {
                 onClick={() =>
                   addToCart({
                     id: "tee-3-pack",
-                    name: "Drop Shoulder Tee — 3-Pack",
+                    name: "Drop Shoulder Tee — 3-Pack (Sizes confirmed via DM)",
                     price: 120,
                     priceId: PRICE_IDS.tee3Pack,
                   })

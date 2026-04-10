@@ -13,7 +13,7 @@ import {
   useInView,
   useSpring,
 } from "framer-motion";
-import { ArrowRight, Instagram, RotateCcw, MapPin, Truck, X, ShoppingBag, Plus, Minus, Trash2, Check } from "lucide-react";
+import { ArrowRight, Instagram, RotateCcw, MapPin, Truck, X, ShoppingBag, ShoppingCart, Plus, Minus, Trash2, Check } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { trpc } from "@/lib/trpc";
@@ -727,7 +727,7 @@ function FloatingCartButton() {
         borderRadius: PILL_RADIUS,
       }}
     >
-      <ShoppingBag size={18} className={hasItems ? "text-lff-brown" : "text-lff-cream/70"} />
+      <ShoppingCart size={18} className={hasItems ? "text-lff-brown" : "text-lff-cream/70"} />
       <AnimatePresence mode="wait">
         {hasItems && (
           <motion.span

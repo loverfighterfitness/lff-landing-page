@@ -413,73 +413,94 @@ function CartDrawer() {
             initial={{ x: "100%" }}
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
-            transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
             onClick={(e) => e.stopPropagation()}
-            className="absolute right-0 top-0 bottom-0 w-full max-w-md flex flex-col"
+            className="absolute right-0 top-0 bottom-0 w-full max-w-[420px] flex flex-col"
             style={{
-              background: "rgba(58,44,30,0.97)",
-              backdropFilter: "blur(24px)",
-              WebkitBackdropFilter: "blur(24px)",
-              borderLeft: "1px solid rgba(234,230,210,0.08)",
-              boxShadow: "-24px 0 60px rgba(0,0,0,0.3)",
+              background: "linear-gradient(180deg, rgba(48,36,24,0.98) 0%, rgba(58,44,30,0.98) 100%)",
+              backdropFilter: "blur(32px)",
+              WebkitBackdropFilter: "blur(32px)",
+              borderLeft: "1px solid rgba(234,230,210,0.06)",
+              boxShadow: "-32px 0 80px rgba(0,0,0,0.4)",
             }}
           >
             {/* Header */}
-            <div className="flex items-center justify-between px-6 py-5 border-b border-lff-cream/8">
+            <div className="flex items-center justify-between px-7 py-6">
               <div className="flex items-center gap-3">
-                <ShoppingBag size={18} className="text-lff-cream/60" />
-                <h3
-                  className="text-lff-cream text-xl tracking-wide"
-                  style={{ fontFamily: "var(--font-display)" }}
+                <div
+                  className="w-8 h-8 rounded-full flex items-center justify-center"
+                  style={{ background: "rgba(234,230,210,0.08)" }}
                 >
-                  YOUR CART
-                </h3>
-                {cartCount > 0 && (
-                  <span className="text-lff-cream/40 text-xs">
-                    ({cartCount} {cartCount === 1 ? "item" : "items"})
-                  </span>
-                )}
+                  <ShoppingBag size={14} className="text-lff-cream/70" />
+                </div>
+                <div>
+                  <h3
+                    className="text-lff-cream text-lg"
+                    style={{ fontFamily: "var(--font-display)", letterSpacing: "0.05em" }}
+                  >
+                    YOUR CART
+                  </h3>
+                  {cartCount > 0 && (
+                    <p className="text-lff-cream/30 text-[9px] tracking-[0.25em] uppercase">
+                      {cartCount} {cartCount === 1 ? "item" : "items"}
+                    </p>
+                  )}
+                </div>
               </div>
               <button
                 onClick={() => setCartOpen(false)}
-                className="text-lff-cream/40 hover:text-lff-cream transition-colors p-1"
+                className="w-8 h-8 rounded-full flex items-center justify-center text-lff-cream/30 hover:text-lff-cream hover:bg-lff-cream/8 transition-all"
               >
-                <X size={18} />
+                <X size={16} />
               </button>
             </div>
 
+            {/* Divider */}
+            <div className="mx-7 h-px" style={{ background: "linear-gradient(to right, transparent, rgba(234,230,210,0.1), transparent)" }} />
+
             {/* Items */}
-            <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
+            <div className="flex-1 overflow-y-auto px-7 py-5 space-y-3">
               {cartItems.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-full gap-4 text-center">
-                  <ShoppingBag size={40} className="text-lff-cream/15" />
-                  <p className="text-lff-cream/35 text-sm tracking-wide">
-                    Your cart is empty
-                  </p>
+                <div className="flex flex-col items-center justify-center h-full gap-5 text-center">
+                  <div
+                    className="w-20 h-20 rounded-2xl flex items-center justify-center"
+                    style={{ background: "rgba(234,230,210,0.04)", border: "1px dashed rgba(234,230,210,0.08)" }}
+                  >
+                    <ShoppingBag size={28} className="text-lff-cream/12" />
+                  </div>
+                  <div>
+                    <p className="text-lff-cream/30 text-sm tracking-wide mb-1">Nothing here yet</p>
+                    <p className="text-lff-cream/15 text-xs">Add some gear to get started</p>
+                  </div>
                   <button
                     onClick={() => setCartOpen(false)}
-                    className="text-lff-cream/50 text-[11px] tracking-[0.2em] uppercase font-medium hover:text-lff-cream transition-colors"
+                    className="mt-2 px-6 py-2.5 text-[10px] tracking-[0.2em] uppercase font-bold text-lff-cream/60 hover:text-lff-cream border border-lff-cream/10 hover:border-lff-cream/25 transition-all"
+                    style={{ borderRadius: PILL_RADIUS }}
                   >
-                    Continue Shopping
+                    Browse Shop
                   </button>
                 </div>
               ) : (
-                cartItems.map((item) => (
+                cartItems.map((item, idx) => (
                   <motion.div
                     key={item.id}
                     layout
-                    initial={{ opacity: 0, y: 10 }}
+                    initial={{ opacity: 0, y: 12 }}
                     animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, x: 50 }}
-                    className="flex gap-4 p-4 rounded-2xl"
+                    exit={{ opacity: 0, x: 60 }}
+                    transition={{ delay: idx * 0.05 }}
+                    className="flex gap-4 p-3.5 rounded-2xl group/item"
                     style={{
-                      background: "rgba(234,230,210,0.05)",
-                      border: "1px solid rgba(234,230,210,0.06)",
+                      background: "rgba(234,230,210,0.04)",
+                      border: "1px solid rgba(234,230,210,0.05)",
                     }}
                   >
                     {/* Product image */}
                     {item.image && (
-                      <div className="w-16 h-16 rounded-xl overflow-hidden flex-shrink-0">
+                      <div
+                        className="w-[72px] h-[72px] rounded-xl overflow-hidden flex-shrink-0"
+                        style={{ border: "1px solid rgba(234,230,210,0.06)" }}
+                      >
                         <img
                           src={item.image}
                           alt={item.name}
@@ -487,44 +508,54 @@ function CartDrawer() {
                         />
                       </div>
                     )}
-                    <div className="flex-1 min-w-0">
-                      <p className="text-lff-cream text-sm font-medium tracking-wide truncate">
-                        {item.name}
-                      </p>
-                      <p
-                        className="text-lff-cream/60 text-sm tabular-nums mt-0.5"
-                        style={{ fontFamily: "var(--font-display)" }}
-                      >
-                        ${item.price}
-                      </p>
+                    <div className="flex-1 min-w-0 flex flex-col justify-between">
+                      <div>
+                        <p className="text-lff-cream text-[13px] font-medium tracking-wide truncate">
+                          {item.name}
+                        </p>
+                        <p
+                          className="text-lff-cream/50 text-xs tabular-nums mt-0.5"
+                          style={{ fontFamily: "var(--font-display)" }}
+                        >
+                          ${item.price} each
+                        </p>
+                      </div>
                       {/* Quantity controls */}
-                      <div className="flex items-center gap-3 mt-2">
-                        <button
-                          onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                          className="w-7 h-7 rounded-full border border-lff-cream/15 flex items-center justify-center text-lff-cream/50 hover:text-lff-cream hover:border-lff-cream/30 transition-colors"
+                      <div className="flex items-center gap-2 mt-2">
+                        <div
+                          className="inline-flex items-center rounded-full overflow-hidden"
+                          style={{
+                            border: "1px solid rgba(234,230,210,0.1)",
+                            background: "rgba(234,230,210,0.03)",
+                          }}
                         >
-                          <Minus size={12} />
-                        </button>
-                        <span className="text-lff-cream text-sm tabular-nums w-6 text-center">
-                          {item.quantity}
-                        </span>
-                        <button
-                          onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                          className="w-7 h-7 rounded-full border border-lff-cream/15 flex items-center justify-center text-lff-cream/50 hover:text-lff-cream hover:border-lff-cream/30 transition-colors"
-                        >
-                          <Plus size={12} />
-                        </button>
+                          <button
+                            onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                            className="w-7 h-7 flex items-center justify-center text-lff-cream/40 hover:text-lff-cream hover:bg-lff-cream/8 transition-all"
+                          >
+                            <Minus size={11} />
+                          </button>
+                          <span className="text-lff-cream text-xs tabular-nums w-7 text-center font-medium">
+                            {item.quantity}
+                          </span>
+                          <button
+                            onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                            className="w-7 h-7 flex items-center justify-center text-lff-cream/40 hover:text-lff-cream hover:bg-lff-cream/8 transition-all"
+                          >
+                            <Plus size={11} />
+                          </button>
+                        </div>
                         <button
                           onClick={() => removeFromCart(item.id)}
-                          className="ml-auto text-lff-cream/25 hover:text-red-400/70 transition-colors"
+                          className="ml-auto opacity-0 group-hover/item:opacity-100 text-lff-cream/20 hover:text-red-400/60 transition-all"
                         >
                           <Trash2 size={13} />
                         </button>
                       </div>
                     </div>
-                    <div className="flex-shrink-0 text-right">
+                    <div className="flex-shrink-0 self-start">
                       <span
-                        className="text-lff-cream text-sm tabular-nums"
+                        className="text-lff-cream text-sm tabular-nums font-medium"
                         style={{ fontFamily: "var(--font-display)" }}
                       >
                         ${item.price * item.quantity}
@@ -537,42 +568,52 @@ function CartDrawer() {
 
             {/* Footer — shipping + total + checkout */}
             {cartItems.length > 0 && (
-              <div className="px-6 py-5 border-t border-lff-cream/8 space-y-4">
+              <div className="px-7 pb-7 pt-5 space-y-4" style={{ borderTop: "1px solid rgba(234,230,210,0.06)" }}>
                 {/* Shipping toggle */}
-                <div className="space-y-2">
-                  <p className="text-lff-cream/40 text-[10px] tracking-[0.3em] uppercase font-medium">
-                    Delivery
+                <div className="space-y-2.5">
+                  <p className="text-lff-cream/35 text-[9px] tracking-[0.3em] uppercase font-medium">
+                    Delivery Method
                   </p>
                   <div className="flex gap-2">
                     <button
                       onClick={() => setShipping(false)}
-                      className="flex-1 flex items-center gap-3 p-3 rounded-xl border transition-all duration-300 active:scale-[0.97]"
+                      className="flex-1 flex items-center gap-3 p-3.5 rounded-xl border transition-all duration-300 active:scale-[0.97]"
                       style={{
-                        borderColor: !shipping ? "rgba(234,230,210,0.25)" : "rgba(234,230,210,0.08)",
-                        background: !shipping ? "rgba(234,230,210,0.1)" : "transparent",
+                        borderColor: !shipping ? "rgba(234,230,210,0.2)" : "rgba(234,230,210,0.06)",
+                        background: !shipping ? "rgba(234,230,210,0.08)" : "rgba(234,230,210,0.02)",
                       }}
                     >
-                      <MapPin size={14} className="text-lff-cream/60 flex-shrink-0" />
+                      <div
+                        className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0"
+                        style={{ background: !shipping ? "rgba(234,230,210,0.12)" : "rgba(234,230,210,0.05)" }}
+                      >
+                        <MapPin size={12} className="text-lff-cream/60" />
+                      </div>
                       <div className="text-left">
                         <p className="text-lff-cream text-xs font-medium">Pickup</p>
-                        <p className="text-green-400/70 text-[9px] tracking-wider uppercase font-medium">
+                        <p className="text-green-400/60 text-[9px] tracking-wider uppercase font-medium">
                           Free
                         </p>
                       </div>
                     </button>
                     <button
                       onClick={() => setShipping(true)}
-                      className="flex-1 flex items-center gap-3 p-3 rounded-xl border transition-all duration-300 active:scale-[0.97]"
+                      className="flex-1 flex items-center gap-3 p-3.5 rounded-xl border transition-all duration-300 active:scale-[0.97]"
                       style={{
-                        borderColor: shipping ? "rgba(234,230,210,0.25)" : "rgba(234,230,210,0.08)",
-                        background: shipping ? "rgba(234,230,210,0.1)" : "transparent",
+                        borderColor: shipping ? "rgba(234,230,210,0.2)" : "rgba(234,230,210,0.06)",
+                        background: shipping ? "rgba(234,230,210,0.08)" : "rgba(234,230,210,0.02)",
                       }}
                     >
-                      <Truck size={14} className="text-lff-cream/60 flex-shrink-0" />
+                      <div
+                        className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0"
+                        style={{ background: shipping ? "rgba(234,230,210,0.12)" : "rgba(234,230,210,0.05)" }}
+                      >
+                        <Truck size={12} className="text-lff-cream/60" />
+                      </div>
                       <div className="text-left">
                         <p className="text-lff-cream text-xs font-medium">Shipping</p>
-                        <p className="text-lff-cream/40 text-[9px] tracking-wider uppercase font-medium">
-                          +${SHIPPING_COST}
+                        <p className="text-lff-cream/35 text-[9px] tracking-wider uppercase font-medium">
+                          +${SHIPPING_COST} AUD
                         </p>
                       </div>
                     </button>
@@ -580,39 +621,36 @@ function CartDrawer() {
                 </div>
 
                 {/* Totals */}
-                <div className="space-y-1.5">
+                <div
+                  className="rounded-xl p-4 space-y-2"
+                  style={{ background: "rgba(234,230,210,0.04)", border: "1px solid rgba(234,230,210,0.05)" }}
+                >
                   <div className="flex items-center justify-between">
-                    <span className="text-lff-cream/45 text-xs tracking-wider">
+                    <span className="text-lff-cream/40 text-[11px] tracking-wider">
                       Subtotal
                     </span>
-                    <span
-                      className="text-lff-cream/60 text-sm tabular-nums"
-                      style={{ fontFamily: "var(--font-display)" }}
-                    >
+                    <span className="text-lff-cream/55 text-sm tabular-nums" style={{ fontFamily: "var(--font-display)" }}>
                       ${cartTotal}
                     </span>
                   </div>
                   {shipping && (
                     <div className="flex items-center justify-between">
-                      <span className="text-lff-cream/45 text-xs tracking-wider">
+                      <span className="text-lff-cream/40 text-[11px] tracking-wider">
                         Shipping
                       </span>
-                      <span
-                        className="text-lff-cream/60 text-sm tabular-nums"
-                        style={{ fontFamily: "var(--font-display)" }}
-                      >
+                      <span className="text-lff-cream/55 text-sm tabular-nums" style={{ fontFamily: "var(--font-display)" }}>
                         ${SHIPPING_COST}
                       </span>
                     </div>
                   )}
-                  <div className="flex items-center justify-between pt-2 border-t border-lff-cream/8">
-                    <span className="text-lff-cream text-sm font-medium tracking-wide">
+                  <div
+                    className="flex items-center justify-between pt-2.5 mt-1"
+                    style={{ borderTop: "1px solid rgba(234,230,210,0.08)" }}
+                  >
+                    <span className="text-lff-cream text-xs font-medium tracking-[0.15em] uppercase">
                       Total
                     </span>
-                    <span
-                      className="text-lff-cream text-2xl"
-                      style={{ fontFamily: "var(--font-display)" }}
-                    >
+                    <span className="text-lff-cream text-2xl" style={{ fontFamily: "var(--font-display)" }}>
                       ${total}
                     </span>
                   </div>
@@ -622,11 +660,14 @@ function CartDrawer() {
                 <motion.button
                   onClick={handleCheckout}
                   disabled={checkoutMutation.isPending}
-                  whileHover={{ scale: 1.02 }}
+                  whileHover={{ scale: 1.015 }}
                   whileTap={{ scale: 0.97 }}
                   transition={{ type: "spring", stiffness: 400, damping: 17 }}
-                  className="w-full flex items-center justify-center gap-3 px-8 py-4 text-[11px] font-bold tracking-[0.2em] uppercase bg-lff-cream text-lff-brown hover:bg-lff-cream/90 transition-colors duration-300 cursor-pointer disabled:opacity-50"
-                  style={{ borderRadius: PILL_RADIUS }}
+                  className="w-full flex items-center justify-center gap-3 px-8 py-4.5 text-[11px] font-bold tracking-[0.2em] uppercase bg-lff-cream text-lff-brown hover:bg-lff-cream/90 transition-colors duration-300 cursor-pointer disabled:opacity-50"
+                  style={{
+                    borderRadius: PILL_RADIUS,
+                    boxShadow: "0 4px 24px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.3)",
+                  }}
                 >
                   {checkoutMutation.isPending ? (
                     <div className="relative overflow-hidden px-6">
@@ -647,6 +688,11 @@ function CartDrawer() {
                     </>
                   )}
                 </motion.button>
+
+                {/* Trust line */}
+                <p className="text-center text-lff-cream/20 text-[9px] tracking-[0.15em] uppercase">
+                  Secure checkout via Stripe
+                </p>
               </div>
             )}
           </motion.div>
@@ -659,33 +705,42 @@ function CartDrawer() {
 /* ─── Floating Cart Button ─── */
 function FloatingCartButton() {
   const { cartCount, setCartOpen } = useContext(CartContext);
+  const hasItems = cartCount > 0;
 
   return (
     <motion.button
       onClick={() => setCartOpen(true)}
-      initial={{ scale: 0, opacity: 0 }}
-      animate={{ scale: 1, opacity: 1 }}
-      transition={{ delay: 1.5, type: "spring", stiffness: 300, damping: 20 }}
-      whileHover={{ scale: 1.08 }}
-      whileTap={{ scale: 0.92 }}
-      className="fixed bottom-6 right-6 z-[999] flex items-center justify-center w-14 h-14 cursor-pointer"
+      initial={{ y: 80, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ delay: 1.2, type: "spring", stiffness: 260, damping: 22 }}
+      whileHover={{ scale: 1.05 }}
+      whileTap={{ scale: 0.93 }}
+      className="fixed bottom-6 right-6 z-[999] flex items-center gap-2.5 cursor-pointer px-5 py-3.5"
       style={{
-        background: "rgba(84,65,47,0.9)",
-        backdropFilter: "blur(16px)",
-        WebkitBackdropFilter: "blur(16px)",
-        border: "1px solid rgba(234,230,210,0.12)",
-        boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
-        borderRadius: "50%",
+        background: hasItems ? "rgba(234,230,210,0.95)" : "rgba(58,44,30,0.92)",
+        backdropFilter: "blur(20px)",
+        WebkitBackdropFilter: "blur(20px)",
+        border: hasItems ? "1px solid rgba(84,65,47,0.15)" : "1px solid rgba(234,230,210,0.12)",
+        boxShadow: hasItems
+          ? "0 8px 40px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.5)"
+          : "0 8px 40px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.06)",
+        borderRadius: PILL_RADIUS,
       }}
     >
-      <ShoppingBag size={20} className="text-lff-cream/80" />
-      <AnimatePresence>
-        {cartCount > 0 && (
+      <ShoppingBag size={16} className={hasItems ? "text-lff-brown" : "text-lff-cream/70"} />
+      <span
+        className={`text-[10px] font-bold tracking-[0.2em] uppercase ${hasItems ? "text-lff-brown" : "text-lff-cream/70"}`}
+      >
+        Cart
+      </span>
+      <AnimatePresence mode="wait">
+        {hasItems && (
           <motion.span
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            exit={{ scale: 0 }}
-            className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-lff-cream text-lff-brown text-[10px] font-bold flex items-center justify-center"
+            key={cartCount}
+            initial={{ scale: 0, width: 0 }}
+            animate={{ scale: 1, width: "auto" }}
+            exit={{ scale: 0, width: 0 }}
+            className="flex items-center justify-center min-w-[20px] h-5 rounded-full bg-lff-brown text-lff-cream text-[10px] font-bold px-1.5"
           >
             {cartCount}
           </motion.span>

@@ -715,7 +715,7 @@ function FloatingCartButton() {
       transition={{ delay: 1.2, type: "spring", stiffness: 260, damping: 22 }}
       whileHover={{ scale: 1.05 }}
       whileTap={{ scale: 0.93 }}
-      className="fixed bottom-6 right-6 z-[999] flex items-center gap-2.5 cursor-pointer px-5 py-3.5"
+      className="fixed bottom-6 right-6 z-[999] flex items-center gap-2 cursor-pointer px-4 py-3.5"
       style={{
         background: hasItems ? "rgba(234,230,210,0.95)" : "rgba(58,44,30,0.92)",
         backdropFilter: "blur(20px)",
@@ -727,12 +727,7 @@ function FloatingCartButton() {
         borderRadius: PILL_RADIUS,
       }}
     >
-      <ShoppingBag size={16} className={hasItems ? "text-lff-brown" : "text-lff-cream/70"} />
-      <span
-        className={`text-[10px] font-bold tracking-[0.2em] uppercase ${hasItems ? "text-lff-brown" : "text-lff-cream/70"}`}
-      >
-        Cart
-      </span>
+      <ShoppingBag size={18} className={hasItems ? "text-lff-brown" : "text-lff-cream/70"} />
       <AnimatePresence mode="wait">
         {hasItems && (
           <motion.span

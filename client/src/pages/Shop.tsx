@@ -546,7 +546,7 @@ function CartDrawer() {
                   <div className="flex gap-2">
                     <button
                       onClick={() => setShipping(false)}
-                      className="flex-1 flex items-center gap-3 p-3 rounded-xl border transition-all duration-300"
+                      className="flex-1 flex items-center gap-3 p-3 rounded-xl border transition-all duration-300 active:scale-[0.97]"
                       style={{
                         borderColor: !shipping ? "rgba(234,230,210,0.25)" : "rgba(234,230,210,0.08)",
                         background: !shipping ? "rgba(234,230,210,0.1)" : "transparent",
@@ -562,7 +562,7 @@ function CartDrawer() {
                     </button>
                     <button
                       onClick={() => setShipping(true)}
-                      className="flex-1 flex items-center gap-3 p-3 rounded-xl border transition-all duration-300"
+                      className="flex-1 flex items-center gap-3 p-3 rounded-xl border transition-all duration-300 active:scale-[0.97]"
                       style={{
                         borderColor: shipping ? "rgba(234,230,210,0.25)" : "rgba(234,230,210,0.08)",
                         background: shipping ? "rgba(234,230,210,0.1)" : "transparent",
@@ -629,11 +629,17 @@ function CartDrawer() {
                   style={{ borderRadius: PILL_RADIUS }}
                 >
                   {checkoutMutation.isPending ? (
-                    <motion.div
-                      animate={{ rotate: 360 }}
-                      transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
-                      className="w-4 h-4 border-2 border-lff-brown/30 border-t-lff-brown rounded-full"
-                    />
+                    <div className="relative overflow-hidden px-6">
+                      <span className="opacity-0">Checkout — ${total}</span>
+                      <motion.div
+                        className="absolute inset-0 rounded-full"
+                        style={{
+                          background: "linear-gradient(90deg, transparent 0%, rgba(84,65,47,0.3) 50%, transparent 100%)",
+                        }}
+                        animate={{ x: ["-100%", "100%"] }}
+                        transition={{ repeat: Infinity, duration: 1.2, ease: "easeInOut" }}
+                      />
+                    </div>
                   ) : (
                     <>
                       <ArrowRight size={13} />
@@ -744,6 +750,7 @@ const SockCard = memo(function SockCard({
   index: number;
 }) {
   const [hovered, setHovered] = useState(false);
+  const [justAdded, setJustAdded] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const showVideo = hovered && !!product.hoverVideo;
   const isLow = product.stock !== null && product.stock <= 15;
@@ -769,16 +776,18 @@ const SockCard = memo(function SockCard({
       onMouseLeave={() => setHovered(false)}
     >
       <button
-        onClick={() =>
+        onClick={() => {
           addToCart({
             id: product.id,
             name: `${product.name} — ${product.tagline}`,
             price: product.price,
             priceId: product.priceId,
             image: product.image,
-          })
-        }
-        className="block relative overflow-hidden aspect-[4/5] cursor-pointer w-full text-left"
+          });
+          setJustAdded(true);
+          setTimeout(() => setJustAdded(false), 1500);
+        }}
+        className="block relative overflow-hidden aspect-[4/5] cursor-pointer w-full text-left active:scale-[0.98] transition-transform"
         style={{ borderRadius: "1.5rem" }}
       >
         <img
@@ -808,15 +817,26 @@ const SockCard = memo(function SockCard({
         )}
 
         {/* Hover: Add to Cart pill slides up */}
-        <div className="absolute bottom-3 left-3 right-3 translate-y-[calc(100%+1rem)] group-hover:translate-y-0 transition-transform duration-500 ease-out">
+        <div className={`absolute bottom-3 left-3 right-3 transition-transform duration-500 ease-out ${justAdded ? "translate-y-0" : "translate-y-[calc(100%+1rem)] group-hover:translate-y-0"}`}>
           <div
-            className="bg-lff-cream text-lff-brown py-3 flex items-center justify-center gap-2"
+            className={`py-3 flex items-center justify-center gap-2 transition-colors duration-300 ${justAdded ? "bg-green-500/90 text-white" : "bg-lff-cream text-lff-brown"}`}
             style={{ borderRadius: PILL_RADIUS }}
           >
-            <ShoppingBag size={12} strokeWidth={2.5} />
-            <span className="text-[11px] font-bold tracking-[0.2em] uppercase">
-              Add to Cart
-            </span>
+            {justAdded ? (
+              <>
+                <Check size={13} strokeWidth={2.5} />
+                <span className="text-[11px] font-bold tracking-[0.2em] uppercase">
+                  Added
+                </span>
+              </>
+            ) : (
+              <>
+                <ShoppingBag size={12} strokeWidth={2.5} />
+                <span className="text-[11px] font-bold tracking-[0.2em] uppercase">
+                  Add to Cart
+                </span>
+              </>
+            )}
           </div>
         </div>
       </button>
@@ -848,7 +868,19 @@ const SockCard = memo(function SockCard({
 });
 
 /* ─── Mobile Detection ─── */
-const IS_MOBILE = typeof window !== "undefined" && window.matchMedia("(hover: none)").matches;
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(hover: none)");
+    setIsMobile(mq.matches);
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+  return isMobile;
+}
+// Module-level fallback for non-hook contexts (frame extraction)
+const IS_MOBILE_INITIAL = typeof window !== "undefined" && window.matchMedia("(hover: none)").matches;
 const MOBILE_FRAMES = 48;
 const DESKTOP_FRAMES = 48;
 const MOBILE_SCALE = 768;
@@ -942,7 +974,7 @@ function useVideoFrames(
   }, [lazy, visible]);
 
   // Override frame count on mobile
-  const effectiveFrames = IS_MOBILE ? Math.min(frameCount, MOBILE_FRAMES) : frameCount;
+  const effectiveFrames = IS_MOBILE_INITIAL ? Math.min(frameCount, MOBILE_FRAMES) : frameCount;
 
   useEffect(() => {
     if (!visible) return;
@@ -1000,7 +1032,7 @@ function useVideoFrames(
 
       const extractFrame = () => {
         if (aborted) return;
-        const maxDim = IS_MOBILE ? MOBILE_SCALE : DESKTOP_SCALE;
+        const maxDim = IS_MOBILE_INITIAL ? MOBILE_SCALE : DESKTOP_SCALE;
         const scale = Math.min(1, maxDim / Math.max(video.videoWidth, video.videoHeight));
         const w = Math.round(video.videoWidth * scale);
         const h = Math.round(video.videoHeight * scale);
@@ -1265,11 +1297,16 @@ function SpinnerCanvas({
     >
       {loading ? (
         <div className="flex flex-col items-center gap-3">
-          <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ repeat: Infinity, duration: 1.5, ease: "linear" }}
-            className="w-8 h-8 border-2 border-lff-cream/20 border-t-lff-cream/60 rounded-full"
-          />
+          <div className="relative w-24 h-24 rounded-2xl overflow-hidden" style={{ background: "rgba(234,230,210,0.06)" }}>
+            <motion.div
+              className="absolute inset-0"
+              style={{
+                background: "linear-gradient(90deg, transparent 0%, rgba(234,230,210,0.08) 50%, transparent 100%)",
+              }}
+              animate={{ x: ["-100%", "100%"] }}
+              transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
+            />
+          </div>
           <span className="text-lff-cream/30 text-[10px] tracking-[0.2em] uppercase">
             Loading 360
           </span>
@@ -1415,11 +1452,7 @@ function ProductInfoCard({
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.97 }}
             transition={{ type: "spring", stiffness: 400, damping: 17 }}
-            className={`inline-flex items-center gap-3 px-8 py-4 text-[11px] font-bold tracking-[0.2em] uppercase transition-colors duration-300 cursor-pointer ${
-              isDark
-                ? "bg-lff-cream text-lff-brown hover:bg-lff-cream/90"
-                : "bg-lff-cream text-lff-brown hover:bg-lff-cream/90"
-            }`}
+            className="inline-flex items-center gap-3 px-8 py-4 text-[11px] font-bold tracking-[0.2em] uppercase transition-colors duration-300 cursor-pointer bg-lff-cream text-lff-brown hover:bg-lff-cream/90 active:scale-[0.97] active:-translate-y-[1px]"
             style={{ borderRadius: PILL_RADIUS }}
           >
             <ShoppingBag size={13} />
@@ -1464,8 +1497,12 @@ function ImageBreak({ src, alt, contain = false, bg }: { src: string; alt: strin
 /* ─── Marquee Banner ─── */
 const MarqueeBanner = memo(function MarqueeBanner({
   items,
+  bgColor = "rgba(58,44,30,1)",
+  textColor = "rgba(234,230,210,0.18)",
 }: {
   items: string[];
+  bgColor?: string;
+  textColor?: string;
 }) {
   const doubled = [...items, ...items];
 
@@ -1480,13 +1517,13 @@ const MarqueeBanner = memo(function MarqueeBanner({
       <div
         className="absolute left-0 top-0 bottom-0 w-20 z-10 pointer-events-none"
         style={{
-          background: "linear-gradient(to right, rgba(58,44,30,1), transparent)",
+          background: `linear-gradient(to right, ${bgColor}, transparent)`,
         }}
       />
       <div
         className="absolute right-0 top-0 bottom-0 w-20 z-10 pointer-events-none"
         style={{
-          background: "linear-gradient(to left, rgba(58,44,30,1), transparent)",
+          background: `linear-gradient(to left, ${bgColor}, transparent)`,
         }}
       />
       <div className="marquee-track">
@@ -1500,7 +1537,7 @@ const MarqueeBanner = memo(function MarqueeBanner({
               fontWeight: 900,
               letterSpacing: "-0.01em",
               textTransform: "uppercase" as const,
-              color: "rgba(234,230,210,0.18)",
+              color: textColor,
             }}
           >
             <span className="px-6 md:px-10">{item}</span>
@@ -1553,16 +1590,6 @@ function ShopHero() {
         }}
       />
 
-      {/* Noise overlay */}
-      <div
-        className="absolute inset-0 pointer-events-none opacity-[0.08]"
-        style={{
-          backgroundImage:
-            'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 512 512\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noise\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.65\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noise)\'/%3E%3C/svg%3E")',
-          backgroundSize: "300px 300px",
-        }}
-      />
-
       {/* Top text block — "REP THE" above the poster */}
       <motion.div
         className="relative z-10 text-center px-6 pt-[10vh] md:pt-[12vh]"
@@ -1596,7 +1623,7 @@ function ShopHero() {
 
       {/* Bottom text block — "BRAND" below the poster + CTA */}
       <motion.div
-        className="relative z-10 text-center px-6 pb-6 md:pb-0 md:mb-[-2vh]"
+        className="relative z-10 text-center px-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] md:pb-0 md:mb-[-2vh]"
         style={{ opacity: textOpacity }}
       >
         <motion.h1
@@ -1730,7 +1757,7 @@ function ThreePackSelector({ addToCart }: { addToCart: (item: { id: string; name
                       key={s}
                       disabled={soldOut}
                       onClick={() => setSize(s)}
-                      className={`relative px-3 py-1.5 text-[10px] font-bold tracking-[0.15em] uppercase transition-all duration-200 ${
+                      className={`relative px-3 py-1.5 text-[10px] font-bold tracking-[0.15em] uppercase transition-all duration-200 active:scale-[0.95] active:-translate-y-[1px] ${
                         soldOut
                           ? "opacity-30 cursor-not-allowed line-through"
                           : isSelected
@@ -1833,7 +1860,7 @@ function TeeSection() {
                   <button
                     key={swatch.key}
                     onClick={() => setSelectedColour(swatch.key)}
-                    className="flex items-center gap-2 transition-all duration-300"
+                    className="flex items-center gap-2 transition-all duration-300 active:scale-[0.93]"
                     style={{
                       opacity: selectedColour === swatch.key ? 1 : 0.45,
                     }}
@@ -1890,7 +1917,7 @@ function TeeSection() {
                       key={size}
                       onClick={() => !soldOut && setSelectedSize(size)}
                       disabled={soldOut}
-                      className="relative px-4 py-2 text-[10px] font-bold tracking-[0.2em] uppercase transition-all duration-300"
+                      className="relative px-4 py-2 text-[10px] font-bold tracking-[0.2em] uppercase transition-all duration-300 active:scale-[0.95] active:-translate-y-[1px]"
                       style={{
                         borderRadius: PILL_RADIUS,
                         background: isSelected
@@ -2033,15 +2060,6 @@ function StrapsSection() {
       className="relative lg:min-h-[100dvh] flex items-center px-4 md:px-8 lg:px-16 py-12 md:py-16 lg:py-0"
       style={{ backgroundColor: "#EAE6D2" }}
     >
-      {/* Subtle noise texture on cream */}
-      <div
-        className="absolute inset-0 pointer-events-none opacity-[0.04]"
-        style={{
-          backgroundImage:
-            'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 512 512\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noise\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.65\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noise)\'/%3E%3C/svg%3E")',
-          backgroundSize: "300px 300px",
-        }}
-      />
       <div className="relative w-full max-w-[1400px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-12 items-center">
         {/* Spinner — left 65% */}
         <div className="lg:col-span-8">
@@ -2134,15 +2152,6 @@ function SocksSection() {
 
   return (
     <section className="relative py-20 md:py-28 px-4 md:px-8 lg:px-16" style={{ backgroundColor: "#EAE6D2" }}>
-      {/* Noise on cream */}
-      <div
-        className="absolute inset-0 pointer-events-none opacity-[0.04]"
-        style={{
-          backgroundImage:
-            'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 512 512\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noise\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.65\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noise)\'/%3E%3C/svg%3E")',
-          backgroundSize: "300px 300px",
-        }}
-      />
       <div className="relative max-w-[1400px] mx-auto">
         <ScrollReveal>
           <div className="mb-12">
@@ -2412,15 +2421,6 @@ function BrandStatement() {
       className="relative py-24 md:py-36 px-4 md:px-8 lg:px-16"
       style={{ backgroundColor: "#EAE6D2" }}
     >
-      {/* Noise texture */}
-      <div
-        className="absolute inset-0 pointer-events-none opacity-[0.04]"
-        style={{
-          backgroundImage:
-            'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 512 512\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noise\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.65\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noise)\'/%3E%3C/svg%3E")',
-          backgroundSize: "300px 300px",
-        }}
-      />
       <ScrollReveal>
         <div className="relative max-w-[900px] mx-auto text-center">
           {/* Watermark */}

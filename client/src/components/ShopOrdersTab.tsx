@@ -4,7 +4,7 @@
  */
 import { trpc } from "@/lib/trpc";
 import { useState } from "react";
-import { Loader2, ChevronDown, ChevronUp, Package, Truck, Check } from "lucide-react";
+import { Loader2, ChevronDown, ChevronUp, Package, Truck, Check, Download } from "lucide-react";
 import { toast } from "sonner";
 
 const statusConfig = {
@@ -130,9 +130,24 @@ function OrderCard({ order }: { order: any }) {
 
 export default function ShopOrdersTab() {
   const [statusFilter, setStatusFilter] = useState<OrderStatus | "all">("all");
+  const utils = trpc.useUtils();
   const { data: orders, isLoading } = trpc.shop.getOrders.useQuery(
     statusFilter === "all" ? undefined : { status: statusFilter }
   );
+
+  const backfillMutation = trpc.shop.backfillFromStripe.useMutation({
+    onSuccess: (res) => {
+      utils.shop.getOrders.invalidate();
+      if (res.inserted > 0) {
+        toast.success(
+          `Backfilled ${res.inserted} order${res.inserted === 1 ? "" : "s"} from Stripe · ${res.alreadyPresent} already present`
+        );
+      } else {
+        toast.message(`No missing orders · ${res.scanned} checked · ${res.alreadyPresent} already in DB`);
+      }
+    },
+    onError: (err) => toast.error(`Backfill failed: ${err.message}`),
+  });
 
   if (isLoading) {
     return (
@@ -170,8 +185,8 @@ export default function ShopOrdersTab() {
         ))}
       </div>
 
-      {/* Filter */}
-      <div className="flex gap-1 mb-4">
+      {/* Filter + backfill */}
+      <div className="flex items-center gap-1 mb-4">
         {(["all", "unfulfilled", "shipped", "delivered"] as const).map((filter) => (
           <button
             key={filter}
@@ -186,6 +201,25 @@ export default function ShopOrdersTab() {
             {filter}
           </button>
         ))}
+
+        <button
+          onClick={() => backfillMutation.mutate({ sinceDays: 90 })}
+          disabled={backfillMutation.isPending}
+          className="ml-auto flex items-center gap-1.5 text-xs font-bold px-3 py-1 rounded-full transition-all disabled:opacity-50"
+          style={{
+            backgroundColor: "rgba(212,165,116,0.18)",
+            color: "#f5d9b0",
+            border: "1px solid rgba(212,165,116,0.3)",
+          }}
+          title="Pull past orders from Stripe that aren't in the DB (last 90 days)"
+        >
+          {backfillMutation.isPending ? (
+            <Loader2 size={11} className="animate-spin" />
+          ) : (
+            <Download size={11} />
+          )}
+          Backfill from Stripe
+        </button>
       </div>
 
       {/* Orders list */}

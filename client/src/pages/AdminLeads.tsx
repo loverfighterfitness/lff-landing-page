@@ -402,7 +402,44 @@ function SmsJobRow({ job }: { job: any }) {
 
 export default function AdminLeads() {
   const [activeTab, setActiveTab] = useState<"leads" | "sms" | "referrals" | "orders" | "inventory">("leads");
-  usePushNotifications();
+  const push = usePushNotifications();
+  const pushStatusQuery = trpc.push.status.useQuery(
+    { endpoint: push.endpoint ?? undefined },
+    { refetchInterval: 10000 }
+  );
+  const sendTestMutation = trpc.push.sendTest.useMutation();
+
+  const handleTestPush = async () => {
+    if (push.status === "default" || push.status === "denied") {
+      const result = await push.enable();
+      if (result !== "granted") {
+        toast.error(
+          result === "denied"
+            ? "Notifications are blocked — enable them in your browser settings."
+            : result === "unsupported"
+              ? "This browser doesn't support push. On iPhone, Add to Home Screen first."
+              : "Push isn't configured on the server."
+        );
+        return;
+      }
+    }
+    toast.loading("Sending test notification...", { id: "push-test" });
+    const res = await sendTestMutation.mutateAsync({ allDevices: true });
+    if (res.sent > 0) {
+      toast.success(`Test sent to ${res.sent} device${res.sent === 1 ? "" : "s"}`, { id: "push-test" });
+    } else {
+      toast.error("No subscribed devices — open /admin/leads on each device first", { id: "push-test" });
+    }
+  };
+
+  const pushPillColor =
+    push.status === "granted"
+      ? { bg: "rgba(124,174,122,0.18)", dot: "#7CAE7A", text: "#d7ecd4", label: "Notifications on" }
+      : push.status === "denied"
+        ? { bg: "rgba(220,38,38,0.18)", dot: "#f87171", text: "#fecaca", label: "Blocked" }
+        : push.status === "unsupported"
+          ? { bg: "rgba(234,230,210,0.1)", dot: "#D4A574", text: "rgba(234,230,210,0.85)", label: "Add to Home Screen" }
+          : { bg: "rgba(212,165,116,0.18)", dot: "#D4A574", text: "#f5d9b0", label: "Enable notifications" };
 
   const { data: leads, isLoading: leadsLoading } = trpc.calculator.getLeads.useQuery();
   const { data: smsJobsData, isLoading: smsLoading } = trpc.calculator.getSmsJobs.useQuery(undefined, { enabled: activeTab === "sms" });
@@ -435,6 +472,40 @@ export default function AdminLeads() {
             </div>
           </div>
           <div className="flex items-center gap-3">
+            {/* Push status pill + test */}
+            <button
+              onClick={handleTestPush}
+              title={
+                push.status === "granted"
+                  ? `Subscribed · ${pushStatusQuery.data?.totalDevices ?? 0} device(s) · Tap to send a test`
+                  : "Tap to enable notifications on this device"
+              }
+              className="flex items-center gap-2 px-3 py-1.5 rounded-full text-[10px] tracking-[0.15em] uppercase font-bold transition-all active:scale-95"
+              style={{ backgroundColor: pushPillColor.bg, color: pushPillColor.text }}
+            >
+              <span
+                className="w-1.5 h-1.5 rounded-full"
+                style={{
+                  backgroundColor: pushPillColor.dot,
+                  boxShadow:
+                    push.status === "granted"
+                      ? `0 0 0 3px ${pushPillColor.dot}33`
+                      : undefined,
+                }}
+              />
+              <span className="hidden sm:inline">{pushPillColor.label}</span>
+              {push.status === "granted" && (
+                <span className="opacity-70 tabular-nums">
+                  · {pushStatusQuery.data?.totalDevices ?? 0}
+                </span>
+              )}
+              {push.status === "granted" ? (
+                <Bell size={11} />
+              ) : (
+                <BellOff size={11} />
+              )}
+            </button>
+
             {activeTab === "leads" && leads && leads.length > 0 && (
               <button
                 onClick={() => exportToCSV(leads)}

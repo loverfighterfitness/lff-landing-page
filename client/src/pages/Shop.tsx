@@ -2512,6 +2512,8 @@ function StrapsSection() {
     1.4,
     "blue",
   );
+  // Source video spins the opposite direction to tees + cuffs — reverse frames so all three match.
+  const spinFrames = React.useMemo(() => [...frames].reverse(), [frames]);
 
   return (
     <section
@@ -2523,7 +2525,7 @@ function StrapsSection() {
         <div className="lg:col-span-8">
           <ScrollReveal>
             <SpinnerCanvas
-              frames={frames}
+              frames={spinFrames}
               loading={loading}
               className="w-full aspect-square max-w-[280px] lg:max-w-[650px] mx-auto"
             />
@@ -2646,9 +2648,11 @@ function GoatPackSection() {
   const { frames: teeFrames, loading: teeLoading } = useVideoFrames(
     TEE_SPIN_VIDEOS.brown, 48, true,
   );
-  const { frames: strapsFrames, loading: strapsLoading } = useVideoFrames(
+  const { frames: strapsFramesRaw, loading: strapsLoading } = useVideoFrames(
     "/shop/straps-spin-blue.mp4", 48, true, 15, 1.4, "blue",
   );
+  // Source straps video spins opposite direction to tees + cuffs — reverse so all three match.
+  const strapsFrames = React.useMemo(() => [...strapsFramesRaw].reverse(), [strapsFramesRaw]);
   const { frames: cuffsFrames, loading: cuffsLoading } = useVideoFrames(
     "/shop/cuffs-spin-blue.mp4", 48, true, 20, 1, "blue",
   );

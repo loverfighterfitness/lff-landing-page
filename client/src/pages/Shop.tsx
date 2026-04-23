@@ -35,6 +35,25 @@ const TEE_SPIN_VIDEOS: Record<TeeColour, string> = {
   cream: "/shop/tee-cream-spin.mp4",
 };
 
+/* Tee lookbook photos — shown in lightbox when spinner is tapped */
+const TEE_PHOTOS: Record<TeeColour, { ruby: string; benny: string; both: string }> = {
+  brown: {
+    ruby: "/shop/tee-brown-ruby.jpg",
+    benny: "/shop/tee-brown-benny.jpg",
+    both: "/shop/tee-brown-both.jpg",
+  },
+  black: {
+    ruby: "/shop/tee-black-ruby.jpg",
+    benny: "/shop/tee-black-benny.jpg",
+    both: "/shop/tee-black-both.jpg",
+  },
+  cream: {
+    ruby: "/shop/tee-cream-ruby.jpg",
+    benny: "/shop/tee-cream-benny.jpg",
+    both: "/shop/tee-cream-both.jpg",
+  },
+};
+
 /* ─── Tee Size & Stock ─── */
 const TEE_SIZES = ["S", "M", "L", "XL", "2XL"] as const;
 type TeeSize = (typeof TEE_SIZES)[number];
@@ -1192,12 +1211,14 @@ function useVideoFrames(
 }
 
 /* ─── Shared Spinner Canvas Logic ─── */
-function useSpinnerLogic(frames: string[]) {
+function useSpinnerLogic(frames: string[], onTap?: () => void) {
   const [isDragging, setIsDragging] = useState(false);
   const [showHint, setShowHint] = useState(true);
   const containerRef = useRef<HTMLDivElement>(null);
   const frameIndexRef = useRef(0);
   const dragStartX = useRef(0);
+  const dragStartY = useRef(0);
+  const movedDistance = useRef(0);
   const dragStartFrame = useRef(0);
   const autoPlayRef = useRef<number | null>(null);
   const resumeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -1259,6 +1280,8 @@ function useSpinnerLogic(frames: string[]) {
     setIsDragging(true);
     setShowHint(false);
     dragStartX.current = e.clientX;
+    dragStartY.current = e.clientY;
+    movedDistance.current = 0;
     dragStartFrame.current = frameIndexRef.current;
     (e.target as HTMLElement).setPointerCapture(e.pointerId);
   };
@@ -1269,6 +1292,8 @@ function useSpinnerLogic(frames: string[]) {
     const container = containerRef.current;
     if (!container) return;
     const dx = e.clientX - dragStartX.current;
+    const dy = e.clientY - dragStartY.current;
+    movedDistance.current = Math.max(movedDistance.current, Math.abs(dx) + Math.abs(dy));
     const containerWidth = container.offsetWidth;
     const frameDelta = Math.round((dx / containerWidth) * total);
     let newIndex = (dragStartFrame.current + frameDelta) % total;
@@ -1280,6 +1305,10 @@ function useSpinnerLogic(frames: string[]) {
   const handlePointerUp = () => {
     setIsDragging(false);
     const total = framesRef.current.length;
+    // Tap detection: if pointer barely moved, treat as a tap
+    if (onTap && movedDistance.current < 6) {
+      onTap();
+    }
     if (total === 0) return;
     resumeTimer.current = setTimeout(() => {
       const interval = setInterval(() => {
@@ -1311,6 +1340,8 @@ function SpinnerCanvas({
   className = "",
   hideHint = false,
   brightness,
+  onTap,
+  tapHint,
 }: {
   frames: string[];
   loading: boolean;
@@ -1318,6 +1349,8 @@ function SpinnerCanvas({
   className?: string;
   hideHint?: boolean;
   brightness?: number;
+  onTap?: () => void;
+  tapHint?: string;
 }) {
   const {
     isDragging,
@@ -1327,7 +1360,7 @@ function SpinnerCanvas({
     handlePointerDown,
     handlePointerMove,
     handlePointerUp,
-  } = useSpinnerLogic(frames);
+  } = useSpinnerLogic(frames, onTap);
 
   return (
     <div
@@ -1338,7 +1371,7 @@ function SpinnerCanvas({
       onPointerCancel={handlePointerUp}
       className={`relative flex items-center justify-center select-none ${className}`}
       style={{
-        cursor: isDragging ? "grabbing" : "grab",
+        cursor: isDragging ? "grabbing" : onTap ? "pointer" : "grab",
         WebkitMaskImage:
           "radial-gradient(ellipse 80% 85% at center, black 55%, transparent 90%)",
         maskImage:
@@ -1386,11 +1419,146 @@ function SpinnerCanvas({
             }}
           >
             <RotateCcw size={10} />
-            <span>Drag to spin</span>
+            <span>{tapHint ?? "Drag to spin"}</span>
           </motion.div>
         )}
       </AnimatePresence>
     </div>
+  );
+}
+
+/* ─── Tee Photo Lightbox (Ruby / Benny / Both) ─── */
+function TeePhotoLightbox({
+  open,
+  onClose,
+  colour,
+}: {
+  open: boolean;
+  onClose: () => void;
+  colour: TeeColour;
+}) {
+  // Lock background scroll while open
+  useEffect(() => {
+    if (!open) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [open]);
+
+  // ESC to close
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open, onClose]);
+
+  const photos = TEE_PHOTOS[colour];
+  const colourLabel = colour.charAt(0).toUpperCase() + colour.slice(1);
+  const cards: { src: string; label: string }[] = [
+    { src: photos.ruby, label: "Ruby" },
+    { src: photos.benny, label: "Benny" },
+    { src: photos.both, label: "Both" },
+  ];
+
+  return (
+    <AnimatePresence>
+      {open && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.25 }}
+          className="fixed inset-0 z-[100] flex flex-col"
+          style={{
+            background: "rgba(15,12,9,0.92)",
+            backdropFilter: "blur(20px)",
+            WebkitBackdropFilter: "blur(20px)",
+          }}
+          onClick={onClose}
+        >
+          {/* Header */}
+          <div className="flex items-center justify-between px-4 md:px-8 py-4 md:py-6 shrink-0">
+            <div className="flex items-center gap-3">
+              <span
+                className="block w-2.5 h-2.5 rounded-full"
+                style={{
+                  backgroundColor:
+                    colour === "brown" ? "#54412F" : colour === "black" ? "#1a1a1a" : "#EAE6D2",
+                  border: "1px solid rgba(234,230,210,0.25)",
+                }}
+              />
+              <p className="text-lff-cream/70 text-[10px] md:text-[11px] tracking-[0.3em] uppercase font-medium">
+                {colourLabel} Tee · Lookbook
+              </p>
+            </div>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onClose();
+              }}
+              className="flex items-center justify-center w-9 h-9 md:w-10 md:h-10 rounded-full transition-all duration-300 active:scale-90"
+              style={{
+                background: "rgba(234,230,210,0.08)",
+                border: "1px solid rgba(234,230,210,0.18)",
+              }}
+              aria-label="Close"
+            >
+              <X size={16} className="text-lff-cream" />
+            </button>
+          </div>
+
+          {/* Photo grid */}
+          <div
+            className="flex-1 overflow-y-auto px-4 md:px-8 pb-8"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="max-w-[1400px] mx-auto grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-5">
+              {cards.map((card, i) => (
+                <motion.div
+                  key={card.label}
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: 0.05 + i * 0.06, ease: [0.22, 1, 0.36, 1] }}
+                  className="relative overflow-hidden"
+                  style={{
+                    borderRadius: 14,
+                    background: "rgba(234,230,210,0.04)",
+                    border: "1px solid rgba(234,230,210,0.08)",
+                  }}
+                >
+                  <img
+                    src={card.src}
+                    alt={`${colourLabel} tee on ${card.label}`}
+                    loading="lazy"
+                    className="w-full h-full object-cover block"
+                    style={{ aspectRatio: "3 / 4" }}
+                  />
+                  <div
+                    className="absolute bottom-0 left-0 right-0 px-4 py-3 flex items-center justify-between"
+                    style={{
+                      background:
+                        "linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.55) 100%)",
+                    }}
+                  >
+                    <span className="text-lff-cream text-[11px] tracking-[0.25em] uppercase font-semibold">
+                      {card.label}
+                    </span>
+                    <span className="text-lff-cream/55 text-[9px] tracking-[0.2em] uppercase">
+                      {colourLabel}
+                    </span>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }
 
@@ -1871,6 +2039,7 @@ function TeeSection() {
   const { teeStock } = useContext(StockContext);
   const [selectedColour, setSelectedColour] = useState<TeeColour>("brown");
   const [selectedSize, setSelectedSize] = useState<TeeSize | null>(null);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
   const videoSrc = TEE_SPIN_VIDEOS[selectedColour];
   const { frames, loading } = useVideoFrames(videoSrc, 48, true);
 
@@ -2084,10 +2253,18 @@ function TeeSection() {
               frames={frames}
               loading={loading}
               className="w-full aspect-square max-w-[320px] lg:max-w-[700px] mx-auto"
+              onTap={() => setLightboxOpen(true)}
+              tapHint="Tap to view · Drag to spin"
             />
           </ScrollReveal>
         </div>
       </div>
+
+      <TeePhotoLightbox
+        open={lightboxOpen}
+        onClose={() => setLightboxOpen(false)}
+        colour={selectedColour}
+      />
     </section>
   );
 }

@@ -110,12 +110,12 @@ function ImageComparisonSlider({ transformation, resetKey }: SliderProps) {
     return () => { window.removeEventListener("mousemove", onMove); window.removeEventListener("mouseup", onUp); };
   }, [dragging, updateFromClientX]);
 
-  const onTouchStart = (e: React.TouchEvent) => { setDragging(true); updateFromClientX(e.touches[0].clientX); };
+  const onTouchStart = (e: React.TouchEvent) => { e.preventDefault(); setDragging(true); updateFromClientX(e.touches[0].clientX); };
   useEffect(() => {
     if (!dragging) return;
-    const onMove = (e: TouchEvent) => updateFromClientX(e.touches[0].clientX);
+    const onMove = (e: TouchEvent) => { e.preventDefault(); updateFromClientX(e.touches[0].clientX); };
     const onUp = () => setDragging(false);
-    window.addEventListener("touchmove", onMove, { passive: true });
+    window.addEventListener("touchmove", onMove, { passive: false });
     window.addEventListener("touchend", onUp);
     return () => { window.removeEventListener("touchmove", onMove); window.removeEventListener("touchend", onUp); };
   }, [dragging, updateFromClientX]);
@@ -131,7 +131,7 @@ function ImageComparisonSlider({ transformation, resetKey }: SliderProps) {
       <div
         ref={containerRef}
         className="absolute inset-0 overflow-hidden rounded-2xl"
-        style={{ cursor: dragging ? "ew-resize" : "grab", touchAction: "pan-y", backgroundColor: "#1c0f07" }}
+        style={{ cursor: dragging ? "ew-resize" : "grab", touchAction: "none", backgroundColor: "#1c0f07" }}
         onMouseDown={onMouseDown}
         onTouchStart={onTouchStart}
       >

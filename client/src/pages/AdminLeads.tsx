@@ -410,6 +410,10 @@ export default function AdminLeads() {
   const sendTestMutation = trpc.push.sendTest.useMutation();
 
   const handleTestPush = async () => {
+    if (push.status === "unconfigured") {
+      toast.error("VAPID public key missing from client build. Set VITE_VAPID_PUBLIC_KEY on Railway and redeploy.");
+      return;
+    }
     if (push.status === "default" || push.status === "denied") {
       const result = await push.enable();
       if (result !== "granted") {
@@ -418,7 +422,9 @@ export default function AdminLeads() {
             ? "Notifications are blocked — enable them in your browser settings."
             : result === "unsupported"
               ? "This browser doesn't support push. On iPhone, Add to Home Screen first."
-              : "Push isn't configured on the server."
+              : result === "unconfigured"
+                ? "VAPID public key missing from client build. Set VITE_VAPID_PUBLIC_KEY on Railway."
+                : "Permission prompt didn't resolve — try again."
         );
         return;
       }
@@ -439,7 +445,9 @@ export default function AdminLeads() {
         ? { bg: "rgba(220,38,38,0.18)", dot: "#f87171", text: "#fecaca", label: "Blocked" }
         : push.status === "unsupported"
           ? { bg: "rgba(234,230,210,0.1)", dot: "#D4A574", text: "rgba(234,230,210,0.85)", label: "Add to Home Screen" }
-          : { bg: "rgba(212,165,116,0.18)", dot: "#D4A574", text: "#f5d9b0", label: "Enable notifications" };
+          : push.status === "unconfigured"
+            ? { bg: "rgba(220,38,38,0.18)", dot: "#f87171", text: "#fecaca", label: "VAPID key missing" }
+            : { bg: "rgba(212,165,116,0.18)", dot: "#D4A574", text: "#f5d9b0", label: "Enable notifications" };
 
   const { data: leads, isLoading: leadsLoading } = trpc.calculator.getLeads.useQuery();
   const { data: smsJobsData, isLoading: smsLoading } = trpc.calculator.getSmsJobs.useQuery(undefined, { enabled: activeTab === "sms" });

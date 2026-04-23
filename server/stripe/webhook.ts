@@ -98,9 +98,11 @@ async function handleShopOrder(stripe: Stripe, session: Stripe.Checkout.Session)
 
   const customerEmail = session.customer_details?.email ?? "unknown";
   const customerName = session.customer_details?.name ?? "Unknown";
+  const customerPhone = session.customer_details?.phone ?? null;
   const shippingInfo = (session as any).shipping_details ?? (session as any).shipping;
-  const shippingAddress = shippingInfo?.address
-    ? JSON.stringify(shippingInfo.address)
+  const shippingAddressObj: Stripe.Address | null = shippingInfo?.address ?? null;
+  const shippingAddress = shippingAddressObj
+    ? JSON.stringify(shippingAddressObj)
     : null;
 
   // Parse the items_json metadata
@@ -174,38 +176,120 @@ async function handleShopOrder(stripe: Stripe, session: Stripe.Checkout.Session)
   const itemSummary = cartItems
     .map((i) => `${i.quantity}x ${i.name}`)
     .join(", ");
-  const amountStr = `$${(total / 100).toFixed(2)}`;
+  const amountStr = `$${(total / 100).toFixed(2)} AUD`;
+  const subtotalStr = `$${(subtotal / 100).toFixed(2)}`;
+  const shippingStr = isShipping ? `$${(shippingCost / 100).toFixed(2)}` : "—";
+
+  // Build a short subject line: "LFF Order · 2 items · Brown Tee L · Sarah M"
+  const firstItemShort = cartItems[0]?.name?.split("—")[0]?.trim() ?? "Order";
+  const firstVariant = cartItems[0] ? parseVariantFromId(cartItems[0].id) : null;
+  const subjectLine =
+    cartItems.length === 1 && cartItems[0].quantity === 1
+      ? `LFF Order · ${firstItemShort}${firstVariant ? ` ${firstVariant}` : ""} · ${customerName}`
+      : `LFF Order · ${cartItems.reduce((n, i) => n + i.quantity, 0)} items · ${customerName} · ${amountStr}`;
 
   await notifyOwner({
     title: `Shop Order — ${amountStr}`,
-    content: `${customerName} (${customerEmail}) ordered: ${itemSummary}. ${isShipping ? "Shipping required." : "Pickup."} Total: ${amountStr}`,
+    content: `${customerName} (${customerEmail})${customerPhone ? ` · ${customerPhone}` : ""} ordered: ${itemSummary}. ${isShipping ? "Shipping required." : "Pickup."} Total: ${amountStr}`,
   });
 
-  // Email notification
+  // Email notification — branded, fulfillment-ready pack slip
+  const addressHtml = shippingAddressObj
+    ? formatAddressHtml(shippingAddressObj, customerName)
+    : "";
+  const itemsTableHtml = cartItems
+    .map((i) => {
+      const variant = parseVariantFromId(i.id);
+      const lineTotal = `$${((i.price * i.quantity * 100) / 100).toFixed(2)}`;
+      return `
+        <tr>
+          <td style="padding:10px 0;border-top:1px solid rgba(234,230,210,0.14);color:#EAE6D2;font-size:14px;font-weight:600;">
+            ${escapeHtml(i.name)}
+            ${variant ? `<div style="color:rgba(234,230,210,0.55);font-size:12px;letter-spacing:0.1em;text-transform:uppercase;margin-top:3px;">${escapeHtml(variant)}</div>` : ""}
+          </td>
+          <td style="padding:10px 0;border-top:1px solid rgba(234,230,210,0.14);color:rgba(234,230,210,0.85);font-size:14px;text-align:center;font-variant-numeric:tabular-nums;">× ${i.quantity}</td>
+          <td style="padding:10px 0;border-top:1px solid rgba(234,230,210,0.14);color:#EAE6D2;font-size:14px;text-align:right;font-variant-numeric:tabular-nums;">${lineTotal}</td>
+        </tr>`;
+    })
+    .join("");
+
+  const stripeSessionLink = `https://dashboard.stripe.com/payments/${session.payment_intent ?? session.id}`;
+
+  const emailHtml = `
+    <div style="background:#1a1612;padding:32px 16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+      <div style="max-width:560px;margin:0 auto;background:#221c16;border:1px solid rgba(234,230,210,0.12);border-radius:12px;overflow:hidden;">
+        <div style="padding:24px 28px;border-bottom:1px solid rgba(234,230,210,0.1);">
+          <p style="color:rgba(234,230,210,0.45);font-size:10px;letter-spacing:0.25em;text-transform:uppercase;margin:0 0 6px;font-weight:600;">Lover Fighter Fitness</p>
+          <h1 style="color:#EAE6D2;font-size:22px;letter-spacing:0.03em;margin:0;font-weight:700;">New shop order — ${amountStr}</h1>
+          <p style="color:rgba(234,230,210,0.55);font-size:12px;margin:8px 0 0;">${isShipping ? "Ship Aus-wide" : "Local pickup"} · Order #${session.id.slice(-10)}</p>
+        </div>
+
+        <div style="padding:22px 28px;border-bottom:1px solid rgba(234,230,210,0.1);">
+          <p style="color:rgba(234,230,210,0.45);font-size:10px;letter-spacing:0.25em;text-transform:uppercase;margin:0 0 10px;font-weight:600;">Customer</p>
+          <p style="color:#EAE6D2;font-size:16px;margin:0 0 4px;font-weight:600;">${escapeHtml(customerName)}</p>
+          <p style="color:rgba(234,230,210,0.75);font-size:13px;margin:0;">
+            <a href="mailto:${escapeHtml(customerEmail)}" style="color:rgba(234,230,210,0.75);text-decoration:none;">${escapeHtml(customerEmail)}</a>
+            ${customerPhone ? ` · <a href="tel:${escapeHtml(customerPhone)}" style="color:rgba(234,230,210,0.75);text-decoration:none;">${escapeHtml(customerPhone)}</a>` : ""}
+          </p>
+        </div>
+
+        <div style="padding:22px 28px;border-bottom:1px solid rgba(234,230,210,0.1);">
+          <p style="color:rgba(234,230,210,0.45);font-size:10px;letter-spacing:0.25em;text-transform:uppercase;margin:0 0 10px;font-weight:600;">Pack list</p>
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
+            ${itemsTableHtml}
+          </table>
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin-top:14px;">
+            <tr>
+              <td style="color:rgba(234,230,210,0.55);font-size:12px;padding:4px 0;">Subtotal</td>
+              <td style="color:rgba(234,230,210,0.85);font-size:12px;text-align:right;font-variant-numeric:tabular-nums;padding:4px 0;">${subtotalStr}</td>
+            </tr>
+            <tr>
+              <td style="color:rgba(234,230,210,0.55);font-size:12px;padding:4px 0;">Shipping</td>
+              <td style="color:rgba(234,230,210,0.85);font-size:12px;text-align:right;font-variant-numeric:tabular-nums;padding:4px 0;">${shippingStr}</td>
+            </tr>
+            <tr>
+              <td style="color:#EAE6D2;font-size:14px;font-weight:700;padding:8px 0 0;border-top:1px solid rgba(234,230,210,0.14);">Total</td>
+              <td style="color:#EAE6D2;font-size:14px;font-weight:700;text-align:right;font-variant-numeric:tabular-nums;padding:8px 0 0;border-top:1px solid rgba(234,230,210,0.14);">${amountStr}</td>
+            </tr>
+          </table>
+        </div>
+
+        ${addressHtml ? `
+        <div style="padding:22px 28px;border-bottom:1px solid rgba(234,230,210,0.1);">
+          <p style="color:rgba(234,230,210,0.45);font-size:10px;letter-spacing:0.25em;text-transform:uppercase;margin:0 0 10px;font-weight:600;">Ship to</p>
+          ${addressHtml}
+        </div>` : ""}
+
+        <div style="padding:22px 28px;text-align:center;">
+          <a href="${stripeSessionLink}" style="display:inline-block;background:rgba(234,230,210,0.95);color:#54412F;padding:12px 24px;border-radius:999px;font-size:11px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;text-decoration:none;">Open in Stripe</a>
+        </div>
+      </div>
+      <p style="text-align:center;color:rgba(234,230,210,0.35);font-size:10px;letter-spacing:0.15em;text-transform:uppercase;margin:16px 0 0;">Lover Fighter Fitness · Mount Barker, SA</p>
+    </div>
+  `;
+
   sendEmail({
     to: ENV.gmailUser,
-    subject: `New LFF Shop Order — ${amountStr}`,
-    html: `
-      <h2>New Shop Order</h2>
-      <p><strong>${customerName}</strong> (${customerEmail})</p>
-      <p><strong>Items:</strong> ${itemSummary}</p>
-      <p><strong>Total:</strong> ${amountStr}</p>
-      <p><strong>Delivery:</strong> ${isShipping ? "Shipping" : "Pickup"}</p>
-      ${shippingAddress ? `<p><strong>Address:</strong> ${shippingAddress}</p>` : ""}
-      <p>Check <a href="https://dashboard.stripe.com">Stripe</a> for full details.</p>
-    `,
+    subject: subjectLine,
+    html: emailHtml,
   }).catch((e) => console.warn("[Email] Shop order notification failed:", e));
 
   // Push notification to all subscribed devices
   (async () => {
     try {
       const subs = await db.select().from(pushSubscriptions);
+      const pushBody = cartItems
+        .map((i) => {
+          const variant = parseVariantFromId(i.id);
+          return `${i.quantity}× ${i.name}${variant ? ` (${variant})` : ""}`;
+        })
+        .join(" · ");
       for (const sub of subs) {
         const result = await sendPushNotification(
           { endpoint: sub.endpoint, keys: sub.keys },
           {
-            title: `Shop Order — ${amountStr}`,
-            body: `${customerName}: ${itemSummary}`,
+            title: `LFF Order · ${amountStr} · ${customerName}`,
+            body: `${pushBody}${isShipping ? " · Shipping" : " · Pickup"}`,
             url: "/admin/leads",
           }
         );
@@ -363,4 +447,35 @@ async function decrementVariantStock(
   } catch (e) {
     console.error(`[Stock] Failed to decrement: ${productSlug}`, e);
   }
+}
+
+/**
+ * Format a Stripe address object as readable HTML address block.
+ */
+function formatAddressHtml(addr: Stripe.Address, name: string | null): string {
+  const lines = [
+    name,
+    addr.line1,
+    addr.line2,
+    [addr.city, addr.state, addr.postal_code].filter(Boolean).join(" "),
+    addr.country,
+  ].filter((l): l is string => Boolean(l && l.trim().length));
+
+  return `
+    <div style="color:#EAE6D2;font-size:13px;line-height:1.55;">
+      ${lines.map((l) => escapeHtml(l)).join("<br/>")}
+    </div>
+  `;
+}
+
+/**
+ * Minimal HTML escape for user-provided strings in email templates.
+ */
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 }

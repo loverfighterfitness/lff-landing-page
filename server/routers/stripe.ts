@@ -68,6 +68,7 @@ export const stripeRouter = router({
         line_items,
         success_url: `${input.origin}/shop?checkout=success`,
         cancel_url: `${input.origin}/shop`,
+        phone_number_collection: { enabled: true },
         metadata: {
           type: "shop_order",
           items_json: JSON.stringify(itemsForMeta),

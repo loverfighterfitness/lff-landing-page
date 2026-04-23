@@ -60,6 +60,23 @@ const TEE_PHOTOS: Record<TeeColour, Record<TeeSubject, Record<TeeAngle, string>>
 const TEE_SIZES = ["S", "M", "L", "XL", "2XL"] as const;
 type TeeSize = (typeof TEE_SIZES)[number];
 
+/* Size chart — measurements in cm, flat garment (Pure Blanks PB02 Heavy Box Tee) */
+type SizeChartRow = {
+  size: TeeSize;
+  length: number;
+  chest: number;
+  sleeveLength: number;
+  shoulderWidth: number;
+  sleeveOpening: number;
+};
+const TEE_SIZE_CHART: SizeChartRow[] = [
+  { size: "S",   length: 63.5, chest: 53, sleeveLength: 19.5, shoulderWidth: 52.5, sleeveOpening: 18.5 },
+  { size: "M",   length: 66.5, chest: 56, sleeveLength: 21.5, shoulderWidth: 55,   sleeveOpening: 19.5 },
+  { size: "L",   length: 69.5, chest: 59, sleeveLength: 23.5, shoulderWidth: 57.5, sleeveOpening: 20.5 },
+  { size: "XL",  length: 72.5, chest: 62, sleeveLength: 25.5, shoulderWidth: 60,   sleeveOpening: 21.5 },
+  { size: "2XL", length: 75.5, chest: 65, sleeveLength: 27.5, shoulderWidth: 62.5, sleeveOpening: 22.5 },
+];
+
 /** Hardcoded fallback stock — used while the API is loading */
 const TEE_STOCK_FALLBACK: Record<TeeColour, Record<TeeSize, number>> = {
   brown: { S: 5, M: 7, L: 12, XL: 11, "2XL": 5 },
@@ -1580,6 +1597,187 @@ function TeePhotoLightbox({
   );
 }
 
+/* ─── Size Chart Modal ─── */
+function SizeChartModal({
+  open,
+  onClose,
+}: {
+  open: boolean;
+  onClose: () => void;
+}) {
+  // Lock background scroll while open
+  useEffect(() => {
+    if (!open) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [open]);
+
+  // ESC to close
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open, onClose]);
+
+  const columns: { key: keyof Omit<SizeChartRow, "size">; label: string }[] = [
+    { key: "length",         label: "Length" },
+    { key: "chest",          label: "Chest" },
+    { key: "shoulderWidth",  label: "Shoulder" },
+    { key: "sleeveLength",   label: "Sleeve" },
+    { key: "sleeveOpening",  label: "Cuff" },
+  ];
+
+  return (
+    <AnimatePresence>
+      {open && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.25 }}
+          className="fixed inset-0 z-[100] flex items-center justify-center px-4 py-8"
+          style={{
+            background: "rgba(15,12,9,0.92)",
+            backdropFilter: "blur(20px)",
+            WebkitBackdropFilter: "blur(20px)",
+          }}
+          onClick={onClose}
+        >
+          <motion.div
+            initial={{ opacity: 0, y: 16, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 16, scale: 0.98 }}
+            transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+            onClick={(e) => e.stopPropagation()}
+            className="relative w-full max-w-[680px] max-h-[90vh] overflow-y-auto"
+            style={{
+              borderRadius: 16,
+              background: "rgba(26,22,18,0.85)",
+              border: "1px solid rgba(234,230,210,0.12)",
+              backdropFilter: "blur(20px)",
+              WebkitBackdropFilter: "blur(20px)",
+            }}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between px-5 md:px-7 py-4 md:py-5 border-b border-lff-cream/10 sticky top-0 z-10"
+              style={{ background: "rgba(26,22,18,0.95)" }}
+            >
+              <div>
+                <p className="text-lff-cream/40 text-[9px] tracking-[0.3em] uppercase font-medium mb-1">
+                  Drop Shoulder Tee
+                </p>
+                <p className="text-lff-cream text-[13px] md:text-[14px] tracking-[0.2em] uppercase font-semibold">
+                  Size Guide
+                </p>
+              </div>
+              <button
+                onClick={onClose}
+                className="flex items-center justify-center w-9 h-9 md:w-10 md:h-10 rounded-full transition-all duration-300 active:scale-90"
+                style={{
+                  background: "rgba(234,230,210,0.08)",
+                  border: "1px solid rgba(234,230,210,0.18)",
+                }}
+                aria-label="Close"
+              >
+                <X size={16} className="text-lff-cream" />
+              </button>
+            </div>
+
+            {/* Table */}
+            <div className="px-5 md:px-7 py-5 md:py-6">
+              <p className="text-lff-cream/45 text-[10px] tracking-[0.2em] uppercase font-medium mb-4">
+                Flat garment measurements · cm
+              </p>
+
+              <div className="overflow-x-auto -mx-2 px-2">
+                <table className="w-full min-w-[480px] tabular-nums">
+                  <thead>
+                    <tr>
+                      <th className="text-left text-lff-cream/50 text-[10px] tracking-[0.2em] uppercase font-semibold pb-3 pr-3">
+                        Size
+                      </th>
+                      {columns.map((col) => (
+                        <th
+                          key={col.key}
+                          className="text-right text-lff-cream/50 text-[10px] tracking-[0.2em] uppercase font-semibold pb-3 px-2"
+                        >
+                          {col.label}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {TEE_SIZE_CHART.map((row, idx) => (
+                      <tr
+                        key={row.size}
+                        style={{
+                          borderTop: idx === 0 ? "1px solid rgba(234,230,210,0.1)" : undefined,
+                          borderBottom: "1px solid rgba(234,230,210,0.08)",
+                        }}
+                      >
+                        <td className="py-3 pr-3 text-lff-cream text-[13px] tracking-[0.15em] font-bold">
+                          {row.size}
+                        </td>
+                        {columns.map((col) => (
+                          <td
+                            key={col.key}
+                            className="py-3 px-2 text-right text-lff-cream/85 text-[13px]"
+                          >
+                            {row[col.key]}
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Measurement glossary */}
+              <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2">
+                {[
+                  { label: "Length",   desc: "Collar seam to hem" },
+                  { label: "Chest",    desc: "Pit to pit, flat" },
+                  { label: "Shoulder", desc: "Seam to seam across back" },
+                  { label: "Sleeve",   desc: "Shoulder seam to cuff" },
+                  { label: "Cuff",     desc: "Opening width, flat" },
+                ].map((g) => (
+                  <div key={g.label} className="flex items-baseline gap-2">
+                    <span className="text-lff-cream/70 text-[11px] tracking-[0.15em] uppercase font-semibold min-w-[60px]">
+                      {g.label}
+                    </span>
+                    <span className="text-lff-cream/45 text-[11px] leading-snug">
+                      {g.desc}
+                    </span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Fit note */}
+              <div
+                className="mt-6 px-4 py-3 rounded-lg"
+                style={{
+                  background: "rgba(234,230,210,0.05)",
+                  border: "1px solid rgba(234,230,210,0.08)",
+                }}
+              >
+                <p className="text-lff-cream/65 text-[11px] leading-relaxed">
+                  Oversized, boxy fit. If you're between sizes, size down for a cleaner silhouette or stay true for a relaxed drop. Allow 1–2cm margin on all measurements.
+                </p>
+              </div>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
+
 /* ─── Product Info Card (frosted glass) ─── */
 function ProductInfoCard({
   overline,
@@ -2058,6 +2256,7 @@ function TeeSection() {
   const [selectedColour, setSelectedColour] = useState<TeeColour>("brown");
   const [selectedSize, setSelectedSize] = useState<TeeSize | null>(null);
   const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [sizeChartOpen, setSizeChartOpen] = useState(false);
   const videoSrc = TEE_SPIN_VIDEOS[selectedColour];
   const { frames, loading } = useVideoFrames(videoSrc, 48, true);
 
@@ -2139,9 +2338,18 @@ function TeeSection() {
 
             {/* Size selector */}
             <div>
-              <p className="text-lff-cream/35 text-[9px] tracking-[0.3em] uppercase font-medium mb-3">
-                Size
-              </p>
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-lff-cream/35 text-[9px] tracking-[0.3em] uppercase font-medium">
+                  Size
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setSizeChartOpen(true)}
+                  className="text-lff-cream/55 hover:text-lff-cream/85 text-[9px] tracking-[0.25em] uppercase font-medium underline underline-offset-4 decoration-lff-cream/25 hover:decoration-lff-cream/60 transition-all duration-200"
+                >
+                  Size Guide
+                </button>
+              </div>
               <div className="flex flex-wrap items-center gap-2">
                 {TEE_SIZES.map((size) => {
                   const stock = teeStock[selectedColour][size];
@@ -2282,6 +2490,11 @@ function TeeSection() {
         open={lightboxOpen}
         onClose={() => setLightboxOpen(false)}
         colour={selectedColour}
+      />
+
+      <SizeChartModal
+        open={sizeChartOpen}
+        onClose={() => setSizeChartOpen(false)}
       />
     </section>
   );

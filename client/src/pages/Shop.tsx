@@ -36,21 +36,23 @@ const TEE_SPIN_VIDEOS: Record<TeeColour, string> = {
 };
 
 /* Tee lookbook photos — shown in lightbox when spinner is tapped */
-const TEE_PHOTOS: Record<TeeColour, { ruby: string; benny: string; both: string }> = {
+type TeeSubject = "ruby" | "benny" | "both";
+type TeeAngle = "front" | "back";
+const TEE_PHOTOS: Record<TeeColour, Record<TeeSubject, Record<TeeAngle, string>>> = {
   brown: {
-    ruby: "/shop/tee-brown-ruby.jpg",
-    benny: "/shop/tee-brown-benny.jpg",
-    both: "/shop/tee-brown-both.jpg",
+    ruby:  { front: "/shop/tee-brown-ruby.jpg",  back: "/shop/tee-brown-ruby-back.jpg"  },
+    benny: { front: "/shop/tee-brown-benny.jpg", back: "/shop/tee-brown-benny-back.jpg" },
+    both:  { front: "/shop/tee-brown-both.jpg",  back: "/shop/tee-brown-both-back.jpg"  },
   },
   black: {
-    ruby: "/shop/tee-black-ruby.jpg",
-    benny: "/shop/tee-black-benny.jpg",
-    both: "/shop/tee-black-both.jpg",
+    ruby:  { front: "/shop/tee-black-ruby.jpg",  back: "/shop/tee-black-ruby-back.jpg"  },
+    benny: { front: "/shop/tee-black-benny.jpg", back: "/shop/tee-black-benny-back.jpg" },
+    both:  { front: "/shop/tee-black-both.jpg",  back: "/shop/tee-black-both-back.jpg"  },
   },
   cream: {
-    ruby: "/shop/tee-cream-ruby.jpg",
-    benny: "/shop/tee-cream-benny.jpg",
-    both: "/shop/tee-cream-both.jpg",
+    ruby:  { front: "/shop/tee-cream-ruby.jpg",  back: "/shop/tee-cream-ruby-back.jpg"  },
+    benny: { front: "/shop/tee-cream-benny.jpg", back: "/shop/tee-cream-benny-back.jpg" },
+    both:  { front: "/shop/tee-cream-both.jpg",  back: "/shop/tee-cream-both-back.jpg"  },
   },
 };
 
@@ -1459,10 +1461,14 @@ function TeePhotoLightbox({
 
   const photos = TEE_PHOTOS[colour];
   const colourLabel = colour.charAt(0).toUpperCase() + colour.slice(1);
-  const cards: { src: string; label: string }[] = [
-    { src: photos.ruby, label: "Ruby" },
-    { src: photos.benny, label: "Benny" },
-    { src: photos.both, label: "Both" },
+  const subjectOrder: { key: TeeSubject; label: string }[] = [
+    { key: "ruby", label: "Ruby" },
+    { key: "benny", label: "Benny" },
+    { key: "both", label: "Both" },
+  ];
+  const angleOrder: { key: TeeAngle; label: string }[] = [
+    { key: "front", label: "Front" },
+    { key: "back", label: "Back" },
   ];
 
   return (
@@ -1512,47 +1518,59 @@ function TeePhotoLightbox({
             </button>
           </div>
 
-          {/* Photo grid */}
+          {/* Photo grid — Front row + Back row, each Ruby/Benny/Both */}
           <div
             className="flex-1 overflow-y-auto px-4 md:px-8 pb-8"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="max-w-[1400px] mx-auto grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-5">
-              {cards.map((card, i) => (
-                <motion.div
-                  key={card.label}
-                  initial={{ opacity: 0, y: 16 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4, delay: 0.05 + i * 0.06, ease: [0.22, 1, 0.36, 1] }}
-                  className="relative overflow-hidden"
-                  style={{
-                    borderRadius: 14,
-                    background: "rgba(234,230,210,0.04)",
-                    border: "1px solid rgba(234,230,210,0.08)",
-                  }}
-                >
-                  <img
-                    src={card.src}
-                    alt={`${colourLabel} tee on ${card.label}`}
-                    loading="lazy"
-                    className="w-full h-full object-cover block"
-                    style={{ aspectRatio: "3 / 4" }}
-                  />
-                  <div
-                    className="absolute bottom-0 left-0 right-0 px-4 py-3 flex items-center justify-between"
-                    style={{
-                      background:
-                        "linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.55) 100%)",
-                    }}
-                  >
-                    <span className="text-lff-cream text-[11px] tracking-[0.25em] uppercase font-semibold">
-                      {card.label}
-                    </span>
-                    <span className="text-lff-cream/55 text-[9px] tracking-[0.2em] uppercase">
-                      {colourLabel}
-                    </span>
+            <div className="max-w-[1400px] mx-auto space-y-6">
+              {angleOrder.map((angle, rowIdx) => (
+                <div key={angle.key}>
+                  <p className="text-lff-cream/40 text-[10px] tracking-[0.3em] uppercase font-medium mb-3">
+                    {angle.label}
+                  </p>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-5">
+                    {subjectOrder.map((subject, colIdx) => {
+                      const i = rowIdx * 3 + colIdx;
+                      return (
+                        <motion.div
+                          key={`${angle.key}-${subject.key}`}
+                          initial={{ opacity: 0, y: 16 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.4, delay: 0.05 + i * 0.05, ease: [0.22, 1, 0.36, 1] }}
+                          className="relative overflow-hidden"
+                          style={{
+                            borderRadius: 14,
+                            background: "rgba(234,230,210,0.04)",
+                            border: "1px solid rgba(234,230,210,0.08)",
+                          }}
+                        >
+                          <img
+                            src={photos[subject.key][angle.key]}
+                            alt={`${colourLabel} tee on ${subject.label}, ${angle.label.toLowerCase()}`}
+                            loading="lazy"
+                            className="w-full h-full object-cover block"
+                            style={{ aspectRatio: "3 / 4" }}
+                          />
+                          <div
+                            className="absolute bottom-0 left-0 right-0 px-4 py-3 flex items-center justify-between"
+                            style={{
+                              background:
+                                "linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.55) 100%)",
+                            }}
+                          >
+                            <span className="text-lff-cream text-[11px] tracking-[0.25em] uppercase font-semibold">
+                              {subject.label}
+                            </span>
+                            <span className="text-lff-cream/55 text-[9px] tracking-[0.2em] uppercase">
+                              {angle.label}
+                            </span>
+                          </div>
+                        </motion.div>
+                      );
+                    })}
                   </div>
-                </motion.div>
+                </div>
               ))}
             </div>
           </div>

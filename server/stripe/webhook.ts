@@ -82,20 +82,21 @@ export async function handleStripeWebhook(req: Request, res: Response) {
 }
 
 /**
- * Handle a completed shop order:
- * 1. Retrieve line items from Stripe
- * 2. Parse items_json metadata for cart details
- * 3. Insert order + order items
- * 4. Decrement stock
- * 5. Notify Levi
+ * Handle a completed shop order. Resilient to database outages —
+ * notifications fire even when the DB is unavailable, so Levi never
+ * misses an order alert. DB writes are best-effort and can be backfilled
+ * via the admin "Backfill" button later.
+ *
+ * Order of operations:
+ * 1. Extract everything from the Stripe session (no DB needed)
+ * 2. Try to connect to DB (non-fatal if it fails)
+ * 3. Idempotency check (only if DB is up — otherwise skip and rely on Stripe single-delivery)
+ * 4. Send email notification immediately (doesn't need DB)
+ * 5. Best-effort: insert order + decrement stock (skipped if DB down)
+ * 6. Best-effort: send push notifications to subscribed devices (needs DB for subs)
  */
 async function handleShopOrder(stripe: Stripe, session: Stripe.Checkout.Session) {
-  const db = await getDb();
-  if (!db) {
-    console.error("[Webhook] Database not available — cannot process shop order");
-    return;
-  }
-
+  // ── 1. Extract everything from Stripe session (no DB dependency) ──
   const customerEmail = session.customer_details?.email ?? "unknown";
   const customerName = session.customer_details?.name ?? "Unknown";
   const customerPhone = session.customer_details?.phone ?? null;
@@ -123,56 +124,78 @@ async function handleShopOrder(stripe: Stripe, session: Stripe.Checkout.Session)
     `[Webhook] Shop order: ${customerName} (${customerEmail}) — ${cartItems.length} item(s), $${(total / 100).toFixed(2)}`
   );
 
-  // Check for duplicate (idempotent)
-  const existing = await db
-    .select({ id: shopOrders.id })
-    .from(shopOrders)
-    .where(eq(shopOrders.stripeSessionId, session.id))
-    .limit(1);
-
-  if (existing.length > 0) {
-    console.log(`[Webhook] Shop order ${session.id} already processed — skipping`);
-    return;
+  // ── 2. Try to connect to DB (non-fatal) ──
+  let db: Awaited<ReturnType<typeof getDb>> = null;
+  try {
+    db = await getDb();
+  } catch (err) {
+    console.error("[Webhook] getDb threw:", err);
+  }
+  if (!db) {
+    console.warn("[Webhook] Database unavailable — sending notifications anyway, order will need manual backfill");
   }
 
-  // Insert the order
-  const [orderResult] = await db.insert(shopOrders).values({
-    stripeSessionId: session.id,
-    stripePaymentIntent:
-      typeof session.payment_intent === "string"
-        ? session.payment_intent
-        : session.payment_intent?.id ?? null,
-    customerEmail,
-    customerName,
-    shippingAddress,
-    isShipping,
-    shippingCost,
-    subtotal,
-    total,
-    status: "unfulfilled",
-  });
+  // ── 3. Idempotency check (only if DB is reachable) ──
+  if (db) {
+    try {
+      const existing = await db
+        .select({ id: shopOrders.id })
+        .from(shopOrders)
+        .where(eq(shopOrders.stripeSessionId, session.id))
+        .limit(1);
 
-  const orderId = orderResult.insertId;
-
-  // Insert order items
-  for (const item of cartItems) {
-    // Parse variant info from the id (e.g. "tee-brown-L" → "brown / L")
-    const variant = parseVariantFromId(item.id);
-
-    await db.insert(shopOrderItems).values({
-      orderId,
-      productName: item.name,
-      variant,
-      quantity: item.quantity,
-      unitPrice: item.price * 100, // convert dollars to cents
-      priceId: item.priceId,
-    });
-
-    // Decrement stock for this item
-    await decrementStockForItem(db, item.id, item.quantity);
+      if (existing.length > 0) {
+        console.log(`[Webhook] Shop order ${session.id} already processed — skipping`);
+        return;
+      }
+    } catch (err) {
+      console.warn("[Webhook] Idempotency check failed (continuing anyway):", err);
+    }
   }
 
-  // Notify Levi
+  // ── 5a. Best-effort DB writes (BEFORE notifications, so backfill warning is accurate) ──
+  let dbWriteFailed = false;
+  if (db) {
+    try {
+      const [orderResult] = await db.insert(shopOrders).values({
+        stripeSessionId: session.id,
+        stripePaymentIntent:
+          typeof session.payment_intent === "string"
+            ? session.payment_intent
+            : session.payment_intent?.id ?? null,
+        customerEmail,
+        customerName,
+        shippingAddress,
+        isShipping,
+        shippingCost,
+        subtotal,
+        total,
+        status: "unfulfilled",
+      });
+
+      const orderId = orderResult.insertId;
+
+      for (const item of cartItems) {
+        const variant = parseVariantFromId(item.id);
+        await db.insert(shopOrderItems).values({
+          orderId,
+          productName: item.name,
+          variant,
+          quantity: item.quantity,
+          unitPrice: item.price * 100,
+          priceId: item.priceId,
+        });
+        await decrementStockForItem(db, item.id, item.quantity);
+      }
+    } catch (err) {
+      dbWriteFailed = true;
+      console.error("[Webhook] DB writes failed (notifications still firing):", err);
+    }
+  } else {
+    dbWriteFailed = true;
+  }
+
+  // ── 4 + 5b. Build & send notifications (always — never blocked by DB) ──
   const itemSummary = cartItems
     .map((i) => `${i.quantity}x ${i.name}`)
     .join(", ");
@@ -183,10 +206,11 @@ async function handleShopOrder(stripe: Stripe, session: Stripe.Checkout.Session)
   // Build a short subject line: "LFF Order · 2 items · Brown Tee L · Sarah M"
   const firstItemShort = cartItems[0]?.name?.split("—")[0]?.trim() ?? "Order";
   const firstVariant = cartItems[0] ? parseVariantFromId(cartItems[0].id) : null;
-  const subjectLine =
+  const baseSubject =
     cartItems.length === 1 && cartItems[0].quantity === 1
       ? `LFF Order · ${firstItemShort}${firstVariant ? ` ${firstVariant}` : ""} · ${customerName}`
       : `LFF Order · ${cartItems.reduce((n, i) => n + i.quantity, 0)} items · ${customerName} · ${amountStr}`;
+  const subjectLine = dbWriteFailed ? `[DB OFFLINE — backfill] ${baseSubject}` : baseSubject;
 
   await notifyOwner({
     title: `Shop Order — ${amountStr}`,
@@ -215,6 +239,13 @@ async function handleShopOrder(stripe: Stripe, session: Stripe.Checkout.Session)
 
   const stripeSessionLink = `https://dashboard.stripe.com/payments/${session.payment_intent ?? session.id}`;
 
+  const dbWarningBanner = dbWriteFailed
+    ? `<div style="padding:14px 28px;background:#3a1a14;border-bottom:1px solid rgba(234,230,210,0.1);">
+          <p style="color:#ff8a4c;font-size:12px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;margin:0 0 4px;">⚠ Database offline</p>
+          <p style="color:rgba(234,230,210,0.75);font-size:12px;margin:0;line-height:1.5;">This order didn't save to the admin dashboard. Use the <strong>Backfill</strong> button after the DB is back online to import it from Stripe.</p>
+        </div>`
+    : "";
+
   const emailHtml = `
     <div style="background:#1a1612;padding:32px 16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
       <div style="max-width:560px;margin:0 auto;background:#221c16;border:1px solid rgba(234,230,210,0.12);border-radius:12px;overflow:hidden;">
@@ -223,6 +254,7 @@ async function handleShopOrder(stripe: Stripe, session: Stripe.Checkout.Session)
           <h1 style="color:#EAE6D2;font-size:22px;letter-spacing:0.03em;margin:0;font-weight:700;">New shop order — ${amountStr}</h1>
           <p style="color:rgba(234,230,210,0.55);font-size:12px;margin:8px 0 0;">${isShipping ? "Ship Aus-wide" : "Local pickup"} · Order #${session.id.slice(-10)}</p>
         </div>
+        ${dbWarningBanner}
 
         <div style="padding:22px 28px;border-bottom:1px solid rgba(234,230,210,0.1);">
           <p style="color:rgba(234,230,210,0.45);font-size:10px;letter-spacing:0.25em;text-transform:uppercase;margin:0 0 10px;font-weight:600;">Customer</p>
@@ -274,33 +306,38 @@ async function handleShopOrder(stripe: Stripe, session: Stripe.Checkout.Session)
     html: emailHtml,
   }).catch((e) => console.warn("[Email] Shop order notification failed:", e));
 
-  // Push notification to all subscribed devices
-  (async () => {
-    try {
-      const subs = await db.select().from(pushSubscriptions);
-      const pushBody = cartItems
-        .map((i) => {
-          const variant = parseVariantFromId(i.id);
-          return `${i.quantity}× ${i.name}${variant ? ` (${variant})` : ""}`;
-        })
-        .join(" · ");
-      for (const sub of subs) {
-        const result = await sendPushNotification(
-          { endpoint: sub.endpoint, keys: sub.keys },
-          {
-            title: `LFF Order · ${amountStr} · ${customerName}`,
-            body: `${pushBody}${isShipping ? " · Shipping" : " · Pickup"}`,
-            url: "/admin/leads",
+  // Push notification to all subscribed devices (skips silently if DB unavailable)
+  if (db) {
+    const dbForPush = db;
+    (async () => {
+      try {
+        const subs = await dbForPush.select().from(pushSubscriptions);
+        const pushBody = cartItems
+          .map((i) => {
+            const variant = parseVariantFromId(i.id);
+            return `${i.quantity}× ${i.name}${variant ? ` (${variant})` : ""}`;
+          })
+          .join(" · ");
+        for (const sub of subs) {
+          const result = await sendPushNotification(
+            { endpoint: sub.endpoint, keys: sub.keys },
+            {
+              title: `LFF Order · ${amountStr} · ${customerName}`,
+              body: `${pushBody}${isShipping ? " · Shipping" : " · Pickup"}`,
+              url: "/admin/leads",
+            }
+          );
+          if (result.error === "subscription_expired") {
+            await dbForPush.delete(pushSubscriptions).where(eq(pushSubscriptions.endpoint, sub.endpoint));
           }
-        );
-        if (result.error === "subscription_expired") {
-          await db.delete(pushSubscriptions).where(eq(pushSubscriptions.endpoint, sub.endpoint));
         }
+      } catch (e) {
+        console.warn("[Push] Shop order notification failed:", e);
       }
-    } catch (e) {
-      console.warn("[Push] Shop order notification failed:", e);
-    }
-  })();
+    })();
+  } else {
+    console.warn("[Push] Skipped — DB unavailable, can't load subscription list");
+  }
 }
 
 /**

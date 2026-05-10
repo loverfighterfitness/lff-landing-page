@@ -7,8 +7,7 @@ import { motion } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 import AnimatedLogo from "./AnimatedLogo";
 
-const HERO_IMAGE =
-  "https://d2xsxph8kpxj0f.cloudfront.net/310519663408040383/TeiTyUgvfabHNSBnznn263/DSC00890_1144300a.JPG";
+const HERO_IMAGE = "/hero.jpg";
 
 export default function HeroSection() {
   return (
@@ -50,8 +49,8 @@ export default function HeroSection() {
             className="mb-6 w-full"
           >
             <span
-              className="block font-display leading-[0.92] tracking-wide text-lff-cream text-center lg:text-left"
-              style={{ fontSize: "clamp(2.4rem, 6.5vw, 5.5rem)", fontWeight: 900 }}
+              className="block font-display leading-[0.95] tracking-tight text-lff-cream text-center lg:text-left"
+              style={{ fontSize: "clamp(1.82rem, 4.24vw, 3.63rem)", fontWeight: 800 }}
             >
               COACHING BUILT
             </span>
@@ -61,7 +60,7 @@ export default function HeroSection() {
                 fontFamily: "'Cormorant Garamond', Georgia, serif",
                 fontStyle: "italic",
                 fontWeight: 600,
-                fontSize: "clamp(2.6rem, 7.5vw, 7rem)",
+                fontSize: "clamp(1.98rem, 4.95vw, 4.62rem)",
                 color: "#EAE6D2",
                 opacity: 0.88,
               }}
@@ -185,7 +184,7 @@ export default function HeroSection() {
             <img
               src={HERO_IMAGE}
               alt="Levi Hurst — Lover Fighter Fitness"
-              className="w-full h-full object-cover object-top"
+              className="w-full h-full object-cover object-center"
               draggable={false}
             />
             {/* Gradient fade into background */}

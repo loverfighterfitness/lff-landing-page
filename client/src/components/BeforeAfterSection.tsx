@@ -29,9 +29,9 @@ const TRANSFORMATIONS: Transformation[] = [
     maxWidth: "260px",
     layout: "side" as const,
     before: "/transformations/before.jpg",
-    after: "/transformations/after.jpg",
+    after: "/transformations/ruby-after-new.jpg",
     beforeStyle: { position: "absolute", width: "100%", height: "auto", top: 0 },
-    afterStyle:  { position: "absolute", width: "100%", height: "auto", top: "45px" },
+    afterStyle:  { position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" as const, objectPosition: "center 20%" },
     afterLabel: "Comp Day",
     name: "Ruby",
     tag: "Comp Prep · Placed 2nd",
@@ -261,7 +261,7 @@ export default function BeforeAfterSection() {
               >
                 <p className="text-xs tracking-[0.3em] uppercase mb-2 font-black" style={{ color: "rgba(84,65,47,0.50)" }}>Client Results</p>
                 <p className="text-xs tracking-[0.2em] uppercase mb-4 font-bold" style={{ color: "rgba(84,65,47,0.40)" }}>{current.tag}</p>
-                <h2 className="font-display leading-[0.92] mb-6" style={{ color: "#54412F", fontSize: "clamp(1.6rem, 6vw, 4.5rem)", fontWeight: 900 }}>
+                <h2 className="font-display leading-[0.92] mb-6" style={{ color: "#54412F", fontSize: "clamp(1.45rem, 4.24vw, 3.39rem)", fontWeight: 800 }}>
                   THE PROOF<br /><span style={{ color: "rgba(84,65,47,0.45)" }}>IS IN THE RESULTS.</span>
                 </h2>
                 <p className="text-base leading-relaxed mb-8 font-normal" style={{ color: "rgba(84,65,47,0.75)" }}>{current.copy}</p>

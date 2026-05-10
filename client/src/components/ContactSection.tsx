@@ -123,7 +123,7 @@ export default function ContactSection() {
                 style={{ borderColor: 'rgba(84,65,47,0.25)' }}
               >
                 <CheckCircle size={40} className="mx-auto mb-4" style={{ color: 'rgba(84,65,47,0.60)' }} />
-                <h3 className="font-display text-2xl tracking-wider mb-2" style={{ color: '#54412F' }}>
+                <h3 className="font-display text-3xl tracking-wider mb-2" style={{ color: '#54412F' }}>
                   GOT IT — TALK SOON
                 </h3>
                 <p className="text-base font-normal leading-relaxed" style={{ color: 'rgba(84,65,47,0.70)' }}>

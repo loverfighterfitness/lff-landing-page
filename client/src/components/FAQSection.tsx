@@ -62,7 +62,7 @@ export default function FAQSection() {
             Got Questions
           </p>
           <h2
-            className="text-5xl md:text-6xl font-display tracking-wider text-lff-cream"
+            className="text-4xl md:text-5xl font-display tracking-wider text-lff-cream"
             style={{ fontFamily: "var(--font-display)" }}
           >
             FAQ

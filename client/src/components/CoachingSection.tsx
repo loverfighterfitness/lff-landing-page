@@ -25,7 +25,7 @@ interface Package {
 const packages: Package[] = [
   {
     name: "Online Coaching",
-    tagline: "Full-service coaching, anywhere in the world",
+    tagline: "Full-service coaching,\nanywhere in the world",
     price: "$80",
     priceNote: "/ week",
     valueAnchor: "Less than $12 a day",
@@ -44,7 +44,7 @@ const packages: Package[] = [
   },
   {
     name: "Comp Prep Coaching",
-    tagline: "Everything you need to step on stage",
+    tagline: "Everything you need\nto step on stage",
     price: "$120",
     priceNote: "/ week",
     valueAnchor: "Less than $18 a day",
@@ -209,11 +209,13 @@ function PackageCard({
           className="font-display leading-tight mb-8"
           style={{
             color: isInverted ? '#EAE6D2' : '#54412F',
-            fontSize: 'clamp(1.5rem, 3vw, 2rem)',
+            fontSize: 'clamp(1rem, 1.8vw, 1.35rem)',
             fontWeight: 800,
           }}
         >
-          {pkg.tagline}
+          {pkg.tagline.split('\n').map((line, i, arr) => (
+            <span key={i}>{line}{i < arr.length - 1 && <br />}</span>
+          ))}
         </h3>
 
         {/* Price — the hero */}
@@ -223,7 +225,7 @@ function PackageCard({
               className="font-display group-hover:scale-105 inline-block transition-transform duration-300 origin-left"
               style={{
                 color: isInverted ? '#EAE6D2' : '#54412F',
-                fontSize: 'clamp(5rem, 10vw, 7rem)',
+                fontSize: 'clamp(3.3rem, 6.6vw, 4.95rem)',
                 fontWeight: 900,
                 lineHeight: 0.9,
               }}
@@ -347,7 +349,7 @@ export default function CoachingSection() {
             </p>
             <h2
               className="font-display leading-[0.92] mb-4"
-              style={{ color: '#54412F', fontSize: 'clamp(3rem, 7vw, 5rem)', fontWeight: 900 }}
+              style={{ color: '#54412F', fontSize: 'clamp(2.18rem, 4.84vw, 3.63rem)', fontWeight: 800 }}
             >
               SERIOUS COACHING.
               <br />
@@ -359,7 +361,7 @@ export default function CoachingSection() {
           </motion.div>
 
           {/* Cards */}
-          <div className="grid md:grid-cols-2 gap-8 max-w-3xl mx-auto" style={{ perspective: "1400px" }}>
+          <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto" style={{ perspective: "1400px" }}>
             {packages.map((pkg, i) => (
               <PackageCard
                 key={i}

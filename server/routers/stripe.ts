@@ -30,6 +30,7 @@ export const stripeRouter = router({
       })
     )
     .mutation(async ({ input }) => {
+      console.log("[createShopCheckout] items:", JSON.stringify(input.items), "shipping:", input.shipping);
       const stripe = getStripe();
       const siteUrl = ENV.siteUrl;
 

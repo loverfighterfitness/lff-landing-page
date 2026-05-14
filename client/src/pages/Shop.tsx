@@ -416,6 +416,27 @@ function CartDrawer() {
 
   const handleCheckout = async () => {
     if (cartItems.length === 0) return;
+
+    // Instagram's in-app browser (WKWebView) sometimes blocks or mangles fetch
+    // requests. For single-product carts we can redirect straight to the
+    // pre-built Stripe payment link — no server round-trip needed.
+    const PAYMENT_LINKS: Record<string, string> = {
+      "socks-cream":    "https://buy.stripe.com/cNi8wPaYO4rtdZO1cQbwk06",
+      "socks-brown":    "https://buy.stripe.com/dRm8wP7MC0bd08Y1cQbwk07",
+      "lifting-straps": "https://buy.stripe.com/dRm8wP8QG9LN1d23kYbwk08",
+      "cuffs":          "https://buy.stripe.com/7sY4gz4Aq7DF8Fu1cQbwk09",
+    };
+    const isInstagram = /Instagram/i.test(navigator.userAgent);
+    if (isInstagram && cartItems.length === 1) {
+      const item = cartItems[0];
+      const link = PAYMENT_LINKS[item.id];
+      if (link) {
+        clearCart();
+        window.location.href = link;
+        return;
+      }
+    }
+
     try {
       const result = await checkoutMutation.mutateAsync({
         items: cartItems.map((i) => ({ id: i.id, name: i.name, price: i.price, priceId: i.priceId, quantity: i.quantity })),
@@ -426,6 +447,16 @@ function CartDrawer() {
         window.location.href = result.url;
       }
     } catch (err: unknown) {
+      // If the tRPC path fails in Instagram, fall back to individual payment links
+      if (isInstagram) {
+        const firstItem = cartItems[0];
+        const link = firstItem ? PAYMENT_LINKS[firstItem.id] : null;
+        if (link) {
+          clearCart();
+          window.location.href = link;
+          return;
+        }
+      }
       const msg = err instanceof Error ? err.message : String(err);
       alert("Checkout error: " + msg);
     }

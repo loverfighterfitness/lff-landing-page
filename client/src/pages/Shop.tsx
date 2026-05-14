@@ -406,6 +406,20 @@ function CartDrawer() {
   const [shipping, setShipping] = useState(false);
   const checkoutMutation = trpc.stripe.createShopCheckout.useMutation();
 
+  // Instagram's in-app browser blocks window.location.href for external domains.
+  // Detect it and resolve a direct Stripe payment link so we can render a real <a> tag.
+  const isInstagram = typeof navigator !== "undefined" && /Instagram/i.test(navigator.userAgent);
+  const INSTAGRAM_PAYMENT_LINKS: Record<string, string> = {
+    "socks-cream":    "https://buy.stripe.com/cNi8wPaYO4rtdZO1cQbwk06",
+    "socks-brown":    "https://buy.stripe.com/dRm8wP7MC0bd08Y1cQbwk07",
+    "lifting-straps": "https://buy.stripe.com/dRm8wP8QG9LN1d23kYbwk08",
+    "cuffs":          "https://buy.stripe.com/7sY4gz4Aq7DF8Fu1cQbwk09",
+  };
+  const instagramPaymentLink =
+    isInstagram && cartItems.length === 1
+      ? (INSTAGRAM_PAYMENT_LINKS[cartItems[0]?.id] ?? null)
+      : null;
+
   // Lock body scroll when open
   useEffect(() => {
     if (isCartOpen) {
@@ -726,38 +740,56 @@ function CartDrawer() {
                   </div>
                 </div>
 
-                {/* Checkout button */}
-                <motion.button
-                  onClick={handleCheckout}
-                  disabled={checkoutMutation.isPending}
-                  whileHover={{ scale: 1.015 }}
-                  whileTap={{ scale: 0.97 }}
-                  transition={{ type: "spring", stiffness: 400, damping: 17 }}
-                  className="w-full flex items-center justify-center gap-3 px-8 py-4.5 text-[11px] font-bold tracking-[0.2em] uppercase bg-lff-cream text-lff-brown hover:bg-lff-cream/90 transition-colors duration-300 cursor-pointer disabled:opacity-50"
-                  style={{
-                    borderRadius: PILL_RADIUS,
-                    boxShadow: "0 4px 24px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.3)",
-                  }}
-                >
-                  {checkoutMutation.isPending ? (
-                    <div className="relative overflow-hidden px-6">
-                      <span className="opacity-0">Checkout — ${total}</span>
-                      <motion.div
-                        className="absolute inset-0 rounded-full"
-                        style={{
-                          background: "linear-gradient(90deg, transparent 0%, rgba(84,65,47,0.3) 50%, transparent 100%)",
-                        }}
-                        animate={{ x: ["-100%", "100%"] }}
-                        transition={{ repeat: Infinity, duration: 1.2, ease: "easeInOut" }}
-                      />
-                    </div>
-                  ) : (
-                    <>
-                      <ArrowRight size={13} />
-                      <span>Checkout — ${total}</span>
-                    </>
-                  )}
-                </motion.button>
+                {/* Checkout button — real <a> tag in Instagram so WKWebView handles
+                    navigation natively without any JS redirect interception */}
+                {instagramPaymentLink ? (
+                  <a
+                    href={instagramPaymentLink}
+                    onClick={() => clearCart()}
+                    className="w-full flex items-center justify-center gap-3 px-8 py-4.5 text-[11px] font-bold tracking-[0.2em] uppercase bg-lff-cream text-lff-brown cursor-pointer"
+                    style={{
+                      borderRadius: PILL_RADIUS,
+                      boxShadow: "0 4px 24px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.3)",
+                      textDecoration: "none",
+                      display: "flex",
+                    }}
+                  >
+                    <ArrowRight size={13} />
+                    <span>Checkout — ${total}</span>
+                  </a>
+                ) : (
+                  <motion.button
+                    onClick={handleCheckout}
+                    disabled={checkoutMutation.isPending}
+                    whileHover={{ scale: 1.015 }}
+                    whileTap={{ scale: 0.97 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                    className="w-full flex items-center justify-center gap-3 px-8 py-4.5 text-[11px] font-bold tracking-[0.2em] uppercase bg-lff-cream text-lff-brown hover:bg-lff-cream/90 transition-colors duration-300 cursor-pointer disabled:opacity-50"
+                    style={{
+                      borderRadius: PILL_RADIUS,
+                      boxShadow: "0 4px 24px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.3)",
+                    }}
+                  >
+                    {checkoutMutation.isPending ? (
+                      <div className="relative overflow-hidden px-6">
+                        <span className="opacity-0">Checkout — ${total}</span>
+                        <motion.div
+                          className="absolute inset-0 rounded-full"
+                          style={{
+                            background: "linear-gradient(90deg, transparent 0%, rgba(84,65,47,0.3) 50%, transparent 100%)",
+                          }}
+                          animate={{ x: ["-100%", "100%"] }}
+                          transition={{ repeat: Infinity, duration: 1.2, ease: "easeInOut" }}
+                        />
+                      </div>
+                    ) : (
+                      <>
+                        <ArrowRight size={13} />
+                        <span>Checkout — ${total}</span>
+                      </>
+                    )}
+                  </motion.button>
+                )}
 
                 {/* Trust line */}
                 <p className="text-center text-lff-cream/20 text-[9px] tracking-[0.15em] uppercase">

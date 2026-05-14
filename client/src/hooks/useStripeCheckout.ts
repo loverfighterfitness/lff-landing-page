@@ -3,8 +3,15 @@
  * Redirects to Stripe payment links for checkout.
  * When a referral code is present, appends the 2-weeks-free promo code
  * directly to the payment link URL — no server session required.
+ *
+ * Instagram's in-app browser blocks external redirects to Stripe.
+ * We detect it and show a prompt to open in Safari/Chrome instead.
  */
 import { useState } from "react";
+
+export function isInstagramBrowser(): boolean {
+  return /Instagram/i.test(navigator.userAgent);
+}
 
 export type ProductKey =
   | "standardCoaching"
@@ -28,10 +35,9 @@ const REFERRAL_PROMO_CODE = "LFF2WEEKSFREE";
 
 export function useStripeCheckout() {
   const [loading, setLoading] = useState<ProductKey | null>(null);
+  const [instagramUrl, setInstagramUrl] = useState<string | null>(null);
 
   const checkout = (productKey: ProductKey) => {
-    setLoading(productKey);
-
     let url = PAYMENT_LINKS[productKey];
 
     // If the user arrived via a referral link, pre-fill the promo code
@@ -40,11 +46,18 @@ export function useStripeCheckout() {
       url += `?prefilled_promo_code=${REFERRAL_PROMO_CODE}`;
     }
 
-    window.location.href = url;
+    // Instagram's in-app browser blocks Stripe redirects — show prompt instead
+    if (isInstagramBrowser()) {
+      setInstagramUrl(url);
+      return;
+    }
 
-    // Reset loading after a short delay (navigation may take a moment)
+    setLoading(productKey);
+    window.location.href = url;
     setTimeout(() => setLoading(null), 3000);
   };
 
-  return { checkout, loading };
+  const dismissInstagram = () => setInstagramUrl(null);
+
+  return { checkout, loading, instagramUrl, dismissInstagram };
 }

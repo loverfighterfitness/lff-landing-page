@@ -9,6 +9,7 @@ import { motion, useMotionValue, useTransform, useSpring } from "framer-motion";
 import { Check, ArrowRight, Zap, Star, Loader2 } from "lucide-react";
 import { useRef, useState, useEffect } from "react";
 import { useStripeCheckout, type ProductKey } from "@/hooks/useStripeCheckout";
+import EmbeddedCheckoutModal from "@/components/EmbeddedCheckoutModal";
 
 interface Package {
   name: string;
@@ -323,39 +324,18 @@ function PackageCard({
 }
 
 export default function CoachingSection() {
-  const { checkout, loading, instagramUrl, dismissInstagram } = useStripeCheckout();
+  const { checkout, loading, embeddedSession, closeEmbedded } = useStripeCheckout();
 
   return (
     <section id="coaching" className="grain-overlay relative py-24 md:py-32" style={{ backgroundColor: '#54412F' }}>
 
-      {/* Instagram browser checkout prompt */}
-      {instagramUrl && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-6"
-          style={{ backgroundColor: 'rgba(0,0,0,0.7)' }}
-          onClick={dismissInstagram}
-        >
-          <div
-            className="rounded-2xl p-8 max-w-sm w-full text-center"
-            style={{ backgroundColor: '#EAE6D2' }}
-            onClick={e => e.stopPropagation()}
-          >
-            <p className="text-2xl mb-3">📲</p>
-            <h3 className="font-display text-xl font-bold mb-3" style={{ color: '#54412F' }}>
-              Open in Safari or Chrome
-            </h3>
-            <p className="text-sm leading-relaxed mb-6" style={{ color: 'rgba(84,65,47,0.70)' }}>
-              Instagram's browser doesn't support checkout. Tap the <strong>···</strong> menu (top right) and select <strong>"Open in Browser"</strong> to complete your purchase.
-            </p>
-            <button
-              onClick={dismissInstagram}
-              className="w-full py-3 rounded-full font-bold text-sm tracking-wider uppercase"
-              style={{ backgroundColor: '#54412F', color: '#EAE6D2' }}
-            >
-              Got it
-            </button>
-          </div>
-        </div>
+      {/* Embedded Stripe Checkout Modal */}
+      {embeddedSession && (
+        <EmbeddedCheckoutModal
+          clientSecret={embeddedSession.clientSecret}
+          publishableKey={embeddedSession.publishableKey}
+          onClose={closeEmbedded}
+        />
       )}
       <div className="container">
         {/* Floating cream outer panel */}

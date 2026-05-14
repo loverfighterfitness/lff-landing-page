@@ -87,6 +87,45 @@ export const stripeRouter = router({
       return { url: session.url };
     }),
 
+  createEmbeddedCheckoutSession: publicProcedure
+    .input(
+      z.object({
+        productKey: z.enum(["standardCoaching", "compPrepCoaching"]),
+        origin: z.string().url(),
+        referralCode: z.string().max(32).optional(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const stripe = getStripe();
+      const product = STRIPE_PRODUCTS[input.productKey as ProductKey];
+
+      const returnUrl = `${input.origin}/success?session_id={CHECKOUT_SESSION_ID}&package=${input.productKey}${input.referralCode ? `&ref=${input.referralCode}` : ""}`;
+
+      const sessionParams: Stripe.Checkout.SessionCreateParams = {
+        ui_mode: "embedded",
+        mode: "subscription",
+        line_items: [{ price: product.priceId, quantity: 1 }],
+        payment_method_types: ["card"],
+        return_url: returnUrl,
+        allow_promotion_codes: !input.referralCode,
+        metadata: {
+          product_key: input.productKey,
+          product_name: product.name,
+          referral_code: input.referralCode ?? "",
+        },
+      };
+
+      if (input.referralCode) {
+        sessionParams.discounts = [{ coupon: "LFF_REFERRAL_2WEEKS" }];
+      }
+
+      const session = await stripe.checkout.sessions.create(sessionParams);
+      return {
+        clientSecret: session.client_secret!,
+        publishableKey: ENV.stripePublishableKey,
+      };
+    }),
+
   createCheckoutSession: publicProcedure
     .input(
       z.object({

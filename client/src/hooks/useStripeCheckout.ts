@@ -1,17 +1,11 @@
 /**
  * useStripeCheckout
- * Redirects to Stripe payment links for checkout.
- * When a referral code is present, appends the 2-weeks-free promo code
- * directly to the payment link URL — no server session required.
- *
- * Instagram's in-app browser blocks external redirects to Stripe.
- * We detect it and show a prompt to open in Safari/Chrome instead.
+ * Uses Stripe Embedded Checkout — the full payment form renders in a modal
+ * directly on the page. No external redirects, works in every browser
+ * including Instagram's in-app browser.
  */
 import { useState } from "react";
-
-export function isInstagramBrowser(): boolean {
-  return /Instagram/i.test(navigator.userAgent);
-}
+import { trpc } from "@/lib/trpc";
 
 export type ProductKey =
   | "standardCoaching"
@@ -21,43 +15,49 @@ export type ProductKey =
   | "liftingStraps"
   | "cuffs";
 
-const PAYMENT_LINKS: Record<ProductKey, string> = {
-  standardCoaching: "https://buy.stripe.com/3cI00j4Aq0bdf3S08Mbwk04",
-  compPrepCoaching: "https://buy.stripe.com/3cI9AT9UK7DFaNC1cQbwk05",
-  socksCream: "https://buy.stripe.com/cNi8wPaYO4rtdZO1cQbwk06",
-  socksBrown: "https://buy.stripe.com/dRm8wP7MC0bd08Y1cQbwk07",
-  liftingStraps: "https://buy.stripe.com/dRm8wP8QG9LN1d23kYbwk08",
-  cuffs: "https://buy.stripe.com/7sY4gz4Aq7DF8Fu1cQbwk09",
-};
-
-// The coupon ID on the live Stripe account for referral 2-weeks-free discount
-const REFERRAL_PROMO_CODE = "LFF2WEEKSFREE";
+interface EmbeddedSession {
+  clientSecret: string;
+  publishableKey: string;
+}
 
 export function useStripeCheckout() {
   const [loading, setLoading] = useState<ProductKey | null>(null);
-  const [instagramUrl, setInstagramUrl] = useState<string | null>(null);
+  const [embeddedSession, setEmbeddedSession] = useState<EmbeddedSession | null>(null);
 
-  const checkout = (productKey: ProductKey) => {
-    let url = PAYMENT_LINKS[productKey];
+  const createEmbeddedSession = trpc.stripe.createEmbeddedCheckoutSession.useMutation();
 
-    // If the user arrived via a referral link, pre-fill the promo code
-    const referralCode = sessionStorage.getItem("lff_referral_code");
-    if (referralCode) {
-      url += `?prefilled_promo_code=${REFERRAL_PROMO_CODE}`;
-    }
-
-    // Instagram's in-app browser blocks Stripe redirects — show prompt instead
-    if (isInstagramBrowser()) {
-      setInstagramUrl(url);
+  const checkout = async (productKey: ProductKey) => {
+    // Shop products still use payment links (they're one-time, not subscriptions)
+    const shopProducts = ["socksCream", "socksBrown", "liftingStraps", "cuffs"];
+    if (shopProducts.includes(productKey)) {
+      const PAYMENT_LINKS: Record<string, string> = {
+        socksCream: "https://buy.stripe.com/cNi8wPaYO4rtdZO1cQbwk06",
+        socksBrown: "https://buy.stripe.com/dRm8wP7MC0bd08Y1cQbwk07",
+        liftingStraps: "https://buy.stripe.com/dRm8wP8QG9LN1d23kYbwk08",
+        cuffs: "https://buy.stripe.com/7sY4gz4Aq7DF8Fu1cQbwk09",
+      };
+      window.location.href = PAYMENT_LINKS[productKey];
       return;
     }
 
+    // Coaching packages — use embedded checkout
     setLoading(productKey);
-    window.location.href = url;
-    setTimeout(() => setLoading(null), 3000);
+    try {
+      const referralCode = sessionStorage.getItem("lff_referral_code") ?? undefined;
+      const result = await createEmbeddedSession.mutateAsync({
+        productKey: productKey as "standardCoaching" | "compPrepCoaching",
+        origin: window.location.origin,
+        referralCode,
+      });
+      setEmbeddedSession({ clientSecret: result.clientSecret, publishableKey: result.publishableKey });
+    } catch (err) {
+      console.error("Checkout error:", err);
+    } finally {
+      setLoading(null);
+    }
   };
 
-  const dismissInstagram = () => setInstagramUrl(null);
+  const closeEmbedded = () => setEmbeddedSession(null);
 
-  return { checkout, loading, instagramUrl, dismissInstagram };
+  return { checkout, loading, embeddedSession, closeEmbedded };
 }

@@ -415,22 +415,29 @@ function CartDrawer() {
     }
   }, [isCartOpen]);
 
+  const isInstagram = typeof navigator !== "undefined" && /Instagram/.test(navigator.userAgent);
+
   const handleCheckout = async () => {
     if (cartItems.length === 0) return;
+
+    // Instagram's in-app browser cannot handle Stripe checkout at all.
+    // Route users to Safari where it works perfectly.
+    if (isInstagram) {
+      const safariUrl = "x-safari-https://www.loverfighterfitness.com/shop";
+      window.location.href = safariUrl;
+      return;
+    }
+
     try {
       const result = await checkoutMutation.mutateAsync({
         items: cartItems.map((i) => ({ id: i.id, name: i.name, price: i.price, priceId: i.priceId, quantity: i.quantity })),
         shipping,
       });
-      if (!result.clientSecret) { alert("No client secret returned"); return; }
-      if (!result.publishableKey) { alert("No publishable key returned"); return; }
       clearCart();
       setCartOpen(false);
       setEmbeddedSession({ clientSecret: result.clientSecret, publishableKey: result.publishableKey });
-      setTimeout(() => { if (document.querySelector('[data-embedded-checkout]') === null) alert("Modal rendered but Stripe form missing"); }, 3000);
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : String(err);
-      alert("Error: " + msg);
+    } catch (err) {
+      console.error("Checkout error:", err);
     }
   };
 

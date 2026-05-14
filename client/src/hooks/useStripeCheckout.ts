@@ -26,7 +26,16 @@ export function useStripeCheckout() {
 
   const createEmbeddedSession = trpc.stripe.createEmbeddedCheckoutSession.useMutation();
 
+  const isInstagram = typeof navigator !== "undefined" && /Instagram/.test(navigator.userAgent);
+
   const checkout = async (productKey: ProductKey) => {
+    // Instagram's in-app browser blocks all external Stripe redirects.
+    // Send user to Safari where checkout works normally.
+    if (isInstagram) {
+      window.location.href = "x-safari-https://www.loverfighterfitness.com/#coaching";
+      return;
+    }
+
     // Shop products still use payment links (they're one-time, not subscriptions)
     const shopProducts = ["socksCream", "socksBrown", "liftingStraps", "cuffs"];
     if (shopProducts.includes(productKey)) {

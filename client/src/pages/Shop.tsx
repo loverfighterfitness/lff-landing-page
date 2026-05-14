@@ -421,7 +421,6 @@ function CartDrawer() {
       const result = await checkoutMutation.mutateAsync({
         items: cartItems.map((i) => ({ id: i.id, name: i.name, price: i.price, priceId: i.priceId, quantity: i.quantity })),
         shipping,
-        origin: window.location.origin,
       });
       if (!result.clientSecret) { alert("No client secret returned"); return; }
       if (!result.publishableKey) { alert("No publishable key returned"); return; }

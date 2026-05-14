@@ -46,7 +46,6 @@ export function useStripeCheckout() {
       const referralCode = sessionStorage.getItem("lff_referral_code") ?? undefined;
       const result = await createEmbeddedSession.mutateAsync({
         productKey: productKey as "standardCoaching" | "compPrepCoaching",
-        origin: window.location.origin,
         referralCode,
       });
       setEmbeddedSession({ clientSecret: result.clientSecret, publishableKey: result.publishableKey });

@@ -100,11 +100,11 @@ export const stripeRouter = router({
           })
         ).min(1),
         shipping: z.boolean(),
-        origin: z.string().min(1),
       })
     )
     .mutation(async ({ input }) => {
       const stripe = getStripe();
+      const siteUrl = ENV.siteUrl;
 
       const line_items: Stripe.Checkout.SessionCreateParams.LineItem[] =
         input.items.map((item) => ({
@@ -138,7 +138,7 @@ export const stripeRouter = router({
         ui_mode: "embedded",
         mode: "payment",
         line_items,
-        return_url: `${input.origin}/shop?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
+        return_url: `${siteUrl}/shop?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
         phone_number_collection: { enabled: true },
         metadata: {
           type: "shop_order",
@@ -161,15 +161,15 @@ export const stripeRouter = router({
     .input(
       z.object({
         productKey: z.enum(["standardCoaching", "compPrepCoaching"]),
-        origin: z.string().min(1),
         referralCode: z.string().max(32).optional(),
       })
     )
     .mutation(async ({ input }) => {
       const stripe = getStripe();
       const product = STRIPE_PRODUCTS[input.productKey as ProductKey];
+      const siteUrl = ENV.siteUrl;
 
-      const returnUrl = `${input.origin}/success?session_id={CHECKOUT_SESSION_ID}&package=${input.productKey}${input.referralCode ? `&ref=${input.referralCode}` : ""}`;
+      const returnUrl = `${siteUrl}/success?session_id={CHECKOUT_SESSION_ID}&package=${input.productKey}${input.referralCode ? `&ref=${input.referralCode}` : ""}`;
 
       const sessionParams: Stripe.Checkout.SessionCreateParams = {
         ui_mode: "embedded",

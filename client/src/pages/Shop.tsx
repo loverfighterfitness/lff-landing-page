@@ -17,6 +17,7 @@ import { ArrowRight, Instagram, RotateCcw, MapPin, Truck, X, ShoppingBag, Shoppi
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { trpc } from "@/lib/trpc";
+import EmbeddedCheckoutModal from "@/components/EmbeddedCheckoutModal";
 
 /* ─── CDN Assets ─── */
 const LOGO_TRANSPARENT =
@@ -403,7 +404,8 @@ function CartDrawer() {
     removeFromCart, updateQuantity, clearCart,
   } = useContext(CartContext);
   const [shipping, setShipping] = useState(false);
-  const checkoutMutation = trpc.stripe.createShopCheckout.useMutation();
+  const [embeddedSession, setEmbeddedSession] = useState<{ clientSecret: string; publishableKey: string } | null>(null);
+  const checkoutMutation = trpc.stripe.createEmbeddedShopCheckout.useMutation();
 
   // Lock body scroll when open
   useEffect(() => {
@@ -421,10 +423,9 @@ function CartDrawer() {
         shipping,
         origin: window.location.origin,
       });
-      if (result.url) {
-        clearCart();
-        window.location.href = result.url;
-      }
+      clearCart();
+      setCartOpen(false);
+      setEmbeddedSession({ clientSecret: result.clientSecret, publishableKey: result.publishableKey });
     } catch (err) {
       console.error("Checkout error:", err);
     }
@@ -433,6 +434,14 @@ function CartDrawer() {
   const total = cartTotal + (shipping ? SHIPPING_COST : 0);
 
   return (
+    <>
+      {embeddedSession && (
+        <EmbeddedCheckoutModal
+          clientSecret={embeddedSession.clientSecret}
+          publishableKey={embeddedSession.publishableKey}
+          onClose={() => setEmbeddedSession(null)}
+        />
+      )}
     <AnimatePresence>
       {isCartOpen && (
         <motion.div
@@ -737,6 +746,7 @@ function CartDrawer() {
         </motion.div>
       )}
     </AnimatePresence>
+    </>
   );
 }
 

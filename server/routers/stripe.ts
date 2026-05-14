@@ -87,6 +87,76 @@ export const stripeRouter = router({
       return { url: session.url };
     }),
 
+  createEmbeddedShopCheckout: publicProcedure
+    .input(
+      z.object({
+        items: z.array(
+          z.object({
+            id: z.string(),
+            name: z.string(),
+            price: z.number(),
+            priceId: z.string(),
+            quantity: z.number().int().min(1),
+          })
+        ).min(1),
+        shipping: z.boolean(),
+        origin: z.string().url(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const stripe = getStripe();
+
+      const line_items: Stripe.Checkout.SessionCreateParams.LineItem[] =
+        input.items.map((item) => ({
+          price: item.priceId,
+          quantity: item.quantity,
+        }));
+
+      if (input.shipping) {
+        line_items.push({
+          price_data: {
+            currency: "aud",
+            product_data: {
+              name: "Aus-Wide Shipping",
+              description: "Flat-rate shipping Australia-wide",
+            },
+            unit_amount: 1000,
+          },
+          quantity: 1,
+        });
+      }
+
+      const itemsForMeta = input.items.map((i) => ({
+        id: i.id,
+        name: i.name,
+        price: i.price,
+        priceId: i.priceId,
+        quantity: i.quantity,
+      }));
+
+      const sessionParams: Stripe.Checkout.SessionCreateParams = {
+        ui_mode: "embedded",
+        mode: "payment",
+        line_items,
+        return_url: `${input.origin}/shop?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
+        phone_number_collection: { enabled: true },
+        metadata: {
+          type: "shop_order",
+          items_json: JSON.stringify(itemsForMeta),
+          is_shipping: input.shipping ? "true" : "false",
+        },
+        ...(input.shipping
+          ? { shipping_address_collection: { allowed_countries: ["AU"] } }
+          : {}),
+      };
+
+      const session = await stripe.checkout.sessions.create(sessionParams);
+      return {
+        clientSecret: session.client_secret!,
+        publishableKey: ENV.stripePublishableKey,
+      };
+    }),
+
   createEmbeddedCheckoutSession: publicProcedure
     .input(
       z.object({

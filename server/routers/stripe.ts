@@ -27,7 +27,7 @@ export const stripeRouter = router({
           })
         ).min(1),
         shipping: z.boolean(),
-        origin: z.string().url(),
+        origin: z.string().min(1),
       })
     )
     .mutation(async ({ input }) => {
@@ -100,7 +100,7 @@ export const stripeRouter = router({
           })
         ).min(1),
         shipping: z.boolean(),
-        origin: z.string().url(),
+        origin: z.string().min(1),
       })
     )
     .mutation(async ({ input }) => {
@@ -161,7 +161,7 @@ export const stripeRouter = router({
     .input(
       z.object({
         productKey: z.enum(["standardCoaching", "compPrepCoaching"]),
-        origin: z.string().url(),
+        origin: z.string().min(1),
         referralCode: z.string().max(32).optional(),
       })
     )
@@ -200,7 +200,7 @@ export const stripeRouter = router({
     .input(
       z.object({
         productKey: z.enum(["standardCoaching", "compPrepCoaching"]),
-        origin: z.string().url(),
+        origin: z.string().min(1),
         // Referral code — if present, apply the 2-weeks-free coupon
         referralCode: z.string().max(32).optional(),
       })

@@ -426,10 +426,8 @@ function CartDrawer() {
       clearCart();
       setCartOpen(false);
       setEmbeddedSession({ clientSecret: result.clientSecret, publishableKey: result.publishableKey });
-    } catch (err: unknown) {
+    } catch (err) {
       console.error("Checkout error:", err);
-      const msg = err instanceof Error ? err.message : String(err);
-      alert("Checkout error: " + msg);
     }
   };
 

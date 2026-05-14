@@ -27,11 +27,11 @@ export const stripeRouter = router({
           })
         ).min(1),
         shipping: z.boolean(),
-        origin: z.string().min(1),
       })
     )
     .mutation(async ({ input }) => {
       const stripe = getStripe();
+      const siteUrl = ENV.siteUrl;
 
       const line_items: Stripe.Checkout.SessionCreateParams.LineItem[] =
         input.items.map((item) => ({
@@ -66,8 +66,8 @@ export const stripeRouter = router({
       const sessionParams: Stripe.Checkout.SessionCreateParams = {
         mode: "payment",
         line_items,
-        success_url: `${input.origin}/shop?checkout=success`,
-        cancel_url: `${input.origin}/shop`,
+        success_url: `${siteUrl}/shop?checkout=success`,
+        cancel_url: `${siteUrl}/shop`,
         phone_number_collection: { enabled: true },
         metadata: {
           type: "shop_order",
@@ -200,7 +200,6 @@ export const stripeRouter = router({
     .input(
       z.object({
         productKey: z.enum(["standardCoaching", "compPrepCoaching"]),
-        origin: z.string().min(1),
         // Referral code — if present, apply the 2-weeks-free coupon
         referralCode: z.string().max(32).optional(),
       })
@@ -208,6 +207,7 @@ export const stripeRouter = router({
     .mutation(async ({ input }) => {
       const stripe = getStripe();
       const product = STRIPE_PRODUCTS[input.productKey as ProductKey];
+      const siteUrl = ENV.siteUrl;
 
       const sessionParams: Stripe.Checkout.SessionCreateParams = {
         mode: "subscription",
@@ -218,8 +218,8 @@ export const stripeRouter = router({
           },
         ],
         payment_method_types: ["card"],
-        success_url: `${input.origin}/success?session_id={CHECKOUT_SESSION_ID}&package=${input.productKey}${input.referralCode ? `&ref=${input.referralCode}` : ""}`,
-        cancel_url: `${input.origin}/#coaching`,
+        success_url: `${siteUrl}/success?session_id={CHECKOUT_SESSION_ID}&package=${input.productKey}${input.referralCode ? `&ref=${input.referralCode}` : ""}`,
+        cancel_url: `${siteUrl}/#coaching`,
         allow_promotion_codes: !input.referralCode, // disable manual promo codes when referral coupon is applied
         metadata: {
           product_key: input.productKey,

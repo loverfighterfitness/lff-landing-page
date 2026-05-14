@@ -1,9 +1,3 @@
-/**
- * useStripeCheckout
- * Uses Stripe Embedded Checkout — the full payment form renders in a modal
- * directly on the page. No external redirects, works in every browser
- * including Instagram's in-app browser.
- */
 import { useState } from "react";
 import { trpc } from "@/lib/trpc";
 
@@ -15,28 +9,13 @@ export type ProductKey =
   | "liftingStraps"
   | "cuffs";
 
-interface EmbeddedSession {
-  clientSecret: string;
-  publishableKey: string;
-}
-
 export function useStripeCheckout() {
   const [loading, setLoading] = useState<ProductKey | null>(null);
-  const [embeddedSession, setEmbeddedSession] = useState<EmbeddedSession | null>(null);
 
-  const createEmbeddedSession = trpc.stripe.createEmbeddedCheckoutSession.useMutation();
-
-  const isInstagram = typeof navigator !== "undefined" && /Instagram/.test(navigator.userAgent);
+  const createSession = trpc.stripe.createCheckoutSession.useMutation();
 
   const checkout = async (productKey: ProductKey) => {
-    // Instagram's in-app browser blocks all external Stripe redirects.
-    // Send user to Safari where checkout works normally.
-    if (isInstagram) {
-      window.location.href = "x-safari-https://www.loverfighterfitness.com/#coaching";
-      return;
-    }
-
-    // Shop products still use payment links (they're one-time, not subscriptions)
+    // Shop products use payment links (one-time purchases)
     const shopProducts = ["socksCream", "socksBrown", "liftingStraps", "cuffs"];
     if (shopProducts.includes(productKey)) {
       const PAYMENT_LINKS: Record<string, string> = {
@@ -49,15 +28,15 @@ export function useStripeCheckout() {
       return;
     }
 
-    // Coaching packages — use embedded checkout
+    // Coaching packages — redirect to Stripe hosted checkout
     setLoading(productKey);
     try {
       const referralCode = sessionStorage.getItem("lff_referral_code") ?? undefined;
-      const result = await createEmbeddedSession.mutateAsync({
+      const result = await createSession.mutateAsync({
         productKey: productKey as "standardCoaching" | "compPrepCoaching",
         referralCode,
       });
-      setEmbeddedSession({ clientSecret: result.clientSecret, publishableKey: result.publishableKey });
+      if (result.url) window.location.href = result.url;
     } catch (err) {
       console.error("Checkout error:", err);
     } finally {
@@ -65,7 +44,5 @@ export function useStripeCheckout() {
     }
   };
 
-  const closeEmbedded = () => setEmbeddedSession(null);
-
-  return { checkout, loading, embeddedSession, closeEmbedded };
+  return { checkout, loading, embeddedSession: null, closeEmbedded: () => {} };
 }

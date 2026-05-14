@@ -404,8 +404,7 @@ function CartDrawer() {
     removeFromCart, updateQuantity, clearCart,
   } = useContext(CartContext);
   const [shipping, setShipping] = useState(false);
-  const [embeddedSession, setEmbeddedSession] = useState<{ clientSecret: string; publishableKey: string } | null>(null);
-  const checkoutMutation = trpc.stripe.createEmbeddedShopCheckout.useMutation();
+  const checkoutMutation = trpc.stripe.createShopCheckout.useMutation();
 
   // Lock body scroll when open
   useEffect(() => {
@@ -415,27 +414,17 @@ function CartDrawer() {
     }
   }, [isCartOpen]);
 
-  const isInstagram = typeof navigator !== "undefined" && /Instagram/.test(navigator.userAgent);
-
   const handleCheckout = async () => {
     if (cartItems.length === 0) return;
-
-    // Instagram's in-app browser cannot handle Stripe checkout at all.
-    // Route users to Safari where it works perfectly.
-    if (isInstagram) {
-      const safariUrl = "x-safari-https://www.loverfighterfitness.com/shop";
-      window.location.href = safariUrl;
-      return;
-    }
-
     try {
       const result = await checkoutMutation.mutateAsync({
         items: cartItems.map((i) => ({ id: i.id, name: i.name, price: i.price, priceId: i.priceId, quantity: i.quantity })),
         shipping,
       });
-      clearCart();
-      setCartOpen(false);
-      setEmbeddedSession({ clientSecret: result.clientSecret, publishableKey: result.publishableKey });
+      if (result.url) {
+        clearCart();
+        window.location.href = result.url;
+      }
     } catch (err) {
       console.error("Checkout error:", err);
     }
@@ -444,14 +433,6 @@ function CartDrawer() {
   const total = cartTotal + (shipping ? SHIPPING_COST : 0);
 
   return (
-    <>
-      {embeddedSession && (
-        <EmbeddedCheckoutModal
-          clientSecret={embeddedSession.clientSecret}
-          publishableKey={embeddedSession.publishableKey}
-          onClose={() => setEmbeddedSession(null)}
-        />
-      )}
     <AnimatePresence>
       {isCartOpen && (
         <motion.div
@@ -756,7 +737,6 @@ function CartDrawer() {
         </motion.div>
       )}
     </AnimatePresence>
-    </>
   );
 }
 

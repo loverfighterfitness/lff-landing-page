@@ -423,11 +423,15 @@ function CartDrawer() {
         shipping,
         origin: window.location.origin,
       });
+      if (!result.clientSecret) { alert("No client secret returned"); return; }
+      if (!result.publishableKey) { alert("No publishable key returned"); return; }
       clearCart();
       setCartOpen(false);
       setEmbeddedSession({ clientSecret: result.clientSecret, publishableKey: result.publishableKey });
-    } catch (err) {
-      console.error("Checkout error:", err);
+      setTimeout(() => { if (document.querySelector('[data-embedded-checkout]') === null) alert("Modal rendered but Stripe form missing"); }, 3000);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      alert("Error: " + msg);
     }
   };
 

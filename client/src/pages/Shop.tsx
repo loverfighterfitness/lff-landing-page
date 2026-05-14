@@ -414,10 +414,17 @@ function CartDrawer() {
     "socks-brown":    "https://buy.stripe.com/dRm8wP7MC0bd08Y1cQbwk07",
     "lifting-straps": "https://buy.stripe.com/dRm8wP8QG9LN1d23kYbwk08",
     "cuffs":          "https://buy.stripe.com/7sY4gz4Aq7DF8Fu1cQbwk09",
+    "goat-pack":      "https://buy.stripe.com/cNi3cv9UKe236xm9Jmbwk0a",
+  };
+  const resolveInstagramLink = (id: string): string | null => {
+    if (INSTAGRAM_PAYMENT_LINKS[id]) return INSTAGRAM_PAYMENT_LINKS[id];
+    // tee IDs are dynamic: "tee-{colour}-{size}" and "tee-3-pack-..."
+    if (id.startsWith("tee-")) return "https://buy.stripe.com/cNi3cv9UKe236xm9Jmbwk0a";
+    return null;
   };
   const instagramPaymentLink =
     isInstagram && cartItems.length === 1
-      ? (INSTAGRAM_PAYMENT_LINKS[cartItems[0]?.id] ?? null)
+      ? resolveInstagramLink(cartItems[0]?.id)
       : null;
 
   // Lock body scroll when open
@@ -439,11 +446,13 @@ function CartDrawer() {
       "socks-brown":    "https://buy.stripe.com/dRm8wP7MC0bd08Y1cQbwk07",
       "lifting-straps": "https://buy.stripe.com/dRm8wP8QG9LN1d23kYbwk08",
       "cuffs":          "https://buy.stripe.com/7sY4gz4Aq7DF8Fu1cQbwk09",
+      "goat-pack":      "https://buy.stripe.com/cNi3cv9UKe236xm9Jmbwk0a",
     };
+    const resolveLink = (id: string) =>
+      PAYMENT_LINKS[id] ?? (id.startsWith("tee-") ? "https://buy.stripe.com/cNi3cv9UKe236xm9Jmbwk0a" : null);
     const isInstagram = /Instagram/i.test(navigator.userAgent);
     if (isInstagram && cartItems.length === 1) {
-      const item = cartItems[0];
-      const link = PAYMENT_LINKS[item.id];
+      const link = resolveLink(cartItems[0].id);
       if (link) {
         clearCart();
         window.location.href = link;
@@ -464,7 +473,7 @@ function CartDrawer() {
       // If the tRPC path fails in Instagram, fall back to individual payment links
       if (isInstagram) {
         const firstItem = cartItems[0];
-        const link = firstItem ? PAYMENT_LINKS[firstItem.id] : null;
+        const link = firstItem ? resolveLink(firstItem.id) : null;
         if (link) {
           clearCart();
           window.location.href = link;

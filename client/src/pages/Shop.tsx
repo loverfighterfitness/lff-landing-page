@@ -425,8 +425,9 @@ function CartDrawer() {
         clearCart();
         window.location.href = result.url;
       }
-    } catch (err) {
-      console.error("Checkout error:", err);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      alert("Checkout error: " + msg);
     }
   };
 

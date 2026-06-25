@@ -8,6 +8,7 @@ import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 import { handleStripeWebhook } from "../stripe/webhook";
+import { handleProgramDownload } from "../program/delivery";
 import { startSmsScheduler } from "../smsScheduler";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -59,6 +60,8 @@ async function startServer() {
       createContext,
     })
   );
+  // Secure download for the purchased program PDF (validates a signed token)
+  app.get("/api/program/download", handleProgramDownload);
   // development mode uses Vite, production mode uses static files
   if (process.env.NODE_ENV === "development") {
     await setupVite(app, server);

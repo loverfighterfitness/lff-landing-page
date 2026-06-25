@@ -11,6 +11,7 @@ import AdminLeads from "./pages/AdminLeads";
 import Success from "./pages/Success";
 import Referral from "./pages/Referral";
 import Shop from "./pages/Shop";
+import Program from "./pages/Program";
 
 
 function Router() {
@@ -22,6 +23,7 @@ function Router() {
       <Route path={"/admin"} component={Admin} />
       <Route path={"/admin/leads"} component={AdminLeads} />
       <Route path={"/shop"} component={Shop} />
+      <Route path={"/program"} component={Program} />
       <Route path={"/success"} component={Success} />
       <Route path={"/ref/:code"} component={Referral} />
 

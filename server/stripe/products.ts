@@ -58,6 +58,15 @@ export const STRIPE_PRODUCTS = {
     priceId: "price_1TJoJJELc7CqpluZsFeM7SfV",
     paymentLinkUrl: "",
   },
+  // Downloadable program — The Hypertrophy Meta ($60 AUD one-off, live).
+  // Stripe: product prod_UleaFnjTrALzrQ · price price_1Tm7HNELc7CqpluZHgF9i3KB
+  // Founders launch: promo code FOUNDERS (coupon HaUsd3Qc, 50% off once, max 25 redemptions).
+  programMeta: {
+    name: "The Hypertrophy Meta — Program",
+    description: "Self-guided upper/lower hypertrophy program (PDF). One-off, yours forever.",
+    priceId: "price_1Tm7HNELc7CqpluZHgF9i3KB",
+    paymentLinkUrl: "",
+  },
 } as const;
 
 export type ProductKey = keyof typeof STRIPE_PRODUCTS;

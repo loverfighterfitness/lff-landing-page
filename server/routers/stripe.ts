@@ -14,6 +14,29 @@ function getStripe() {
 }
 
 export const stripeRouter = router({
+  // One-off downloadable program (The Hypertrophy Meta). Hosted Stripe Checkout,
+  // delivered by emailed signed link via the webhook. allow_promotion_codes lets
+  // a "FOUNDERS" code (50% off, max_redemptions: 25) apply the launch price.
+  createProgramCheckout: publicProcedure.mutation(async () => {
+    const stripe = getStripe();
+    const siteUrl = ENV.siteUrl;
+    const product = STRIPE_PRODUCTS.programMeta;
+
+    const session = await stripe.checkout.sessions.create({
+      mode: "payment",
+      line_items: [{ price: product.priceId, quantity: 1 }],
+      success_url: `${siteUrl}/program?checkout=success`,
+      cancel_url: `${siteUrl}/program?checkout=cancelled`,
+      allow_promotion_codes: true,
+      metadata: {
+        type: "program_order",
+        product_name: product.name,
+      },
+    });
+
+    return { url: session.url };
+  }),
+
   createShopCheckout: publicProcedure
     .input(
       z.object({

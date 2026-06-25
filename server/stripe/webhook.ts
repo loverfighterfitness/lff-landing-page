@@ -8,6 +8,7 @@ import { ENV } from "../_core/env";
 import { notifyOwner } from "../_core/notification";
 import { sendEmail } from "../_core/email";
 import { sendPushNotification } from "../_core/push";
+import { deliverProgram } from "../program/delivery";
 import { getDb } from "../db";
 import { eq } from "drizzle-orm";
 import {
@@ -50,6 +51,12 @@ export async function handleStripeWebhook(req: Request, res: Response) {
       // Check if this is a shop order
       if (session.metadata?.type === "shop_order") {
         await handleShopOrder(stripe, session);
+        break;
+      }
+
+      // Downloadable program order — email the buyer their signed download link
+      if (session.metadata?.type === "program_order") {
+        await deliverProgram(session);
         break;
       }
 

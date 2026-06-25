@@ -8,6 +8,7 @@ import { publicProcedure, router } from "../_core/trpc";
 import { ENV } from "../_core/env";
 import { STRIPE_PRODUCTS, type ProductKey } from "../stripe/products";
 import { notifyOwner } from "../_core/notification";
+import { makeDownloadToken } from "../program/delivery";
 
 function getStripe() {
   return new Stripe(ENV.stripeSecretKey, { apiVersion: "2026-02-25.clover" });
@@ -25,7 +26,7 @@ export const stripeRouter = router({
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       line_items: [{ price: product.priceId, quantity: 1 }],
-      success_url: `${siteUrl}/program?checkout=success`,
+      success_url: `${siteUrl}/program?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${siteUrl}/program?checkout=cancelled`,
       allow_promotion_codes: true,
       metadata: {
@@ -36,6 +37,24 @@ export const stripeRouter = router({
 
     return { url: session.url };
   }),
+
+  // Verifies a completed program purchase and returns a signed, instant download
+  // link. Gated by Stripe payment_status, so only people who actually paid get it.
+  programDownloadLink: publicProcedure
+    .input(z.object({ sessionId: z.string().min(1).max(200) }))
+    .query(async ({ input }) => {
+      const stripe = getStripe();
+      const session = await stripe.checkout.sessions.retrieve(input.sessionId);
+      if (
+        session.payment_status !== "paid" ||
+        session.metadata?.type !== "program_order"
+      ) {
+        throw new Error("This purchase could not be verified.");
+      }
+      return {
+        url: `${ENV.siteUrl}/api/program/download?token=${makeDownloadToken(session.id)}`,
+      };
+    }),
 
   createShopCheckout: publicProcedure
     .input(

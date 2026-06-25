@@ -41,12 +41,21 @@ const FAQ = [
 
 export default function Program() {
   const [purchased, setPurchased] = useState(false);
+  const [sessionId, setSessionId] = useState<string | null>(null);
   const checkout = trpc.stripe.createProgramCheckout.useMutation();
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    if (params.get("checkout") === "success") setPurchased(true);
+    if (params.get("checkout") === "success") {
+      setPurchased(true);
+      setSessionId(params.get("session_id"));
+    }
   }, []);
+
+  const downloadQuery = trpc.stripe.programDownloadLink.useQuery(
+    { sessionId: sessionId ?? "" },
+    { enabled: !!sessionId, retry: 2 }
+  );
 
   const buy = async () => {
     try {
@@ -71,8 +80,26 @@ export default function Program() {
   return (
     <div style={{ ...body, background: BROWN }} className="min-h-screen w-full overflow-x-hidden">
       {purchased && (
-        <div style={{ background: CREAM, color: BROWN }} className="w-full text-center py-3 px-4 text-sm font-semibold">
-          Payment received — your download link is on its way to your email. Check spam if it's not there in a minute.
+        <div style={{ background: CREAM, color: BROWN }} className="w-full text-center py-4 px-4">
+          {downloadQuery.data?.url ? (
+            <div className="flex flex-col items-center gap-2">
+              <p className="text-sm font-semibold">Payment received — here's your program 👇</p>
+              <a
+                href={downloadQuery.data.url}
+                style={{ ...body, background: BROWN, color: CREAM }}
+                className="inline-block px-7 py-3 rounded-full font-bold tracking-widest uppercase text-xs"
+              >
+                Download your program
+              </a>
+              <p className="text-xs opacity-70">We've also emailed you a copy — save the PDF somewhere safe.</p>
+            </div>
+          ) : downloadQuery.isError ? (
+            <p className="text-sm font-semibold">
+              Payment received! Your download link is in your email. Any issues, email loverfighterfitness@gmail.com.
+            </p>
+          ) : (
+            <p className="text-sm font-semibold">Payment received — preparing your download…</p>
+          )}
         </div>
       )}
 

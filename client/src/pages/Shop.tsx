@@ -416,10 +416,14 @@ function CartDrawer() {
     "cuffs":          "https://buy.stripe.com/7sY4gz4Aq7DF8Fu1cQbwk09",
     "goat-pack":      "https://buy.stripe.com/cNi3cv9UKe236xm9Jmbwk0a",
   };
+  // Carry the buyer's variant pick (e.g. "tee-brown-L") through to Stripe as
+  // client_reference_id, so the webhook/backfill can record colour + size.
+  const withRef = (url: string, id: string) =>
+    `${url}?client_reference_id=${encodeURIComponent(id)}`;
   const resolveInstagramLink = (id: string): string | null => {
-    if (INSTAGRAM_PAYMENT_LINKS[id]) return INSTAGRAM_PAYMENT_LINKS[id];
+    if (INSTAGRAM_PAYMENT_LINKS[id]) return withRef(INSTAGRAM_PAYMENT_LINKS[id], id);
     // tee IDs are dynamic: "tee-{colour}-{size}" and "tee-3-pack-..."
-    if (id.startsWith("tee-")) return "https://buy.stripe.com/cNi3cv9UKe236xm9Jmbwk0a";
+    if (id.startsWith("tee-")) return withRef("https://buy.stripe.com/cNi3cv9UKe236xm9Jmbwk0a", id);
     return null;
   };
   const instagramPaymentLink =
@@ -448,8 +452,12 @@ function CartDrawer() {
       "cuffs":          "https://buy.stripe.com/7sY4gz4Aq7DF8Fu1cQbwk09",
       "goat-pack":      "https://buy.stripe.com/cNi3cv9UKe236xm9Jmbwk0a",
     };
-    const resolveLink = (id: string) =>
-      PAYMENT_LINKS[id] ?? (id.startsWith("tee-") ? "https://buy.stripe.com/cNi3cv9UKe236xm9Jmbwk0a" : null);
+    const resolveLink = (id: string) => {
+      const base =
+        PAYMENT_LINKS[id] ?? (id.startsWith("tee-") ? "https://buy.stripe.com/cNi3cv9UKe236xm9Jmbwk0a" : null);
+      // Pass the variant pick to Stripe so orders record colour + size
+      return base ? `${base}?client_reference_id=${encodeURIComponent(id)}` : null;
+    };
     const isInstagram = /Instagram/i.test(navigator.userAgent);
     if (isInstagram && cartItems.length === 1) {
       const link = resolveLink(cartItems[0].id);

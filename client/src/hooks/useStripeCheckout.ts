@@ -24,7 +24,15 @@ export function useStripeCheckout() {
         liftingStraps: "https://buy.stripe.com/dRm8wP8QG9LN1d23kYbwk08",
         cuffs: "https://buy.stripe.com/7sY4gz4Aq7DF8Fu1cQbwk09",
       };
-      window.location.href = PAYMENT_LINKS[productKey];
+      // Cart-style item ids, passed to Stripe so the order tracker can
+      // identify the product and decrement stock (see stripe/webhook.ts)
+      const ITEM_IDS: Record<string, string> = {
+        socksCream: "socks-cream",
+        socksBrown: "socks-brown",
+        liftingStraps: "lifting-straps",
+        cuffs: "cuffs",
+      };
+      window.location.href = `${PAYMENT_LINKS[productKey]}?client_reference_id=${ITEM_IDS[productKey]}`;
       return;
     }
 

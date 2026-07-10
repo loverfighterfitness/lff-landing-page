@@ -44,6 +44,13 @@ export async function cartItemsFromLineItems(
     expand: ["data.price.product"],
   });
 
+  // The shop appends the buyer's cart item id (e.g. "tee-brown-L") to the
+  // payment link URL as client_reference_id. When present, use it as the
+  // item id so variant parsing and stock decrement work exactly like
+  // server-created cart checkouts. Payment links are single-product, so
+  // one reference id covers the session.
+  const refId = session.client_reference_id;
+
   return lineItems.data.map((li) => {
     const product = li.price?.product;
     const name =
@@ -53,7 +60,7 @@ export async function cartItemsFromLineItems(
       li.description ??
       "Shop item";
     return {
-      id: slugFromName(name),
+      id: refId && lineItems.data.length === 1 ? refId : slugFromName(name),
       name,
       price: (li.price?.unit_amount ?? 0) / 100,
       priceId: li.price?.id ?? "",

@@ -414,7 +414,7 @@ function CartDrawer() {
     "socks-brown":    "https://buy.stripe.com/dRm8wP7MC0bd08Y1cQbwk07",
     "lifting-straps": "https://buy.stripe.com/dRm8wP8QG9LN1d23kYbwk08",
     "cuffs":          "https://buy.stripe.com/7sY4gz4Aq7DF8Fu1cQbwk09",
-    "goat-pack":      "https://buy.stripe.com/cNi3cv9UKe236xm9Jmbwk0a",
+    "goat-pack":      "https://buy.stripe.com/8x25kD2siaPR7Bq4p2bwk0l",
   };
   // Carry the buyer's variant pick (e.g. "tee-brown-L") through to Stripe as
   // client_reference_id, so the webhook/backfill can record colour + size.
@@ -423,6 +423,7 @@ function CartDrawer() {
   const resolveInstagramLink = (id: string): string | null => {
     if (INSTAGRAM_PAYMENT_LINKS[id]) return withRef(INSTAGRAM_PAYMENT_LINKS[id], id);
     // tee IDs are dynamic: "tee-{colour}-{size}" and "tee-3-pack-..."
+    if (id.startsWith("tee-3-pack")) return withRef("https://buy.stripe.com/5kQ00j9UK3np2h61cQbwk0m", id);
     if (id.startsWith("tee-")) return withRef("https://buy.stripe.com/cNi3cv9UKe236xm9Jmbwk0a", id);
     return null;
   };
@@ -450,11 +451,16 @@ function CartDrawer() {
       "socks-brown":    "https://buy.stripe.com/dRm8wP7MC0bd08Y1cQbwk07",
       "lifting-straps": "https://buy.stripe.com/dRm8wP8QG9LN1d23kYbwk08",
       "cuffs":          "https://buy.stripe.com/7sY4gz4Aq7DF8Fu1cQbwk09",
-      "goat-pack":      "https://buy.stripe.com/cNi3cv9UKe236xm9Jmbwk0a",
+      "goat-pack":      "https://buy.stripe.com/8x25kD2siaPR7Bq4p2bwk0l",
     };
     const resolveLink = (id: string) => {
       const base =
-        PAYMENT_LINKS[id] ?? (id.startsWith("tee-") ? "https://buy.stripe.com/cNi3cv9UKe236xm9Jmbwk0a" : null);
+        PAYMENT_LINKS[id] ??
+        (id.startsWith("tee-3-pack")
+          ? "https://buy.stripe.com/5kQ00j9UK3np2h61cQbwk0m"
+          : id.startsWith("tee-")
+            ? "https://buy.stripe.com/cNi3cv9UKe236xm9Jmbwk0a"
+            : null);
       // Pass the variant pick to Stripe so orders record colour + size
       return base ? `${base}?client_reference_id=${encodeURIComponent(id)}` : null;
     };

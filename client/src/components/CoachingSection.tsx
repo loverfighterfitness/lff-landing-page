@@ -9,7 +9,6 @@ import { motion, useMotionValue, useTransform, useSpring } from "framer-motion";
 import { Check, ArrowRight, Zap, Star, Loader2 } from "lucide-react";
 import { useRef, useState, useEffect } from "react";
 import { useStripeCheckout, type ProductKey } from "@/hooks/useStripeCheckout";
-import EmbeddedCheckoutModal from "@/components/EmbeddedCheckoutModal";
 
 interface Package {
   name: string;
@@ -324,19 +323,10 @@ function PackageCard({
 }
 
 export default function CoachingSection() {
-  const { checkout, loading, embeddedSession, closeEmbedded } = useStripeCheckout();
+  const { checkout, loading } = useStripeCheckout();
 
   return (
     <section id="coaching" className="grain-overlay relative py-24 md:py-32" style={{ backgroundColor: '#54412F' }}>
-
-      {/* Embedded Stripe Checkout Modal */}
-      {embeddedSession && (
-        <EmbeddedCheckoutModal
-          clientSecret={embeddedSession.clientSecret}
-          publishableKey={embeddedSession.publishableKey}
-          onClose={closeEmbedded}
-        />
-      )}
       <div className="container">
         {/* Floating cream outer panel */}
         <div

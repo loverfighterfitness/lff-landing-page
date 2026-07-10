@@ -401,8 +401,9 @@ function parseVariantFromId(id: string): string | null {
 /**
  * Decrement stock in shopVariants for a purchased item.
  * Handles both direct products and bundles.
+ * Exported for use by the admin backfill (routers/shop.ts).
  */
-async function decrementStockForItem(
+export async function decrementStockForItem(
   db: NonNullable<Awaited<ReturnType<typeof getDb>>>,
   itemId: string,
   quantity: number

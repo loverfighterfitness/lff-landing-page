@@ -17,7 +17,7 @@ import { ArrowRight, Instagram, RotateCcw, MapPin, Truck, X, ShoppingBag, Shoppi
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { trpc } from "@/lib/trpc";
-import EmbeddedCheckoutModal from "@/components/EmbeddedCheckoutModal";
+import { resolvePaymentLink } from "@/lib/paymentLinks";
 
 /* ─── CDN Assets ─── */
 const LOGO_TRANSPARENT =
@@ -409,27 +409,9 @@ function CartDrawer() {
   // Instagram's in-app browser blocks window.location.href for external domains.
   // Detect it and resolve a direct Stripe payment link so we can render a real <a> tag.
   const isInstagram = typeof navigator !== "undefined" && /Instagram/i.test(navigator.userAgent);
-  const INSTAGRAM_PAYMENT_LINKS: Record<string, string> = {
-    "socks-cream":    "https://buy.stripe.com/cNi8wPaYO4rtdZO1cQbwk06",
-    "socks-brown":    "https://buy.stripe.com/dRm8wP7MC0bd08Y1cQbwk07",
-    "lifting-straps": "https://buy.stripe.com/dRm8wP8QG9LN1d23kYbwk08",
-    "cuffs":          "https://buy.stripe.com/7sY4gz4Aq7DF8Fu1cQbwk09",
-    "goat-pack":      "https://buy.stripe.com/8x25kD2siaPR7Bq4p2bwk0l",
-  };
-  // Carry the buyer's variant pick (e.g. "tee-brown-L") through to Stripe as
-  // client_reference_id, so the webhook/backfill can record colour + size.
-  const withRef = (url: string, id: string) =>
-    `${url}?client_reference_id=${encodeURIComponent(id)}`;
-  const resolveInstagramLink = (id: string): string | null => {
-    if (INSTAGRAM_PAYMENT_LINKS[id]) return withRef(INSTAGRAM_PAYMENT_LINKS[id], id);
-    // tee IDs are dynamic: "tee-{colour}-{size}" and "tee-3-pack-..."
-    if (id.startsWith("tee-3-pack")) return withRef("https://buy.stripe.com/5kQ00j9UK3np2h61cQbwk0m", id);
-    if (id.startsWith("tee-")) return withRef("https://buy.stripe.com/cNi3cv9UKe236xm9Jmbwk0a", id);
-    return null;
-  };
   const instagramPaymentLink =
     isInstagram && cartItems.length === 1
-      ? resolveInstagramLink(cartItems[0]?.id)
+      ? resolvePaymentLink(cartItems[0]?.id)
       : null;
 
   // Lock body scroll when open
@@ -446,27 +428,9 @@ function CartDrawer() {
     // Instagram's in-app browser (WKWebView) sometimes blocks or mangles fetch
     // requests. For single-product carts we can redirect straight to the
     // pre-built Stripe payment link — no server round-trip needed.
-    const PAYMENT_LINKS: Record<string, string> = {
-      "socks-cream":    "https://buy.stripe.com/cNi8wPaYO4rtdZO1cQbwk06",
-      "socks-brown":    "https://buy.stripe.com/dRm8wP7MC0bd08Y1cQbwk07",
-      "lifting-straps": "https://buy.stripe.com/dRm8wP8QG9LN1d23kYbwk08",
-      "cuffs":          "https://buy.stripe.com/7sY4gz4Aq7DF8Fu1cQbwk09",
-      "goat-pack":      "https://buy.stripe.com/8x25kD2siaPR7Bq4p2bwk0l",
-    };
-    const resolveLink = (id: string) => {
-      const base =
-        PAYMENT_LINKS[id] ??
-        (id.startsWith("tee-3-pack")
-          ? "https://buy.stripe.com/5kQ00j9UK3np2h61cQbwk0m"
-          : id.startsWith("tee-")
-            ? "https://buy.stripe.com/cNi3cv9UKe236xm9Jmbwk0a"
-            : null);
-      // Pass the variant pick to Stripe so orders record colour + size
-      return base ? `${base}?client_reference_id=${encodeURIComponent(id)}` : null;
-    };
     const isInstagram = /Instagram/i.test(navigator.userAgent);
     if (isInstagram && cartItems.length === 1) {
-      const link = resolveLink(cartItems[0].id);
+      const link = resolvePaymentLink(cartItems[0].id);
       if (link) {
         clearCart();
         window.location.href = link;
@@ -487,7 +451,7 @@ function CartDrawer() {
       // If the tRPC path fails in Instagram, fall back to individual payment links
       if (isInstagram) {
         const firstItem = cartItems[0];
-        const link = firstItem ? resolveLink(firstItem.id) : null;
+        const link = firstItem ? resolvePaymentLink(firstItem.id) : null;
         if (link) {
           clearCart();
           window.location.href = link;

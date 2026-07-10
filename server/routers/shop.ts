@@ -17,6 +17,7 @@ import {
   cartItemsFromLineItems,
   variantFromCustomFields,
 } from "../stripe/paymentLinkItems";
+import { decrementStockForItem } from "../stripe/webhook";
 
 /**
  * Parse a human-readable variant string from a cart item id.
@@ -279,6 +280,13 @@ export const shopRouter = router({
             unitPrice: item.price * 100,
             priceId: item.priceId,
           });
+          // Keep stock counts honest for orders the webhook missed —
+          // best-effort, same as the live path.
+          try {
+            await decrementStockForItem(db, item.id, item.quantity);
+          } catch (err) {
+            console.warn(`[Backfill] Stock decrement failed for ${item.id}:`, err);
+          }
         }
 
         inserted++;

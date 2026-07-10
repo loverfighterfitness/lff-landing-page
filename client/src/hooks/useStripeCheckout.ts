@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { trpc } from "@/lib/trpc";
+import { resolvePaymentLink } from "@/lib/paymentLinks";
 
 export type ProductKey =
   | "standardCoaching"
@@ -15,25 +16,22 @@ export function useStripeCheckout() {
   const createSession = trpc.stripe.createCheckoutSession.useMutation();
 
   const checkout = async (productKey: ProductKey) => {
-    // Shop products use payment links (one-time purchases)
-    const shopProducts = ["socksCream", "socksBrown", "liftingStraps", "cuffs"];
-    if (shopProducts.includes(productKey)) {
-      const PAYMENT_LINKS: Record<string, string> = {
-        socksCream: "https://buy.stripe.com/cNi8wPaYO4rtdZO1cQbwk06",
-        socksBrown: "https://buy.stripe.com/dRm8wP7MC0bd08Y1cQbwk07",
-        liftingStraps: "https://buy.stripe.com/dRm8wP8QG9LN1d23kYbwk08",
-        cuffs: "https://buy.stripe.com/7sY4gz4Aq7DF8Fu1cQbwk09",
-      };
-      // Cart-style item ids, passed to Stripe so the order tracker can
-      // identify the product and decrement stock (see stripe/webhook.ts)
-      const ITEM_IDS: Record<string, string> = {
-        socksCream: "socks-cream",
-        socksBrown: "socks-brown",
-        liftingStraps: "lifting-straps",
-        cuffs: "cuffs",
-      };
-      window.location.href = `${PAYMENT_LINKS[productKey]}?client_reference_id=${ITEM_IDS[productKey]}`;
-      return;
+    // Shop products use payment links (one-time purchases).
+    // Map hook product keys to cart-style item ids, then resolve through
+    // the single source of truth in lib/paymentLinks.ts.
+    const ITEM_IDS: Partial<Record<ProductKey, string>> = {
+      socksCream: "socks-cream",
+      socksBrown: "socks-brown",
+      liftingStraps: "lifting-straps",
+      cuffs: "cuffs",
+    };
+    const itemId = ITEM_IDS[productKey];
+    if (itemId) {
+      const link = resolvePaymentLink(itemId);
+      if (link) {
+        window.location.href = link;
+        return;
+      }
     }
 
     // Coaching packages — redirect to Stripe hosted checkout
@@ -52,5 +50,5 @@ export function useStripeCheckout() {
     }
   };
 
-  return { checkout, loading, embeddedSession: null, closeEmbedded: () => {} };
+  return { checkout, loading };
 }

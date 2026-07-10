@@ -13,6 +13,10 @@ import {
   shopOrderItems,
 } from "../../drizzle/schema";
 import { eq, desc } from "drizzle-orm";
+import {
+  cartItemsFromLineItems,
+  variantFromCustomFields,
+} from "../stripe/paymentLinkItems";
 
 /**
  * Parse a human-readable variant string from a cart item id.
@@ -173,10 +177,15 @@ export const shopRouter = router({
         pages++;
       }
 
-      // Filter to shop orders only, paid
+      // Filter to shop orders only, paid.
+      // Two kinds of shop sessions exist:
+      //  1. Server-created sessions carrying `type: "shop_order"` metadata
+      //  2. Payment Link sessions (Instagram checkout path) — these have
+      //     NO shop metadata, but always have `payment_link` set. Coaching
+      //     and program sessions are server-created, so payment_link ⇒ shop.
       const shopSessions = allSessions.filter(
         (s) =>
-          s.metadata?.type === "shop_order" &&
+          (s.metadata?.type === "shop_order" || s.payment_link != null) &&
           s.payment_status === "paid"
       );
 
@@ -206,11 +215,23 @@ export const shopRouter = router({
           priceId: string;
           quantity: number;
         }[] = [];
+        let plinkVariant: string | null = null;
         try {
           cartItems = JSON.parse(session.metadata?.items_json ?? "[]");
         } catch {
-          skippedNoMetadata++;
-          continue;
+          cartItems = [];
+        }
+        // Payment Link sessions have no items_json — rebuild from real line items
+        if (cartItems.length === 0 && session.payment_link != null) {
+          try {
+            cartItems = await cartItemsFromLineItems(stripe, session);
+            plinkVariant = variantFromCustomFields(session);
+          } catch (err) {
+            console.error(
+              `[Backfill] Failed to fetch line items for ${session.id}:`,
+              err
+            );
+          }
         }
         if (cartItems.length === 0) {
           skippedNoMetadata++;
@@ -221,8 +242,13 @@ export const shopRouter = router({
           (sum, it) => sum + it.price * it.quantity * 100,
           0
         );
-        const isShipping = session.metadata?.is_shipping === "true";
-        const shippingCost = isShipping ? 1000 : 0;
+        const isShipping =
+          session.metadata?.is_shipping === "true" ||
+          (session.payment_link != null && shippingAddressObj != null);
+        const shippingCost =
+          session.metadata?.is_shipping === "true"
+            ? 1000
+            : session.total_details?.amount_shipping ?? 0;
         const total = session.amount_total ?? subtotal + shippingCost;
 
         const [orderResult] = await db.insert(shopOrders).values({
@@ -248,7 +274,7 @@ export const shopRouter = router({
           await db.insert(shopOrderItems).values({
             orderId,
             productName: item.name,
-            variant: parseVariantFromId(item.id),
+            variant: parseVariantFromId(item.id) ?? plinkVariant,
             quantity: item.quantity,
             unitPrice: item.price * 100,
             priceId: item.priceId,

@@ -18,6 +18,10 @@ import {
   shopProducts,
   pushSubscriptions,
 } from "../../drizzle/schema";
+import {
+  cartItemsFromLineItems,
+  variantFromCustomFields,
+} from "./paymentLinkItems";
 
 export async function handleStripeWebhook(req: Request, res: Response) {
   const stripe = new Stripe(ENV.stripeSecretKey, { apiVersion: "2026-02-25.clover" });
@@ -48,8 +52,11 @@ export async function handleStripeWebhook(req: Request, res: Response) {
     case "checkout.session.completed": {
       const session = event.data.object as Stripe.Checkout.Session;
 
-      // Check if this is a shop order
-      if (session.metadata?.type === "shop_order") {
+      // Check if this is a shop order.
+      // Payment Link checkouts (Instagram path — see Shop.tsx PAYMENT_LINKS)
+      // have no shop metadata but always carry `payment_link`. Coaching and
+      // program sessions are created server-side, so payment_link ⇒ shop.
+      if (session.metadata?.type === "shop_order" || session.payment_link != null) {
         await handleShopOrder(stripe, session);
         break;
       }
@@ -121,10 +128,27 @@ async function handleShopOrder(stripe: Stripe, session: Stripe.Checkout.Session)
     console.error("[Webhook] Failed to parse items_json:", e);
   }
 
+  // Payment Link sessions have no items_json — rebuild from real line items
+  let plinkVariant: string | null = null;
+  if (cartItems.length === 0 && session.payment_link != null) {
+    try {
+      cartItems = await cartItemsFromLineItems(stripe, session);
+      plinkVariant = variantFromCustomFields(session);
+    } catch (err) {
+      console.error("[Webhook] Failed to fetch line items for payment-link order:", err);
+    }
+  }
+  const variantFor = (id: string) => parseVariantFromId(id) ?? plinkVariant;
+
   // Calculate totals
   const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity * 100, 0);
-  const isShipping = session.metadata?.is_shipping === "true";
-  const shippingCost = isShipping ? 1000 : 0; // $10 flat rate
+  const isShipping =
+    session.metadata?.is_shipping === "true" ||
+    (session.payment_link != null && shippingAddressObj != null);
+  const shippingCost =
+    session.metadata?.is_shipping === "true"
+      ? 1000 // $10 flat rate (server-created cart checkout)
+      : session.total_details?.amount_shipping ?? 0;
   const total = session.amount_total ?? subtotal + shippingCost;
 
   console.log(
@@ -183,7 +207,7 @@ async function handleShopOrder(stripe: Stripe, session: Stripe.Checkout.Session)
       const orderId = orderResult.insertId;
 
       for (const item of cartItems) {
-        const variant = parseVariantFromId(item.id);
+        const variant = variantFor(item.id);
         await db.insert(shopOrderItems).values({
           orderId,
           productName: item.name,
@@ -212,7 +236,7 @@ async function handleShopOrder(stripe: Stripe, session: Stripe.Checkout.Session)
 
   // Build a short subject line: "LFF Order · 2 items · Brown Tee L · Sarah M"
   const firstItemShort = cartItems[0]?.name?.split("—")[0]?.trim() ?? "Order";
-  const firstVariant = cartItems[0] ? parseVariantFromId(cartItems[0].id) : null;
+  const firstVariant = cartItems[0] ? variantFor(cartItems[0].id) : null;
   const baseSubject =
     cartItems.length === 1 && cartItems[0].quantity === 1
       ? `LFF Order · ${firstItemShort}${firstVariant ? ` ${firstVariant}` : ""} · ${customerName}`
@@ -230,7 +254,7 @@ async function handleShopOrder(stripe: Stripe, session: Stripe.Checkout.Session)
     : "";
   const itemsTableHtml = cartItems
     .map((i) => {
-      const variant = parseVariantFromId(i.id);
+      const variant = variantFor(i.id);
       const lineTotal = `$${((i.price * i.quantity * 100) / 100).toFixed(2)}`;
       return `
         <tr>

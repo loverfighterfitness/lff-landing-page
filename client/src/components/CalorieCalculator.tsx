@@ -3,7 +3,7 @@
  * Matches coaching packages section styling: cream panels, hover animations, bolder text
  */
 import { useState, useRef, useEffect } from "react";
-import { useLocation } from "wouter";
+import { useLocation, useSearch } from "wouter";
 import { motion, useMotionValue, useTransform, useSpring } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
@@ -31,6 +31,10 @@ interface EmailCapture {
   email: string;
   phone: string;
 }
+
+// Secret query param that lets only the owner skip the contact-info gate.
+// Access via /calculator?ownerKey=leviskip2026 — never surfaced in the UI.
+const OWNER_SKIP_KEY = "leviskip2026";
 
 const activityMultipliers = {
   sedentary: 1.2,
@@ -70,8 +74,9 @@ function calculateCalories(inputs: CalculatorInputs): CalculatorResults {
   // Apply flat calorie adjustment for goal
   tdee = tdee + goalAdjustments[inputs.goal];
 
-  // Protein: weight (kg) × 2.2 = grams
-  const protein = Math.round(inputs.weight * 2.2);
+  // Protein: weight (kg) × 2.2 = grams, capped at 85kg — past that, lean mass
+  // realistically isn't scaling with bodyweight, so extra calories go to carbs/fats instead
+  const protein = Math.round(Math.min(inputs.weight, 85) * 2.2);
 
   // Remaining calories after protein (4 cal/g)
   const proteinCalories = protein * 4;
@@ -197,6 +202,8 @@ function ResultCard({
 
 export default function CalorieCalculator() {
   const [, setLocation] = useLocation();
+  const search = useSearch();
+  const isOwner = new URLSearchParams(search).get("ownerKey") === OWNER_SKIP_KEY;
   const [step, setStep] = useState<"inputs" | "email" | "results">("inputs");
   const [inputs, setInputs] = useState<CalculatorInputs>({
     age: 25,
@@ -576,6 +583,16 @@ export default function CalorieCalculator() {
                       )}
                     </motion.button>
                   </form>
+
+                  {isOwner && (
+                    <button
+                      onClick={() => setStep("results")}
+                      className="w-full py-2 font-semibold transition-colors"
+                      style={{ color: "rgba(84,65,47,0.50)" }}
+                    >
+                      Skip — just show me my results →
+                    </button>
+                  )}
 
                   <button
                     onClick={() => setStep("inputs")}

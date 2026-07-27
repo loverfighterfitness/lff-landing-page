@@ -82,11 +82,11 @@ function calculateCalories(inputs: CalculatorInputs): CalculatorResults {
   const proteinCalories = protein * 4;
   const remainingCalories = tdee - proteinCalories;
 
-  // Carbs: 45% of remaining calories (4 cal/g)
-  const carbs = Math.round((remainingCalories * 0.45) / 4);
+  // Carbs: 60% of remaining calories (4 cal/g)
+  const carbs = Math.round((remainingCalories * 0.6) / 4);
 
-  // Fats: 55% of remaining calories (9 cal/g)
-  const fats = Math.round((remainingCalories * 0.55) / 9);
+  // Fats: 40% of remaining calories (9 cal/g)
+  const fats = Math.round((remainingCalories * 0.4) / 9);
 
   return {
     bmr: Math.round(bmr),

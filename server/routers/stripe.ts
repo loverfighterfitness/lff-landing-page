@@ -6,7 +6,7 @@ import Stripe from "stripe";
 import { z } from "zod";
 import { publicProcedure, router } from "../_core/trpc";
 import { ENV } from "../_core/env";
-import { STRIPE_PRODUCTS, type ProductKey } from "../stripe/products";
+import { STRIPE_PRODUCTS, isProgramOrder, type ProductKey } from "../stripe/products";
 import { notifyOwner } from "../_core/notification";
 import { makeDownloadToken } from "../program/delivery";
 
@@ -45,10 +45,13 @@ export const stripeRouter = router({
     .query(async ({ input }) => {
       const stripe = getStripe();
       const session = await stripe.checkout.sessions.retrieve(input.sessionId);
-      if (
-        session.payment_status !== "paid" ||
-        session.metadata?.type !== "program_order"
-      ) {
+      // `no_payment_required` covers 100%-off promo codes, which Stripe settles
+      // at $0 and never marks "paid". isProgramOrder also accepts payment-link
+      // sessions, which carry no metadata (the Instagram checkout path).
+      const settled =
+        session.payment_status === "paid" ||
+        session.payment_status === "no_payment_required";
+      if (!settled || !isProgramOrder(session)) {
         throw new Error("This purchase could not be verified.");
       }
       return {

@@ -7,6 +7,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "wouter";
 import { trpc } from "@/lib/trpc";
+import { PROGRAM_PAYMENT_LINK, isInstagramBrowser } from "@/lib/paymentLinks";
 
 const BROWN = "#54412F";
 const CREAM = "#EAE6D2";
@@ -61,21 +62,44 @@ export default function Program() {
     try {
       const res = await checkout.mutateAsync();
       if (res?.url) window.location.href = res.url;
-    } catch {
+    } catch (err) {
+      console.error("[Program] checkout failed", err);
       alert("Couldn't start checkout — please try again, or email loverfighterfitness@gmail.com");
     }
   };
 
-  const BuyButton = ({ label = "Get the program" }: { label?: string }) => (
-    <button
-      onClick={buy}
-      disabled={checkout.isPending}
-      style={{ ...body, background: CREAM, color: BROWN }}
-      className="inline-block px-9 py-4 rounded-full font-bold tracking-widest uppercase text-sm shadow-lg disabled:opacity-60 transition hover:opacity-90"
-    >
-      {checkout.isPending ? "One sec…" : label}
-    </button>
-  );
+  // Instagram's in-app browser (WKWebView) blocks JS-driven navigation to
+  // external domains, so `window.location.href = stripeUrl` silently fails and
+  // the user just sees the catch-block alert. Same bug the shop hit — the fix
+  // is a real <a> tag pointing at a static Stripe payment link, which WKWebView
+  // navigates natively. See client/src/lib/paymentLinks.ts.
+  const BuyButton = ({ label = "Get the program" }: { label?: string }) => {
+    const pillClasses =
+      "inline-block px-9 py-4 rounded-full font-bold tracking-widest uppercase text-sm shadow-lg disabled:opacity-60 transition hover:opacity-90";
+
+    if (isInstagramBrowser()) {
+      return (
+        <a
+          href={PROGRAM_PAYMENT_LINK}
+          style={{ ...body, background: CREAM, color: BROWN, textDecoration: "none" }}
+          className={pillClasses}
+        >
+          {label}
+        </a>
+      );
+    }
+
+    return (
+      <button
+        onClick={buy}
+        disabled={checkout.isPending}
+        style={{ ...body, background: CREAM, color: BROWN }}
+        className={pillClasses}
+      >
+        {checkout.isPending ? "One sec…" : label}
+      </button>
+    );
+  };
 
   return (
     <div style={{ ...body, background: BROWN }} className="min-h-screen w-full overflow-x-hidden">

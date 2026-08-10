@@ -60,13 +60,37 @@ export const STRIPE_PRODUCTS = {
   },
   // Downloadable program — The Hypertrophy Meta ($60 AUD one-off, live).
   // Stripe: product prod_UleaFnjTrALzrQ · price price_1Tm7HNELc7CqpluZHgF9i3KB
-  // Founders launch: promo code FOUNDERS (coupon HaUsd3Qc, 50% off once, max 25 redemptions).
+  // Launch promo: code GROW (50% off once, max 5 redemptions).
   programMeta: {
     name: "The Hypertrophy Meta — Program",
     description: "Self-guided upper/lower hypertrophy program (PDF). One-off, yours forever.",
     priceId: "price_1Tm7HNELc7CqpluZHgF9i3KB",
-    paymentLinkUrl: "",
+    paymentLinkUrl: "https://buy.stripe.com/8x29AT4Aq7DF4pe2gUbwk0o",
   },
 } as const;
 
 export type ProductKey = keyof typeof STRIPE_PRODUCTS;
+
+/**
+ * Payment link id for the program (the Instagram-safe checkout path).
+ *
+ * Checkout sessions created from a Stripe Payment Link arrive with EMPTY
+ * metadata — no `type: "program_order"`. Anything that gates on that metadata
+ * must also accept this payment link id, or Instagram buyers pay and then get
+ * "This purchase could not be verified" with no delivery email. Exactly the
+ * bug that made server/stripe/paymentLinkItems.ts necessary for the shop.
+ *
+ * Mirrored client-side as PROGRAM_PAYMENT_LINK in client/src/lib/paymentLinks.ts.
+ */
+export const PROGRAM_PAYMENT_LINK_ID = "plink_1U2mGXELc7CqpluZoNWnZ0PA";
+
+/** True when a checkout session is a program purchase, by either route. */
+export function isProgramOrder(session: {
+  metadata?: Record<string, string> | null;
+  payment_link?: string | { id: string } | null;
+}): boolean {
+  if (session.metadata?.type === "program_order") return true;
+  const link = session.payment_link;
+  const linkId = typeof link === "string" ? link : link?.id;
+  return linkId === PROGRAM_PAYMENT_LINK_ID;
+}

@@ -9,6 +9,7 @@ import { notifyOwner } from "../_core/notification";
 import { sendEmail } from "../_core/email";
 import { sendPushNotification } from "../_core/push";
 import { deliverProgram } from "../program/delivery";
+import { isProgramOrder } from "./products";
 import { getDb } from "../db";
 import { eq } from "drizzle-orm";
 import {
@@ -52,18 +53,21 @@ export async function handleStripeWebhook(req: Request, res: Response) {
     case "checkout.session.completed": {
       const session = event.data.object as Stripe.Checkout.Session;
 
-      // Check if this is a shop order.
-      // Payment Link checkouts (Instagram path — see Shop.tsx PAYMENT_LINKS)
-      // have no shop metadata but always carry `payment_link`. Coaching and
-      // program sessions are created server-side, so payment_link ⇒ shop.
-      if (session.metadata?.type === "shop_order" || session.payment_link != null) {
-        await handleShopOrder(stripe, session);
+      // Downloadable program order — email the buyer their signed download link.
+      // MUST be checked before the shop branch: the program now has its own
+      // payment link for the Instagram path, and the shop branch below claims
+      // every session that carries a payment_link.
+      if (isProgramOrder(session)) {
+        await deliverProgram(session);
         break;
       }
 
-      // Downloadable program order — email the buyer their signed download link
-      if (session.metadata?.type === "program_order") {
-        await deliverProgram(session);
+      // Check if this is a shop order.
+      // Payment Link checkouts (Instagram path — see Shop.tsx PAYMENT_LINKS)
+      // have no shop metadata but always carry `payment_link`. Coaching
+      // sessions are created server-side, so a leftover payment_link ⇒ shop.
+      if (session.metadata?.type === "shop_order" || session.payment_link != null) {
+        await handleShopOrder(stripe, session);
         break;
       }
 

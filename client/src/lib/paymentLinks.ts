@@ -27,6 +27,25 @@ const TEE_3_PACK_LINK = "https://buy.stripe.com/5kQ00j9UK3np2h61cQbwk0m";
 const TEE_LINK        = "https://buy.stripe.com/cNi3cv9UKe236xm9Jmbwk0a";
 
 /**
+ * The Hypertrophy Meta ($60 one-off download). Not a shop cart item, so it
+ * lives outside PAYMENT_LINKS and carries no client_reference_id — but it's
+ * here so every Stripe link in the app stays in one file.
+ *
+ * The link redirects to /program?checkout=success&session_id={CHECKOUT_SESSION_ID},
+ * which is what the success page needs to verify the purchase and hand over
+ * the download. Sessions created this way have EMPTY metadata, so the server
+ * identifies them by payment link id instead — see STRIPE_PRODUCTS.programMeta
+ * in server/stripe/products.ts. Change one, change the other.
+ */
+export const PROGRAM_PAYMENT_LINK = "https://buy.stripe.com/8x29AT4Aq7DF4pe2gUbwk0o";
+
+/** True when running inside Instagram's in-app browser (WKWebView), which
+ *  blocks JS-driven navigation to external domains — real <a> tags only. */
+export function isInstagramBrowser(): boolean {
+  return typeof navigator !== "undefined" && /Instagram/i.test(navigator.userAgent);
+}
+
+/**
  * Resolve a cart item id to its payment link with the id attached as
  * client_reference_id. Returns null when the product has no payment link
  * (multi-item carts must use the server checkout).

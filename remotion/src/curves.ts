@@ -23,11 +23,13 @@ export const ADVANCED_BAND: readonly [number, number] = [2.5, 5.5];
 
 /** Domain value -> canvas x. */
 export const sx = (x: number): number =>
-  PLOT.left + ((x - X_DOMAIN[0]) / (X_DOMAIN[1] - X_DOMAIN[0])) * (PLOT.right - PLOT.left);
+  PLOT.left +
+  ((x - X_DOMAIN[0]) / (X_DOMAIN[1] - X_DOMAIN[0])) * (PLOT.right - PLOT.left);
 
 /** Domain value -> canvas y (inverted: bigger value sits higher). */
 export const sy = (y: number): number =>
-  PLOT.bottom - ((y - Y_DOMAIN[0]) / (Y_DOMAIN[1] - Y_DOMAIN[0])) * (PLOT.bottom - PLOT.top);
+  PLOT.bottom -
+  ((y - Y_DOMAIN[0]) / (Y_DOMAIN[1] - Y_DOMAIN[0])) * (PLOT.bottom - PLOT.top);
 
 /**
  * Growth stimulus: saturating exponential. Steep early, then a hard plateau —
@@ -57,7 +59,7 @@ export const buildPath = (
   fn: (x: number) => number,
   from = X_DOMAIN[0],
   to = X_DOMAIN[1],
-  steps = 260,
+  steps = 260
 ): Path => {
   const pts: Array<[number, number]> = [];
   for (let i = 0; i <= steps; i++) {
@@ -69,7 +71,9 @@ export const buildPath = (
     length += Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]);
   }
   const d = pts
-    .map(([px, py], i) => `${i === 0 ? "M" : "L"}${px.toFixed(2)} ${py.toFixed(2)}`)
+    .map(
+      ([px, py], i) => `${i === 0 ? "M" : "L"}${px.toFixed(2)} ${py.toFixed(2)}`
+    )
     .join(" ");
   return { d, length };
 };

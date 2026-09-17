@@ -14,9 +14,39 @@ export const BEATS = {
 } as const;
 
 export const CAPTIONS = [
-  { in: 130, out: 214, kicker: "GROWTH STIMULUS", line: "PLATEAUS", sub: "past a point, extra sets stop adding signal" },
-  { in: 224, out: 306, kicker: "FATIGUE", line: "DOESN'T", sub: "it keeps climbing in a straight line" },
-  { in: 316, out: 398, kicker: "THE SWEET SPOT", line: "4–8 HARD SETS", sub: "almost all of the stimulus, a fraction of the cost" },
-  { in: 408, out: 488, kicker: "PAST THE CROSSOVER", line: "JUNK VOLUME", sub: "you're buying fatigue, not growth" },
-  { in: 498, out: DURATION, kicker: "AND AS YOU ADVANCE", line: "YOU NEED LESS", sub: "stronger lifters cost more fatigue per set" },
+  {
+    in: 130,
+    out: 214,
+    kicker: "GROWTH STIMULUS",
+    line: "PLATEAUS",
+    sub: "past a point, extra sets stop adding signal",
+  },
+  {
+    in: 224,
+    out: 306,
+    kicker: "FATIGUE",
+    line: "DOESN'T",
+    sub: "it keeps climbing in a straight line",
+  },
+  {
+    in: 316,
+    out: 398,
+    kicker: "THE SWEET SPOT",
+    line: "4–8 HARD SETS",
+    sub: "almost all of the stimulus, a fraction of the cost",
+  },
+  {
+    in: 408,
+    out: 488,
+    kicker: "PAST THE CROSSOVER",
+    line: "JUNK VOLUME",
+    sub: "you're buying fatigue, not growth",
+  },
+  {
+    in: 498,
+    out: DURATION,
+    kicker: "AND AS YOU ADVANCE",
+    line: "YOU NEED LESS",
+    sub: "stronger lifters cost more fatigue per set",
+  },
 ] as const;

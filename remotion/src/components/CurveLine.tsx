@@ -1,6 +1,7 @@
 import React from "react";
 import { interpolate, useCurrentFrame, Easing } from "remotion";
 import type { Path } from "../curves";
+import { usePalette } from "../usePalette";
 
 type Props = {
   path: Path;
@@ -16,9 +17,15 @@ type Props = {
  * stroke so the line stays readable when the overlay is keyed over footage.
  */
 export const CurveLine: React.FC<Props> = ({
-  path, color, glow, startFrame, drawFrames, strokeWidth,
+  path,
+  color,
+  glow,
+  startFrame,
+  drawFrames,
+  strokeWidth,
 }) => {
   const frame = useCurrentFrame();
+  const pal = usePalette();
   const t = frame - startFrame;
   if (t < 0) return null;
 
@@ -32,15 +39,25 @@ export const CurveLine: React.FC<Props> = ({
   return (
     <g>
       <path
-        d={path.d} fill="none" stroke={glow} strokeWidth={strokeWidth + 16}
-        strokeLinecap="round" strokeLinejoin="round"
-        strokeDasharray={path.length} strokeDashoffset={offset}
-        style={{ filter: "blur(10px)" }}
+        d={path.d}
+        fill="none"
+        stroke={glow}
+        strokeWidth={strokeWidth + 16 * pal.glowStrength}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeDasharray={path.length}
+        strokeDashoffset={offset}
+        style={{ filter: `blur(${10 * pal.glowStrength}px)` }}
       />
       <path
-        d={path.d} fill="none" stroke={color} strokeWidth={strokeWidth}
-        strokeLinecap="round" strokeLinejoin="round"
-        strokeDasharray={path.length} strokeDashoffset={offset}
+        d={path.d}
+        fill="none"
+        stroke={color}
+        strokeWidth={strokeWidth}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeDasharray={path.length}
+        strokeDashoffset={offset}
       />
     </g>
   );

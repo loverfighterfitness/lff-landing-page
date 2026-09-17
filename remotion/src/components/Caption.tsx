@@ -1,14 +1,16 @@
 import React from "react";
 import { interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
-import { COLORS, FONT, TEXT_SHADOW, BOX_SHADOW, SLAM } from "../theme";
+import { FONT, TEXT_SHADOW, BOX_SHADOW, SLAM } from "../theme";
+import { usePalette } from "../usePalette";
 import { CAPTIONS } from "../timing";
 
 /** The caption rail under the chart. One beat is on screen at a time. */
 export const Caption: React.FC = () => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
+  const pal = usePalette();
 
-  const active = CAPTIONS.find((c) => frame >= c.in && frame < c.out);
+  const active = CAPTIONS.find(c => frame >= c.in && frame < c.out);
   if (!active) return null;
 
   const t = frame - active.in;
@@ -38,13 +40,13 @@ export const Caption: React.FC = () => {
         style={{
           padding: "10px 28px",
           borderRadius: 999,
-          background: COLORS.brown,
+          background: pal.panel,
           boxShadow: BOX_SHADOW,
           fontFamily: FONT.display,
           fontWeight: 900,
           fontSize: 30,
           letterSpacing: 3,
-          color: COLORS.gold,
+          color: pal.band,
         }}
       >
         {active.kicker}
@@ -57,7 +59,7 @@ export const Caption: React.FC = () => {
           fontSize: 104,
           lineHeight: 1.02,
           letterSpacing: -1,
-          color: COLORS.cream,
+          color: pal.ink,
           textAlign: "center",
           textWrap: "balance",
           textShadow: TEXT_SHADOW,
@@ -72,7 +74,7 @@ export const Caption: React.FC = () => {
           fontWeight: 600,
           fontSize: 38,
           lineHeight: 1.3,
-          color: COLORS.creamDim,
+          color: pal.inkDim,
           textAlign: "center",
           maxWidth: 820,
           textShadow: TEXT_SHADOW,

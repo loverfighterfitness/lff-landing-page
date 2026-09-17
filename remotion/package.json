@@ -7,10 +7,14 @@
   "scripts": {
     "dev": "remotion studio",
     "studio": "remotion studio",
-    "render": "remotion render VolumeCurve out/volume-curve.mp4 --props='{\"transparentBackground\":false}'",
-    "render:alpha": "remotion render VolumeCurve out/volume-curve.mov --codec=prores --prores-profile=4444 --image-format=png --pixel-format=yuva444p10le",
-    "render:webm": "remotion render VolumeCurve out/volume-curve.webm --codec=vp8 --image-format=png --pixel-format=yuva420p",
-    "still": "remotion still VolumeCurve out/frame.png --frame=330"
+    "render:ember": "remotion render VolumeCurveEmber out/volume-curve-ember.mov --codec=prores --prores-profile=4444 --image-format=png --pixel-format=yuva444p10le",
+    "render:voltage": "remotion render VolumeCurveVoltage out/volume-curve-voltage.mov --codec=prores --prores-profile=4444 --image-format=png --pixel-format=yuva444p10le",
+    "render:heritage": "remotion render VolumeCurveHeritage out/volume-curve-heritage.mov --codec=prores --prores-profile=4444 --image-format=png --pixel-format=yuva444p10le",
+    "render:marker": "remotion render VolumeCurveMarker out/volume-curve-marker.mov --codec=prores --prores-profile=4444 --image-format=png --pixel-format=yuva444p10le",
+    "render:all": "npm run render:ember && npm run render:voltage && npm run render:heritage && npm run render:marker",
+    "render:webm": "remotion render VolumeCurveEmber out/volume-curve-ember.webm --codec=vp8 --image-format=png --pixel-format=yuva420p",
+    "preview": "remotion render VolumeCurveEmber out/preview.mp4 --props='{\"transparentBackground\":false}'",
+    "still": "remotion still VolumeCurveEmber out/frame.png --frame=330"
   },
   "dependencies": {
     "@remotion/cli": "4.0.525",

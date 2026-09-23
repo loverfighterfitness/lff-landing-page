@@ -41,7 +41,16 @@ export function isAdminRequest(req: TrpcContext["req"]): boolean {
   if (typeof header === "string" && safeEqual(header, expected)) return true;
   const cookies = parseCookie(req.headers.cookie ?? "");
   const cookie = cookies[ADMIN_COOKIE];
-  return typeof cookie === "string" && safeEqual(cookie, adminCookieValue(expected));
+  const ok = typeof cookie === "string" && safeEqual(cookie, adminCookieValue(expected));
+  if (!ok && process.env.ADMIN_AUTH_DEBUG) {
+    console.log("[AdminAuth] denied", JSON.stringify({
+      headerKeys: Object.keys(req.headers),
+      cookieNames: Object.keys(cookies),
+      cookieLen: typeof cookie === "string" ? cookie.length : null,
+      expectedLen: expected.length,
+    }));
+  }
+  return ok;
 }
 
 /**

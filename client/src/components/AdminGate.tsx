@@ -31,8 +31,8 @@ export default function AdminGate({ children }: { children: ReactNode }) {
     setChecking(true);
     setError("");
     try {
-      await login.mutateAsync({ password });
-      setAdminKey(password);
+      const { token } = await login.mutateAsync({ password });
+      setAdminKey(token);
       queryClient.clear();
       setUnlocked(true);
     } catch (err) {

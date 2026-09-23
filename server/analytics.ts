@@ -94,6 +94,21 @@ function classifySource(utmSource: string | undefined, browser: string, referrer
   return r.replace(/^www\./, "").slice(0, 64);
 }
 
+/** Rough country from the browser's timezone — headers carrying the real one don't reach us. */
+function countryFromTimezone(tz: string | undefined) {
+  if (!tz) return null;
+  if (tz.startsWith("Australia/")) return "AU";
+  if (tz === "Pacific/Auckland" || tz === "Pacific/Chatham") return "NZ";
+  if (tz === "Europe/London") return "GB";
+  if (tz.startsWith("America/")) return /Toronto|Vancouver|Edmonton|Winnipeg|Halifax|Regina|St_Johns/.test(tz) ? "CA" : "US";
+  const map: Record<string, string> = {
+    "Asia/Singapore": "SG", "Asia/Tokyo": "JP", "Asia/Manila": "PH", "Asia/Kolkata": "IN", "Asia/Dubai": "AE",
+    "Asia/Hong_Kong": "HK", "Asia/Jakarta": "ID", "Asia/Bangkok": "TH", "Asia/Kuala_Lumpur": "MY",
+    "Europe/Dublin": "IE", "Europe/Paris": "FR", "Europe/Berlin": "DE", "Europe/Amsterdam": "NL", "Europe/Madrid": "ES", "Europe/Rome": "IT",
+  };
+  return map[tz] ?? null;
+}
+
 const str = (max: number) => z.string().max(max).optional();
 const payloadSchema = z.object({
   visitor: z.string().min(8).max(40),
@@ -106,6 +121,8 @@ const payloadSchema = z.object({
   screen: str(16),
   lang: str(20),
   igBrowser: z.boolean().optional(),
+  ua: str(300),
+  tz: str(64),
   events: z
     .array(
       z.object({
@@ -124,19 +141,23 @@ export async function handleAnalyticsIngest(req: Request, res: Response) {
   // Always answer fast and quietly — analytics must never break the site.
   res.status(204).end();
   try {
-    const ua = String(req.headers["user-agent"] ?? "");
-    if (!ua || BOT_UA.test(ua)) return;
     const raw = typeof req.body === "string" ? req.body : JSON.stringify(req.body ?? {});
     if (raw.length > 20_000) return;
     const parsed = payloadSchema.safeParse(JSON.parse(raw));
     if (!parsed.success) return;
     const p = parsed.data;
+    // The Cloudflare Worker in front of www strips request headers, so the page sends its own UA.
+    const ua = String(req.headers["user-agent"] ?? p.ua ?? "");
+    if (!ua || BOT_UA.test(ua)) return;
 
     const { device, browser: uaBrowser, os } = parseUA(ua);
     const browser = p.igBrowser ? "Instagram app" : uaBrowser;
     const source = classifySource(p.utmSource, browser, p.referrer);
     const countryHeader = req.headers["cf-ipcountry"];
-    const country = typeof countryHeader === "string" && /^[A-Z]{2}$/.test(countryHeader) ? countryHeader : null;
+    const country =
+      typeof countryHeader === "string" && /^[A-Z]{2}$/.test(countryHeader)
+        ? countryHeader
+        : countryFromTimezone(p.tz);
     const now = Date.now();
 
     await ensureTable();

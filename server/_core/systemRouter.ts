@@ -7,8 +7,11 @@ import { ADMIN_COOKIE, adminCookieValue, adminProcedure, isAdminPassword, public
 // Slow down password guessing: 10 wrong attempts per IP per 15 minutes.
 const failedLogins = new Map<string, { count: number; until: number }>();
 function clientIp(req: { headers: Record<string, unknown>; ip?: string }) {
-  const cf = req.headers["cf-connecting-ip"];
-  return typeof cf === "string" ? cf : req.ip ?? "unknown";
+  for (const h of ["cf-connecting-ip", "x-real-ip", "x-forwarded-for"]) {
+    const v = req.headers[h];
+    if (typeof v === "string" && v) return v.split(",")[0].trim();
+  }
+  return req.ip ?? "unknown";
 }
 
 export const systemRouter = router({
@@ -41,13 +44,14 @@ export const systemRouter = router({
         throw new TRPCError({ code: "UNAUTHORIZED", message: "Wrong password" });
       }
       failedLogins.delete(ip);
-      ctx.res.cookie(ADMIN_COOKIE, adminCookieValue(input.password), {
+      const token = adminCookieValue(input.password);
+      ctx.res.cookie(ADMIN_COOKIE, token, {
         ...getSessionCookieOptions(ctx.req),
         httpOnly: true,
         sameSite: "lax",
         maxAge: 365 * 24 * 60 * 60 * 1000,
       });
-      return { ok: true } as const;
+      return { ok: true, token } as const;
     }),
 
   notifyOwner: adminProcedure

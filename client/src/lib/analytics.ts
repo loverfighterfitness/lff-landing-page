@@ -229,6 +229,9 @@ export function initAnalytics() {
     screen: `${window.screen.width}x${window.screen.height}`,
     lang: navigator.language,
     igBrowser: /Instagram/i.test(ua) || undefined,
+    // Sent in the body: the Cloudflare Worker in front of the site strips request headers.
+    ua: ua.slice(0, 300),
+    tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
   };
   pageview();
   purchaseReturns();

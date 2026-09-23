@@ -39,6 +39,10 @@ export function isAdminRequest(req: TrpcContext["req"]): boolean {
   if (!expected) return false;
   const header = req.headers["x-admin-key"];
   if (typeof header === "string" && safeEqual(header, expected)) return true;
+  // The Cloudflare Worker in front of www strips cookies and custom headers,
+  // so the admin pages also send the token (a hash, never the password) in the URL.
+  const token = new URL(req.url ?? "/", "http://x").searchParams.get("admin");
+  if (token && safeEqual(token, adminCookieValue(expected))) return true;
   const cookies = parseCookie(req.headers.cookie ?? "");
   const cookie = cookies[ADMIN_COOKIE];
   const ok = typeof cookie === "string" && safeEqual(cookie, adminCookieValue(expected));

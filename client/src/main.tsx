@@ -48,8 +48,13 @@ const trpcClient = trpc.createClient({
       fetch(input, init) {
         const headers = new Headers(init?.headers);
         headers.set("Content-Type", "application/json");
-        const adminKey = getAdminKey();
-        if (adminKey) headers.set("x-admin-key", adminKey);
+        // Admin token rides in the URL — the Cloudflare Worker strips cookies and custom headers.
+        const adminToken = getAdminKey();
+        if (adminToken) {
+          const url = new URL(String(input), window.location.origin);
+          url.searchParams.set("admin", adminToken);
+          input = url.toString();
+        }
         return globalThis.fetch(input, {
           ...(init ?? {}),
           credentials: "include",

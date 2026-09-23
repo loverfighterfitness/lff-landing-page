@@ -200,6 +200,19 @@ function adelaideOffsetMinutes() {
   return (m[1] === "-" ? -1 : 1) * (Number(m[2]) * 60 + Number(m[3] ?? 0));
 }
 
+/** One entry per calendar day in the range (Adelaide time), zero-filled. */
+function fillDays(daily: Row[], days: number, tzMinutes: number) {
+  const byDate = new Map(daily.map((r) => [String(r.d).slice(0, 10), r]));
+  const out: { date: string; visitors: number; pageviews: number }[] = [];
+  const today = new Date(Date.now() + tzMinutes * 60_000);
+  for (let i = days - 1; i >= 0; i--) {
+    const date = new Date(today.getTime() - i * 86_400_000).toISOString().slice(0, 10);
+    const r = byDate.get(date);
+    out.push({ date, visitors: n(r?.visitors), pageviews: n(r?.pageviews) });
+  }
+  return out;
+}
+
 export const analyticsRouter = router({
   summary: protectedProcedure
     .input(z.object({ days: z.number().int().min(1).max(365).default(30) }))
@@ -324,7 +337,7 @@ export const analyticsRouter = router({
           orders: n(orders.orders),
           revenueCents: n(orders.revenue),
         },
-        daily: daily.map((r) => ({ date: String(r.d).slice(0, 10), visitors: n(r.visitors), pageviews: n(r.pageviews) })),
+        daily: fillDays(daily, input.days, tz),
         pages: pages.map((r) => ({ path: String(r.path), views: n(r.views), visitors: n(r.visitors), avgSecs: n(r.avg_secs) })),
         sources: sources.map((r) => ({ source: String(r.source), sessions: n(r.sessions), visitors: n(r.visitors) })),
         campaigns: campaigns.map((r) => ({ source: String(r.utm_source ?? ""), medium: String(r.utm_medium ?? ""), campaign: String(r.utm_campaign ?? ""), sessions: n(r.sessions) })),

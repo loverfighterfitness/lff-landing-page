@@ -85,7 +85,7 @@ function Funnel({ steps }: { steps: { label: string; value: number }[] }) {
 }
 
 function DailyChart({ data }: { data: { date: string; visitors: number; pageviews: number }[] }) {
-  if (!data.length) return <p className="text-sm" style={muted}>No visits recorded yet — data appears as soon as people browse the site.</p>;
+  if (!data.some((d) => d.visitors > 0)) return <p className="text-sm" style={muted}>No visits recorded yet — data appears as soon as people browse the site.</p>;
   const max = Math.max(...data.map((d) => d.visitors), 1);
   const W = 720, H = 180, pad = 24;
   const bw = (W - pad) / data.length;
@@ -99,15 +99,26 @@ function DailyChart({ data }: { data: { date: string; visitors: number; pageview
             <text x={0} y={H - f * (H - 12) + 4} fontSize="10" fill="rgba(234,230,210,0.7)">{Math.round(max * f)}</text>
           </g>
         ))}
+        <line x1={pad} x2={W} y1={H} y2={H} stroke="rgba(234,230,210,0.25)" />
         {data.map((d, i) => {
           const h = (d.visitors / max) * (H - 12);
           return (
             <g key={d.date}>
-              <rect x={pad + i * bw + bw * 0.15} y={H - h} width={bw * 0.7} height={Math.max(h, 1)} rx={Math.min(3, bw * 0.3)} fill={CREAM}>
-                <title>{`${fmt(d.date)}: ${d.visitors} visitors, ${d.pageviews} page views`}</title>
-              </rect>
-              {(i === 0 || i === data.length - 1 || (data.length <= 14 && i % 2 === 0)) && (
-                <text x={pad + i * bw + bw / 2} y={H + 16} fontSize="10" textAnchor="middle" fill="rgba(234,230,210,0.7)">{fmt(d.date)}</text>
+              {d.visitors > 0 && (
+                <rect x={pad + i * bw + bw * 0.15} y={H - h} width={bw * 0.7} height={h} rx={Math.min(3, bw * 0.3)} fill={CREAM}>
+                  <title>{`${fmt(d.date)}: ${d.visitors} visitors, ${d.pageviews} page views`}</title>
+                </rect>
+              )}
+              {(i === 0 || i === data.length - 1 || (i % Math.ceil(data.length / 7) === 0 && data.length - i > data.length / 10)) && (
+                <text
+                  x={i === data.length - 1 ? W : i === 0 ? pad : pad + i * bw + bw / 2}
+                  y={H + 16}
+                  fontSize="10"
+                  textAnchor={i === data.length - 1 ? "end" : i === 0 ? "start" : "middle"}
+                  fill="rgba(234,230,210,0.7)"
+                >
+                  {fmt(d.date)}
+                </text>
               )}
             </g>
           );

@@ -41,7 +41,7 @@ async function startServer() {
   // Stripe webhook MUST be registered before express.json() to preserve raw body for signature verification
   app.post("/api/stripe/webhook", express.raw({ type: "application/json" }), handleStripeWebhook);
   // First-party analytics beacon (sent as text/plain by navigator.sendBeacon)
-  app.post("/api/a", express.text({ type: "*/*", limit: "25kb" }), handleAnalyticsIngest);
+  app.post("/api/a", express.text({ type: () => true, limit: "25kb" }), handleAnalyticsIngest);
   // iOS WebKit sends tRPC mutations with wrong content-type (text/plain or
   // x-www-form-urlencoded). Rewrite BEFORE body parsers so express.json()
   // picks them up correctly instead of express.urlencoded() mangling the body.

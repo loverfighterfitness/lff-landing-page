@@ -1,4 +1,6 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
+
+process.env.ADMIN_PASSWORD = "test-admin";
 import type { TrpcContext } from "./_core/context";
 
 // Mock DB and notification so tests run without a real database
@@ -36,7 +38,7 @@ function createAdminCtx(): TrpcContext {
       updatedAt: new Date(),
       lastSignedIn: new Date(),
     },
-    req: { protocol: "https", headers: {} } as TrpcContext["req"],
+    req: { protocol: "https", headers: { "x-admin-key": "test-admin" } } as TrpcContext["req"],
     res: {} as TrpcContext["res"],
   };
 }
@@ -190,10 +192,10 @@ describe("leads.list", () => {
     expect(getLeads).toHaveBeenCalledOnce();
   });
 
-  it("throws FORBIDDEN for non-admin users", async () => {
+  it("throws UNAUTHORIZED for users without the admin password", async () => {
     const caller = appRouter.createCaller(createUserCtx());
 
-    await expect(caller.leads.list()).rejects.toMatchObject({ code: "FORBIDDEN" });
+    await expect(caller.leads.list()).rejects.toMatchObject({ code: "UNAUTHORIZED" });
   });
 
   it("throws UNAUTHORIZED for unauthenticated users", async () => {

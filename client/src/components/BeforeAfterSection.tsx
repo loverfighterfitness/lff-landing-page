@@ -52,7 +52,7 @@ const TRANSFORMATIONS: Transformation[] = [
     tag: "Fat Loss · XL → Size M",
     copy: "Kim dropped two full dress sizes in just 4 months. From XL to size M — her transformation blew the whole gym away.",
     quote: "You are more than a PT, you are my friend.",
-    author: "Kim Morrison, F2F Client",
+    author: "Kim Morrison, F2F & Online Client",
   },
   {
     paddingBottom: "177.78%", // portrait 9:16

@@ -2,6 +2,8 @@ import { z } from "zod";
 import { publicProcedure, router, protectedProcedure } from "../_core/trpc";
 import { insertLead, getLeads } from "../db";
 import { notifyOwner } from "../_core/notification";
+import { pushToAllDevices } from "../_core/push";
+import { sendEmail } from "../_core/email";
 import { TRPCError } from "@trpc/server";
 
 const GOAL_LABELS: Record<string, string> = {
@@ -45,8 +47,25 @@ export const leadsRouter = router({
           source: "landing_page",
         });
 
-        // Notify Levi of the new enquiry
+        // Notify Levi of the new enquiry — push to his phone + email (never fail the request)
         const goalLabel = GOAL_LABELS[input.goal] ?? input.goal;
+        const via = input.contactMethod === "instagram" ? "Instagram" : "Text";
+        pushToAllDevices({
+          title: `New enquiry: ${input.name}`,
+          body: `${goalLabel} · ${via}: ${input.phone}`,
+          url: "/admin/leads",
+        }).catch((e) => console.warn("[Leads] Push failed:", e));
+        const esc = (v: string) => v.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]!);
+        sendEmail({
+          to: "loverfighterfitness@gmail.com",
+          subject: `New coaching enquiry: ${input.name}`,
+          html: `<div style="font-family:sans-serif;max-width:560px;padding:20px;background:#f9f7f2;border-radius:12px;color:#333">
+            <h2 style="color:#54412F;margin:0 0 12px">New coaching enquiry</h2>
+            <p><b>Name:</b> ${esc(input.name)}<br><b>${via}:</b> ${esc(input.phone)}<br><b>Goal:</b> ${esc(goalLabel)}</p>
+            ${input.message ? `<p><b>Message:</b><br>${esc(input.message)}</p>` : ""}
+          </div>`,
+        }).catch((e) => console.warn("[Leads] Email failed:", e));
+
         await notifyOwner({
           title: `New Lead: ${input.name}`,
           content: [

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { trpc } from "@/lib/trpc";
 import { resolvePaymentLink } from "@/lib/paymentLinks";
+import { track } from "@/lib/analytics";
 
 export type ProductKey =
   | "standardCoaching"
@@ -16,6 +17,7 @@ export function useStripeCheckout() {
   const createSession = trpc.stripe.createCheckoutSession.useMutation();
 
   const checkout = async (productKey: ProductKey) => {
+    track(`checkout_started:${productKey}`);
     // Shop products use payment links (one-time purchases).
     // Map hook product keys to cart-style item ids, then resolve through
     // the single source of truth in lib/paymentLinks.ts.

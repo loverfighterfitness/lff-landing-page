@@ -8,6 +8,7 @@ import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 import { handleStripeWebhook } from "../stripe/webhook";
+import { handleAnalyticsIngest } from "../analytics";
 import { handleProgramDownload } from "../program/delivery";
 import { startSmsScheduler } from "../smsScheduler";
 import path from "path";
@@ -39,6 +40,8 @@ async function startServer() {
   const server = createServer(app);
   // Stripe webhook MUST be registered before express.json() to preserve raw body for signature verification
   app.post("/api/stripe/webhook", express.raw({ type: "application/json" }), handleStripeWebhook);
+  // First-party analytics beacon (sent as text/plain by navigator.sendBeacon)
+  app.post("/api/a", express.text({ type: "*/*", limit: "25kb" }), handleAnalyticsIngest);
   // iOS WebKit sends tRPC mutations with wrong content-type (text/plain or
   // x-www-form-urlencoded). Rewrite BEFORE body parsers so express.json()
   // picks them up correctly instead of express.urlencoded() mangling the body.

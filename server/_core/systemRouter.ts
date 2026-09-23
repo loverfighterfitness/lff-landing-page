@@ -13,6 +13,9 @@ export const systemRouter = router({
       ok: true,
     })),
 
+  /** Lets the admin login screen check a password without loading any data. */
+  adminCheck: adminProcedure.query(() => ({ ok: true }) as const),
+
   notifyOwner: adminProcedure
     .input(
       z.object({

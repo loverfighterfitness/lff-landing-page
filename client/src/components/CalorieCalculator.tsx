@@ -2,6 +2,7 @@
  * Calorie Calculator — Lead Generator (Redesigned)
  * Matches coaching packages section styling: cream panels, hover animations, bolder text
  */
+import { track } from "@/lib/analytics";
 import { useState, useRef, useEffect } from "react";
 import { useLocation, useSearch } from "wouter";
 import { motion, useMotionValue, useTransform, useSpring } from "framer-motion";
@@ -246,6 +247,7 @@ export default function CalorieCalculator() {
       else if (inputs.goal === "extremeCut" || inputs.goal === "moderateCut") backendGoal = "cut";
       else if (inputs.goal === "maintain") backendGoal = "maintenance";
 
+      track("calculator_submitted");
       await submitCalculator.mutateAsync({
         name: emailData.name,
         email: emailData.email,

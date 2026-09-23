@@ -1,6 +1,7 @@
 /**
  * Contact / Lead Capture — phone number capture, "still not sure" tone
  */
+import { track } from "@/lib/analytics";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { trpc } from "@/lib/trpc";
@@ -29,7 +30,10 @@ export default function ContactSection() {
   const [submitted, setSubmitted] = useState(false);
 
   const submitLead = trpc.leads.submit.useMutation({
-    onSuccess: () => setSubmitted(true),
+    onSuccess: () => {
+      track("lead_submitted");
+      setSubmitted(true);
+    },
     onError: (err) => {
       setErrors({ form: err.message || "Something went wrong. Please try again." });
     },

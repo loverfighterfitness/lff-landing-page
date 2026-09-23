@@ -4,6 +4,7 @@
  * Each product gets its own section with alternating left/right split
  * Frosted glass only on small info cards, never wrapping spinners
  */
+import { track } from "@/lib/analytics";
 import React, { useRef, useEffect, useState, memo, useContext, useCallback, createContext } from "react";
 import {
   motion,
@@ -247,6 +248,7 @@ function useCartState(): CartContextType {
   }, [cartItems]);
 
   const addToCart = useCallback((item: Omit<CartItem, "quantity">) => {
+    track(`add_to_cart:${item.id}`, item.price);
     setCartItems((prev) => {
       const existing = prev.find((i) => i.id === item.id);
       if (existing) {
@@ -424,6 +426,7 @@ function CartDrawer() {
 
   const handleCheckout = async () => {
     if (cartItems.length === 0) return;
+    track("checkout_started", cartTotal + (shipping ? SHIPPING_COST : 0));
 
     // Instagram's in-app browser (WKWebView) sometimes blocks or mangles fetch
     // requests. For single-product carts we can redirect straight to the

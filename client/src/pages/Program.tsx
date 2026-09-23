@@ -4,6 +4,7 @@
  * downloadable PDF program via Stripe Checkout; delivery is emailed by the
  * webhook. Soft fallback CTA into coaching at the bottom.
  */
+import { track } from "@/lib/analytics";
 import { useState, useEffect } from "react";
 import { Link } from "wouter";
 import { trpc } from "@/lib/trpc";
@@ -59,6 +60,7 @@ export default function Program() {
   );
 
   const buy = async () => {
+    track("program_checkout");
     try {
       const res = await checkout.mutateAsync();
       if (res?.url) window.location.href = res.url;

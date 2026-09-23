@@ -1,11 +1,13 @@
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/NotFound";
-import { lazy, Suspense } from "react";
-import { Route, Switch } from "wouter";
+import { lazy, Suspense, useEffect, useRef } from "react";
+import { Route, Switch, useLocation } from "wouter";
+import { pageview } from "./lib/analytics";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
+import AdminGate from "./components/AdminGate";
 
 // Everything except the homepage is split out so coaching visitors
 // don't download the shop, admin dashboards or chart libraries.
@@ -18,14 +20,25 @@ const Shop = lazy(() => import("./pages/Shop"));
 const Program = lazy(() => import("./pages/Program"));
 
 function Router() {
-  // make sure to consider if you need authentication for certain routes
+  // Client-side route changes count as page views (the first one is sent on load).
+  const [location] = useLocation();
+  const first = useRef(true);
+  useEffect(() => {
+    if (first.current) { first.current = false; return; }
+    pageview(location);
+  }, [location]);
+
   return (
     <Suspense fallback={<div className="min-h-screen" style={{ backgroundColor: "#54412F" }} />}>
     <Switch>
       <Route path={"/"} component={Home} />
       <Route path={"/calculator"} component={Calculator} />
-      <Route path={"/admin"} component={Admin} />
-      <Route path={"/admin/leads"} component={AdminLeads} />
+      <Route path={"/admin"}>
+        <AdminGate><Admin /></AdminGate>
+      </Route>
+      <Route path={"/admin/leads"}>
+        <AdminGate><AdminLeads /></AdminGate>
+      </Route>
       <Route path={"/shop"} component={Shop} />
       <Route path={"/program"} component={Program} />
       <Route path={"/success"} component={Success} />

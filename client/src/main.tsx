@@ -5,7 +5,8 @@ import { httpLink, TRPCClientError } from "@trpc/client";
 import { createRoot } from "react-dom/client";
 import superjson from "superjson";
 import App from "./App";
-import { getLoginUrl } from "./const";
+import { ADMIN_LOCKED_EVENT, clearAdminKey, getAdminKey } from "./lib/adminKey";
+import { initAnalytics } from "./lib/analytics";
 import "./index.css";
 
 const queryClient = new QueryClient();
@@ -18,7 +19,9 @@ const redirectToLoginIfUnauthorized = (error: unknown) => {
 
   if (!isUnauthorized) return;
 
-  window.location.href = getLoginUrl();
+  // Wrong or missing admin password — drop it and let AdminGate ask again.
+  clearAdminKey();
+  window.dispatchEvent(new Event(ADMIN_LOCKED_EVENT));
 };
 
 queryClient.getQueryCache().subscribe(event => {
@@ -45,6 +48,8 @@ const trpcClient = trpc.createClient({
       fetch(input, init) {
         const headers = new Headers(init?.headers);
         headers.set("Content-Type", "application/json");
+        const adminKey = getAdminKey();
+        if (adminKey) headers.set("x-admin-key", adminKey);
         return globalThis.fetch(input, {
           ...(init ?? {}),
           credentials: "include",
@@ -54,6 +59,8 @@ const trpcClient = trpc.createClient({
     }),
   ],
 });
+
+initAnalytics();
 
 createRoot(document.getElementById("root")!).render(
   <trpc.Provider client={trpcClient} queryClient={queryClient}>

@@ -1,4 +1,6 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
+
+process.env.ADMIN_PASSWORD = "test-admin";
 import { appRouter } from "./routers";
 import type { TrpcContext } from "./_core/context";
 
@@ -52,7 +54,7 @@ function createAdminContext(): TrpcContext {
       updatedAt: new Date(),
       lastSignedIn: new Date(),
     },
-    req: { protocol: "https", headers: {} } as TrpcContext["req"],
+    req: { protocol: "https", headers: { "x-admin-key": "test-admin" } } as TrpcContext["req"],
     res: { clearCookie: vi.fn() } as unknown as TrpcContext["res"],
   };
 }
@@ -84,7 +86,7 @@ describe("storage.list", () => {
     expect(result[0]).toHaveProperty("filename");
   });
 
-  it("throws FORBIDDEN for non-admin users", async () => {
+  it("throws UNAUTHORIZED for users without the admin password", async () => {
     const caller = appRouter.createCaller(createUserContext());
     await expect(caller.storage.list()).rejects.toThrow();
   });
@@ -104,7 +106,7 @@ describe("storage.upload", () => {
     expect(result).toHaveProperty("filename", "test-image.jpg");
   });
 
-  it("throws FORBIDDEN for non-admin users", async () => {
+  it("throws UNAUTHORIZED for users without the admin password", async () => {
     const caller = appRouter.createCaller(createUserContext());
     await expect(
       caller.storage.upload({
@@ -124,7 +126,7 @@ describe("storage.delete", () => {
     expect(result).toEqual({ success: true });
   });
 
-  it("throws FORBIDDEN for non-admin users", async () => {
+  it("throws UNAUTHORIZED for users without the admin password", async () => {
     const caller = appRouter.createCaller(createUserContext());
     await expect(caller.storage.delete({ id: 1 })).rejects.toThrow();
   });

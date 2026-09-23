@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { publicProcedure, router } from "../_core/trpc";
+import { protectedProcedure, publicProcedure, router } from "../_core/trpc";
 import { getDb } from "../db";
 import { pushSubscriptions } from "../../drizzle/schema";
 import { eq } from "drizzle-orm";
@@ -9,7 +9,7 @@ export const pushRouter = router({
   /**
    * Public mutation — save a push subscription from the browser
    */
-  subscribe: publicProcedure
+  subscribe: protectedProcedure
     .input(
       z.object({
         endpoint: z.string().url(),
@@ -47,7 +47,7 @@ export const pushRouter = router({
   /**
    * Public mutation — remove a push subscription (when user denies permission)
    */
-  unsubscribe: publicProcedure
+  unsubscribe: protectedProcedure
     .input(z.object({ endpoint: z.string() }))
     .mutation(async ({ input }) => {
       const db = await getDb();
@@ -85,7 +85,7 @@ export const pushRouter = router({
    * Otherwise, sends to ALL subscribed devices (so you can check your phone
    * even if you triggered it from your laptop).
    */
-  sendTest: publicProcedure
+  sendTest: protectedProcedure
     .input(z.object({ endpoint: z.string().optional(), allDevices: z.boolean().optional() }))
     .mutation(async ({ input }) => {
       const db = await getDb();

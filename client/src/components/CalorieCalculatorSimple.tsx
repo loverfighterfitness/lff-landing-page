@@ -1,3 +1,4 @@
+import { track } from "@/lib/analytics";
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
@@ -84,6 +85,7 @@ export default function CalorieCalculatorSimple() {
         // Pick up referral code if the user arrived via a referral link
         const referralCode = sessionStorage.getItem("lff_referral_code") ?? undefined;
 
+        track("calculator_submitted");
         await submitCalculator.mutateAsync({
           name: inputs.name,
           email: inputs.email,

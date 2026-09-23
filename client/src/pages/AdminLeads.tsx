@@ -10,6 +10,8 @@ import { usePushNotifications } from "@/hooks/usePushNotifications";
 import ReferralsTab from "@/components/ReferralsTab";
 import ShopOrdersTab from "@/components/ShopOrdersTab";
 import ShopInventoryTab from "@/components/ShopInventoryTab";
+import AnalyticsTab from "@/components/AnalyticsTab";
+import EnquiriesTab from "@/components/EnquiriesTab";
 
 const LOGO_CREAM =
   "https://d2xsxph8kpxj0f.cloudfront.net/310519663408040383/TeiTyUgvfabHNSBnznn263/LFFNEWLOGOCREAM_59ca0122.png";
@@ -401,7 +403,7 @@ function SmsJobRow({ job }: { job: any }) {
 }
 
 export default function AdminLeads() {
-  const [activeTab, setActiveTab] = useState<"leads" | "sms" | "referrals" | "orders" | "inventory">("leads");
+  const [activeTab, setActiveTab] = useState<"analytics" | "enquiries" | "leads" | "sms" | "referrals" | "orders" | "inventory">("analytics");
   const push = usePushNotifications();
   const pushStatusQuery = trpc.push.status.useQuery(
     { endpoint: push.endpoint ?? undefined },
@@ -537,10 +539,12 @@ export default function AdminLeads() {
         </div>
 
         {/* Tabs */}
-        <div className="max-w-5xl mx-auto px-4 flex gap-1 pb-2">
-          {(["leads", "sms", "referrals", "orders", "inventory"] as const).map((tab) => {
+        <div className="max-w-5xl mx-auto px-4 flex gap-1 pb-2 overflow-x-auto">
+          {(["analytics", "enquiries", "leads", "sms", "referrals", "orders", "inventory"] as const).map((tab) => {
             const tabLabels: Record<string, string> = {
-              leads: "Leads",
+              analytics: "Analytics",
+              enquiries: "Enquiries",
+              leads: "Calculator Leads",
               sms: "SMS Queue",
               referrals: "Referrals",
               orders: "Orders",
@@ -550,7 +554,7 @@ export default function AdminLeads() {
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                className="text-xs font-bold px-4 py-1.5 rounded-lg transition-all capitalize flex items-center gap-1.5"
+                className="text-xs font-bold px-4 py-1.5 rounded-lg transition-all capitalize flex items-center gap-1.5 whitespace-nowrap shrink-0"
                 style={{
                   backgroundColor: activeTab === tab ? "#EAE6D2" : "transparent",
                   color: activeTab === tab ? "#54412F" : "rgba(234,230,210,0.75)",
@@ -612,6 +616,8 @@ export default function AdminLeads() {
         )}
 
         {/* REFERRALS TAB */}
+        {activeTab === "analytics" && <AnalyticsTab />}
+        {activeTab === "enquiries" && <EnquiriesTab />}
         {activeTab === "referrals" && <ReferralsTab />}
 
         {/* SMS QUEUE TAB */}

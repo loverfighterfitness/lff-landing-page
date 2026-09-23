@@ -29,7 +29,7 @@ const TESTIMONIALS: Testimonial[] = [
     quote:
       "Since starting with Levi, I have gained so much confidence, self respect and incredible knowledge. He is genuinely interested in helping people become healthier and stronger — not just physically but mentally. I highly recommend Lover Fighter Fitness.",
     name: "Kim Morrison",
-    designation: "Online Coaching Client · 4 Months",
+    designation: "F2F & Online Client · 4 Months",
     src: "/transformations/kim-testimonial.jpg",
     objectPosition: "center 20%",
   },

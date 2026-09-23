@@ -45,6 +45,8 @@ export function isAdminRequest(req: TrpcContext["req"]): boolean {
   if (!ok && process.env.ADMIN_AUTH_DEBUG) {
     console.log("[AdminAuth] denied", JSON.stringify({
       headerKeys: Object.keys(req.headers),
+      cfWorker: req.headers["cf-worker"],
+      cfEwVia: req.headers["cf-ew-via"],
       cookieNames: Object.keys(cookies),
       cookieLen: typeof cookie === "string" ? cookie.length : null,
       expectedLen: expected.length,

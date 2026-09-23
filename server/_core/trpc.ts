@@ -1,5 +1,6 @@
 import { initTRPC, TRPCError } from "@trpc/server";
-import { timingSafeEqual } from "crypto";
+import { createHash, timingSafeEqual } from "crypto";
+import { parse as parseCookie } from "cookie";
 import superjson from "superjson";
 import { UNAUTHED_ERR_MSG } from "@shared/const";
 import type { TrpcContext } from "./context";
@@ -11,14 +12,36 @@ const t = initTRPC.context<TrpcContext>().create({
 export const router = t.router;
 export const publicProcedure = t.procedure;
 
-/** True when the request carries the admin password (x-admin-key header). */
-export function isAdminRequest(req: TrpcContext["req"]): boolean {
-  const expected = process.env.ADMIN_PASSWORD ?? "";
-  const given = req.headers["x-admin-key"];
-  if (!expected || typeof given !== "string") return false;
+export const ADMIN_COOKIE = "lff_admin";
+
+function safeEqual(given: string, expected: string) {
   const a = Buffer.from(given);
   const b = Buffer.from(expected);
   return a.length === b.length && timingSafeEqual(a, b);
+}
+
+/** What the admin cookie holds: a hash of the password, never the password itself. */
+export function adminCookieValue(password: string) {
+  return createHash("sha256").update(`lff-admin:${password}`).digest("hex");
+}
+
+export function isAdminPassword(given: string) {
+  const expected = process.env.ADMIN_PASSWORD ?? "";
+  return !!expected && safeEqual(given, expected);
+}
+
+/**
+ * True when the request carries the admin password — either the httpOnly
+ * cookie set at login (works through Cloudflare) or an x-admin-key header.
+ */
+export function isAdminRequest(req: TrpcContext["req"]): boolean {
+  const expected = process.env.ADMIN_PASSWORD ?? "";
+  if (!expected) return false;
+  const header = req.headers["x-admin-key"];
+  if (typeof header === "string" && safeEqual(header, expected)) return true;
+  const cookies = parseCookie(req.headers.cookie ?? "");
+  const cookie = cookies[ADMIN_COOKIE];
+  return typeof cookie === "string" && safeEqual(cookie, adminCookieValue(expected));
 }
 
 /**

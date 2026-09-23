@@ -16,7 +16,7 @@ export default function AdminGate({ children }: { children: ReactNode }) {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [checking, setChecking] = useState(false);
-  const utils = trpc.useUtils();
+  const login = trpc.system.adminLogin.useMutation();
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -30,13 +30,14 @@ export default function AdminGate({ children }: { children: ReactNode }) {
     if (!password) return;
     setChecking(true);
     setError("");
-    setAdminKey(password);
     try {
-      await utils.system.adminCheck.fetch(undefined, { staleTime: 0 });
+      await login.mutateAsync({ password });
+      setAdminKey(password);
       queryClient.clear();
       setUnlocked(true);
-    } catch {
-      setError("Wrong password. Try again.");
+    } catch (err) {
+      const tooMany = err instanceof Error && err.message.startsWith("Too many");
+      setError(tooMany ? err.message : "Wrong password. Try again.");
     } finally {
       setChecking(false);
     }

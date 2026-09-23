@@ -53,7 +53,7 @@ const TESTIMONIALS: Testimonial[] = [
       "Levi has made a positive influence on my lifestyle change. A very supportive, passionate and knowledgeable trainer. He has a great understanding of Hypertrophy and is able to communicate complex ideas easily to translate into real results.",
     name: "Leigh Hill",
     designation: "Online Coaching Client · -14kg",
-    src: "/transformations/leigh-after.png",
+    src: "/transformations/leigh-after.jpg",
     objectPosition: "15% 20%",
   },
 ];
@@ -155,9 +155,11 @@ export default function AnimatedTestimonials({ autoplay = true }: { autoplay?: b
               className="text-base md:text-lg leading-relaxed font-normal"
               style={{ color: "rgba(84,65,47,0.80)" }}
             >
+              <span className="sr-only">{TESTIMONIALS[active].quote}</span>
               {TESTIMONIALS[active].quote.split(" ").map((word, i) => (
                 <motion.span
                   key={i}
+                  aria-hidden="true"
                   initial={{ filter: "blur(8px)", opacity: 0, y: 4 }}
                   animate={{ filter: "blur(0px)", opacity: 1, y: 0 }}
                   transition={{ duration: 0.18, ease: "easeOut", delay: 0.015 * i }}

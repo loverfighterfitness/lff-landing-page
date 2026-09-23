@@ -19,7 +19,7 @@ const faqs = [
   {
     question: "Do you have comp prep experience?",
     answer:
-      "Yes — I've coached multiple clients through comp prep, both male and female. Ruby placed in her debut comp and is stepping on stage again May 3rd. Dom is on the same show. Comp prep is one of my core focuses and I take it seriously.",
+      "Yes — I've coached multiple clients through comp prep, both male and female. Ruby placed 2nd at her debut show and has competed again since. Comp prep is one of my core focuses and I take it seriously.",
   },
   {
     question: "What if I'm a complete beginner?",

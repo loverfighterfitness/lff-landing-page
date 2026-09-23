@@ -1,6 +1,5 @@
 /**
  * Footer — Single brown, minimal with centered logo
- * Deploy test: Railway pipeline active
  */
 import { Instagram } from "lucide-react";
 
@@ -23,7 +22,7 @@ export default function Footer() {
             </div>
 
             {/* Links */}
-            <div className="flex items-center gap-8">
+            <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-3 md:gap-8">
               {["#coaching", "#results", "#about", "/shop", "#contact"].map((href, i) => (
                 <a
                   key={href}
@@ -38,6 +37,7 @@ export default function Footer() {
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-lff-cream/35 hover:text-lff-cream/70 transition-colors"
+                aria-label="Instagram"
               >
                 <Instagram size={15} />
               </a>

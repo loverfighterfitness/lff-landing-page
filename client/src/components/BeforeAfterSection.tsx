@@ -58,8 +58,8 @@ const TRANSFORMATIONS: Transformation[] = [
     paddingBottom: "177.78%", // portrait 9:16
     maxWidth: "260px",
     layout: "side" as const,
-    before: "/transformations/leigh-before.png",
-    after: "/transformations/leigh-after.png",
+    before: "/transformations/leigh-before.jpg",
+    after: "/transformations/leigh-after.jpg",
     beforeStyle: { position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" as const, objectPosition: "15% center" },
     afterStyle:  { position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" as const, objectPosition: "15% center", transform: "scale(1.22)" },
     afterLabel: "After",

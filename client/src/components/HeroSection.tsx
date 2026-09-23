@@ -25,7 +25,7 @@ export default function HeroSection() {
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ type: "spring", stiffness: 120, damping: 20, delay: 0.1 }}
+            transition={{ type: "spring", stiffness: 120, damping: 20, delay: 0 }}
             className="mb-8 md:mb-10 mt-12 lg:mt-0 lg:self-start lg:ml-[25%]"
           >
             <AnimatedLogo className="h-16 sm:h-20 md:h-28 w-auto" />
@@ -35,18 +35,18 @@ export default function HeroSection() {
           <motion.p
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ type: "spring", stiffness: 100, damping: 20, delay: 0.3 }}
+            transition={{ type: "spring", stiffness: 100, damping: 20, delay: 0.1 }}
             className="text-lff-cream/50 text-xs tracking-[0.35em] uppercase mb-6 font-medium"
           >
             Online Coaching · World-Wide
           </motion.p>
 
           {/* Headline */}
-          <motion.div
+          <motion.h1
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ type: "spring", stiffness: 80, damping: 20, delay: 0.5 }}
-            className="mb-6 w-full"
+            transition={{ type: "spring", stiffness: 80, damping: 20, delay: 0.2 }}
+            className="mb-6 w-full font-normal"
           >
             <span
               className="block font-display leading-[0.95] tracking-tight text-lff-cream text-center lg:text-left"
@@ -67,13 +67,13 @@ export default function HeroSection() {
             >
               For You.
             </span>
-          </motion.div>
+          </motion.h1>
 
           {/* Thin rule */}
           <motion.div
             initial={{ scaleX: 0, opacity: 0 }}
             animate={{ scaleX: 1, opacity: 1 }}
-            transition={{ duration: 0.6, delay: 1.2 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
             className="w-20 mb-6 origin-center lg:origin-left mx-auto lg:mx-0"
             style={{ height: "1.5px", backgroundColor: "rgba(234,230,210,0.35)" }}
           />
@@ -82,7 +82,7 @@ export default function HeroSection() {
           <motion.p
             initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ type: "spring", stiffness: 100, damping: 20, delay: 1.4 }}
+            transition={{ type: "spring", stiffness: 100, damping: 20, delay: 0.45 }}
             className="text-lff-cream/70 text-sm md:text-lg max-w-sm md:max-w-md leading-relaxed mb-8 font-normal mx-auto lg:mx-0"
           >
             Personalised strength, bodybuilding, and competition prep coaching.
@@ -93,7 +93,7 @@ export default function HeroSection() {
           <motion.div
             initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ type: "spring", stiffness: 100, damping: 20, delay: 1.6 }}
+            transition={{ type: "spring", stiffness: 100, damping: 20, delay: 0.55 }}
             className="flex flex-col items-center lg:items-start gap-3 mb-8"
           >
             <div className="flex gap-3 justify-center lg:justify-start">
@@ -130,7 +130,7 @@ export default function HeroSection() {
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ duration: 0.5, delay: 2 }}
+            transition={{ duration: 0.5, delay: 0.7 }}
             className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-2 sm:gap-3 w-full"
           >
             {/* Avatar stack */}
@@ -138,7 +138,7 @@ export default function HeroSection() {
               {[
                 { src: "https://d2xsxph8kpxj0f.cloudfront.net/310519663408040383/TeiTyUgvfabHNSBnznn263/ruby-comp-day_e2742a4b.jpeg", pos: "center 20%" },
                 { src: "/transformations/kim-testimonial.jpg", pos: "center 20%" },
-                { src: "/transformations/leigh-after.png", pos: "25% 20%" },
+                { src: "/transformations/leigh-after.jpg", pos: "25% 20%" },
                 { src: "/transformations/laura.jpg", pos: "center 15%" },
                 { src: "https://d2xsxph8kpxj0f.cloudfront.net/310519663408040383/TeiTyUgvfabHNSBnznn263/440F56C7-42C7-4BEF-AA2B-04F320CCBC31_ddfd61dc.jpeg", pos: "center 20%" },
               ].map((p, i) => (
@@ -170,7 +170,7 @@ export default function HeroSection() {
         <motion.div
           initial={{ opacity: 0, x: 40, scale: 0.96 }}
           animate={{ opacity: 1, x: 0, scale: 1 }}
-          transition={{ type: "spring", stiffness: 60, damping: 20, delay: 0.4 }}
+          transition={{ type: "spring", stiffness: 60, damping: 20, delay: 0.15 }}
           className="relative hidden lg:block"
         >
           <div
@@ -183,7 +183,10 @@ export default function HeroSection() {
           >
             <img
               src={HERO_IMAGE}
-              alt="Levi Hurst — Lover Fighter Fitness"
+              alt="Levi Hurst photographing Ruby Frang backstage at her bodybuilding show"
+              width={2400}
+              height={1600}
+              fetchPriority="high"
               className="w-full h-full object-cover object-center"
               draggable={false}
             />
@@ -202,7 +205,7 @@ export default function HeroSection() {
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 2.5, duration: 0.8 }}
+        transition={{ delay: 1.2, duration: 0.8 }}
         className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2"
       >
         <span className="text-lff-cream/25 text-xs tracking-[0.3em] uppercase font-medium">

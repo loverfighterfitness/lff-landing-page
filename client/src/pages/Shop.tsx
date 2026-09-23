@@ -2057,7 +2057,9 @@ function ShopHero() {
       {/* Background — subway billboard */}
       <motion.div className="absolute inset-0" style={{ scale: bgScale }}>
         <video
-          src="/shop/hero-video.mp4"
+          src="/shop/hero-v2.mp4"
+          poster="/shop/hero-poster.jpg"
+          aria-hidden="true"
           autoPlay
           muted
           loop

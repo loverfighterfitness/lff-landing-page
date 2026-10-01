@@ -136,7 +136,9 @@ function popup(ctx: CanvasRenderingContext2D, s: LiftStateBase, character: Chara
   const pool = s.outcome === "perfect" ? CHARACTER_INFO[character].perfectQuotes : POPUPS[s.outcome];
   const line = pool[s.outcomeTick % pool.length];
   const colour = s.outcome === "perfect" ? "#d4af37" : s.outcome === "good" ? LIME : RED;
-  text(ctx, line, VIEW_W / 2, y, 8, colour);
+  ctx.font = `8px ${FONT}`;
+  if (ctx.measureText(line).width > 168) wrap(ctx, line, VIEW_W / 2, y, 168, 6, colour);
+  else text(ctx, line, VIEW_W / 2, y, 8, colour);
   if (character === "benny" && s.outcome === "perfect" && s.outcomeTick % 3 === 0) {
     drawMiniLevi(ctx, 6, y + 14, 1);
     wrap(ctx, BENNY_BANTER_REPLY, 100, y + 16, 140, 5, CREAM);
@@ -155,8 +157,8 @@ function drawBench(ctx: CanvasRenderingContext2D, s: BenchState, character: Char
   ctx.fillRect(68, benchY - 4, 6, 3);
   // Bar travels down and up during a rep animation.
   const anim = s.cooldown > 0 && s.outcome !== "miss" ? Math.sin((s.cooldown / BENCH.cooldownTicks) * Math.PI) * 14 : 0;
-  barbell(ctx, 72, benchY - 10 + anim, 150, s.kg);
-  text(ctx, `${s.kg}KG`, 72, benchY - 34, 6, CREAM);
+  barbell(ctx, 90, benchY - 10 + anim, 140, s.kg);
+  text(ctx, `${s.kg}KG`, 90, benchY - 34, 6, CREAM);
   // Timing meter.
   const mx = 20, my = 270, mw = 140, mh = 14;
   ctx.fillStyle = DARK;
@@ -176,8 +178,8 @@ function drawBench(ctx: CanvasRenderingContext2D, s: BenchState, character: Char
   }
   // Benny's 3-plate quest.
   if (character === "benny") {
-    if (s.kg === 130) wrap(ctx, BENNY_3_PLATES_LOADING, VIEW_W / 2, 120, 160, 6, "#d4af37");
-    if (s.kg === 140 && s.outcome === "perfect" && s.tick - s.outcomeTick < 90) {
+    if (s.kg === 140) wrap(ctx, BENNY_3_PLATES_LOADING, VIEW_W / 2, 120, 160, 6, "#d4af37");
+    if (s.kg === 150 && s.outcome === "perfect" && s.tick - s.outcomeTick < 90) {
       for (let i = 0; i < 40; i++) {
         ctx.fillStyle = ["#d4af37", CREAM, LIME, RED][i % 4];
         ctx.fillRect((i * 37 + s.tick * 3) % VIEW_W, (i * 53 + s.tick * 2) % 220, 3, 3);
@@ -245,10 +247,10 @@ function drawIntro(ctx: CanvasRenderingContext2D, c: Circuit, character: Charact
   text(ctx, secs > 0 ? `${secs}` : "GO!", VIEW_W / 2, 270, 16);
   if (p.npc) {
     // The "just eat whole foods bro" guy gets shut down before deadlifts.
-    drawSprite(ctx, "benny", false, 8, 140, 1);
-    wrap(ctx, WHOLE_FOODS_BRO, 70, 140, 100, 5, CREAM);
-    drawMiniLevi(ctx, 8, 180, 1);
-    wrap(ctx, LEVI_REPLY_WHOLE_FOODS, 70, 180, 100, 5, LIME);
+    drawSprite(ctx, "benny", false, 8, 108, 1);
+    wrap(ctx, WHOLE_FOODS_BRO, 70, 108, 100, 5, CREAM);
+    drawMiniLevi(ctx, 8, 132, 1);
+    wrap(ctx, LEVI_REPLY_WHOLE_FOODS, 70, 132, 100, 5, LIME);
   }
 }
 

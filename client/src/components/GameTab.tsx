@@ -62,6 +62,7 @@ export default function GameTab() {
         style={{ backgroundColor: "rgba(0,0,0,0.18)" }}
         onSubmit={(e) => {
           e.preventDefault();
+          if (event && !window.confirm("Start a new comp? This resets the live leaderboard.")) return;
           startEvent.mutate({ name, startsAt: new Date(startsAt), endsAt: new Date(endsAt) });
         }}
       >

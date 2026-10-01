@@ -14,7 +14,7 @@ function timeLeft(endsAt: Date) {
 
 /** Live board — refreshes every 10s while on screen. */
 export default function Leaderboard({ highlightHandle }: { highlightHandle?: string }) {
-  const { data, isLoading, error } = trpc.game.leaderboard.useQuery(undefined, { refetchInterval: 10_000 });
+  const { data, isLoading, error } = trpc.game.leaderboard.useQuery(undefined, { refetchInterval: 10_000, retry: 1 });
   const icons = useMemo(
     () => Object.fromEntries((["levi", "ruby", "benny"] as Character[]).map((c) => [c, spriteDataUrl(c, false, 1)])),
     [],
@@ -27,7 +27,7 @@ export default function Leaderboard({ highlightHandle }: { highlightHandle?: str
     <div className="w-full flex flex-col gap-4">
       <div className="text-center">
         <p className="text-xs" style={{ color: "#d4af37" }}>{data.event?.name ?? "NEXT COMP COMING SOON"}</p>
-        {data.event && <p className="text-[8px] mt-2 opacity-75">{timeLeft(data.event.endsAt)} · TOP SCORE WINS A TEE</p>}
+        {data.event && <p className="text-[8px] mt-2 opacity-75">{timeLeft(data.event.endsAt)} · TOP SCORE WINS A TEE · EARLIEST SCORE WINS TIES</p>}
       </div>
       <ol className="w-full flex flex-col gap-1">
         {data.rows.length === 0 && <li className="text-[9px] text-center opacity-75">No scores yet. Be first.</li>}

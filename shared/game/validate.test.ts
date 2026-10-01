@@ -87,4 +87,14 @@ describe("checkRun", () => {
     const res = checkRun(SEED, { ...empty, deadlift: [{ tick: 0, down: false }] }, 70_000);
     expect(res.ok).toBe(false);
   });
+
+  it("rejects NaN timing", () => {
+    const res = checkRun(SEED, empty, NaN);
+    expect(res).toEqual({ ok: false, reason: "bad timing" });
+  });
+
+  it("rejects negative timing", () => {
+    const res = checkRun(SEED, empty, -1000);
+    expect(res).toEqual({ ok: false, reason: "bad timing" });
+  });
 });

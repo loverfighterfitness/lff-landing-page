@@ -5,6 +5,8 @@ export const TICK_MS = 10;
 export const MIN_PRESS_GAP_TICKS = 5;
 export const MAX_EVENTS_PER_LIFT = 1500;
 export const RUN_TOKEN_TTL_MS = 10 * 60_000;
+/** Share of the replayed play time a run must have really taken. */
+export const MIN_PLAYTIME_FRACTION = 0.8;
 
 export const COMBO_STEP = 0.1;
 export const COMBO_MAX_MULT = 2;

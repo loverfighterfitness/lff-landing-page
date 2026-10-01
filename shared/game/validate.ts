@@ -1,4 +1,4 @@
-import { MAX_EVENTS_PER_LIFT, MIN_PRESS_GAP_TICKS, RUN_TOKEN_TTL_MS, TICK_MS } from "./config";
+import { MAX_EVENTS_PER_LIFT, MIN_PLAYTIME_FRACTION, MIN_PRESS_GAP_TICKS, RUN_TOKEN_TTL_MS, TICK_MS } from "./config";
 import { LIFT_SIMS, replayRun } from "./run";
 import { LIFTS, type InputEvent, type LiftId, type LiftScores, type RunLogs } from "./types";
 
@@ -32,12 +32,13 @@ export function checkLog(lift: LiftId, events: InputEvent[]): string | null {
  * `elapsedMs` = server time between issuing the run token and receiving the submission.
  */
 export function checkRun(seed: number, logs: RunLogs, elapsedMs: number): RunCheck {
+  if (!Number.isFinite(elapsedMs) || elapsedMs < 0) return { ok: false, reason: "bad timing" };
   for (const lift of LIFTS) {
     const reason = checkLog(lift, logs[lift]);
     if (reason) return { ok: false, reason: `${lift}: ${reason}` };
   }
   if (elapsedMs > RUN_TOKEN_TTL_MS) return { ok: false, reason: "run expired" };
   const result = replayRun(seed, logs);
-  if (elapsedMs < result.ticks * TICK_MS * 0.8) return { ok: false, reason: "finished too fast" };
+  if (elapsedMs < result.ticks * TICK_MS * MIN_PLAYTIME_FRACTION) return { ok: false, reason: "finished too fast" };
   return { ok: true, ...result };
 }

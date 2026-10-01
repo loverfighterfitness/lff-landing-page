@@ -1,5 +1,4 @@
 import type { BenchState } from "@shared/game/bench";
-import { comboMultiplier } from "@shared/game/combo";
 import { BENCH, DEADLIFT } from "@shared/game/config";
 import { DEADLIFT_CENTRE, type DeadliftState } from "@shared/game/deadlift";
 import type { LiftStateBase } from "@shared/game/lift";
@@ -108,9 +107,9 @@ function hud(ctx: CanvasRenderingContext2D, c: Circuit, s: LiftStateBase, maxTic
   text(ctx, lift, 6, 6, 8, CREAM, "left");
   const done = c.scores();
   const total = done.bench + done.squat + done.deadlift + s.score;
-  text(ctx, `${s.score}`, 6, 18, 8, BLUE, "left");
-  text(ctx, `TOTAL ${total}`, VIEW_W - 6, 18, 6, CREAM, "right");
-  if (s.combo > 0) text(ctx, `x${comboMultiplier(s.combo).toFixed(1)}`, VIEW_W - 6, 30, 8, BLUE, "right");
+  text(ctx, `BEST ${s.score}KG`, 6, 18, 7, BLUE, "left");
+  text(ctx, `TOTAL ${total}KG`, VIEW_W - 6, 18, 6, CREAM, "right");
+  if (s.combo > 1) text(ctx, `STREAK ${s.combo}`, VIEW_W - 6, 30, 6, BLUE, "right");
   // Time bar.
   ctx.fillStyle = DARK;
   ctx.fillRect(6, 30, 100, 4);
@@ -182,7 +181,7 @@ function drawBench(ctx: CanvasRenderingContext2D, s: BenchState, character: Char
   // Benny's 3-plate quest.
   if (character === "benny") {
     if (s.kg === 140) wrap(ctx, BENNY_3_PLATES_LOADING, VIEW_W / 2, 42, 160, 6, BLUE);
-    if (s.kg === 150 && s.outcome === "perfect" && s.tick - s.outcomeTick < 90) {
+    if (s.bestKg === 140 && s.outcome === "perfect" && s.tick - s.outcomeTick < 90) {
       for (let i = 0; i < 40; i++) {
         ctx.fillStyle = [BLUE, CREAM, STONE, TAUPE][i % 4];
         ctx.fillRect((i * 37 + s.tick * 3) % VIEW_W, (i * 53 + s.tick * 2) % 220, 3, 3);
@@ -196,7 +195,7 @@ function drawSquat(ctx: CanvasRenderingContext2D, s: SquatState, character: Char
   // progress 0 = bottom of the hole, 1 = standing; stand tall during the rep cooldown.
   const up = s.cooldown > 0 ? 1 : s.progress;
   const pose = frame3(up, "squat_bottom" as const, "squat_mid" as const, "squat_top" as const);
-  const kg = Math.min(200, 60 + s.reps * 10);
+  const kg = s.kg;
   drawPlatesFront(ctx, drawPose(ctx, character, pose, VIEW_W / 2, FLOOR), kg);
   tag(ctx, `${kg}KG`, VIEW_W / 2, 100, 8);
   // Drive meter (left) and form meter (right).
@@ -220,7 +219,7 @@ function drawDeadlift(ctx: CanvasRenderingContext2D, s: DeadliftState, character
   const up = lockedOut ? 1 : s.pulling ? s.gauge / DEADLIFT.sweetMin : 0;
   const pose = frame3(up, "dl_bottom" as const, "dl_mid" as const, "dl_top" as const);
   // During lockout the bar shows the weight just lifted; otherwise what's loaded.
-  const kg = lockedOut ? s.kg - DEADLIFT.kgStep : s.kg;
+  const kg = lockedOut ? s.bestKg : s.kg;
   drawPlatesFront(ctx, drawPose(ctx, character, pose, VIEW_W / 2 - 6, FLOOR), kg);
   tag(ctx, lockedOut ? `NEXT ${s.kg}KG` : `${s.kg}KG`, VIEW_W / 2, 100, 8);
   // Power gauge.

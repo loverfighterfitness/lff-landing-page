@@ -1,4 +1,3 @@
-import { award } from "./combo";
 import { BENCH } from "./config";
 import type { LiftSim, LiftStateBase } from "./lift";
 import { randAt } from "./rng";
@@ -14,8 +13,10 @@ export interface BenchState extends LiftStateBase {
   zoneWidth: number;
   speed: number;
   cooldown: number;
-  /** Bar weight shown on screen (cosmetic). */
+  /** Weight on the bar for the next rep. */
   kg: number;
+  /** Heaviest rep completed — this lift's score. */
+  bestKg: number;
 }
 
 function zoneFor(seed: number, reps: number) {
@@ -36,7 +37,7 @@ export const bench: LiftSim<BenchState> = {
       tick: 0, done: false, score: 0, combo: 0, perfects: 0, outcome: null, outcomeTick: 0,
       seed, pos: 0, dir: 1, reps: 0, misses: 0,
       zoneCenter: z.center, zoneWidth: z.width,
-      speed: BENCH.speedStart, cooldown: 0, kg: BENCH.startKg,
+      speed: BENCH.speedStart, cooldown: 0, kg: BENCH.startKg, bestKg: 0,
     };
   },
 
@@ -49,14 +50,15 @@ export const bench: LiftSim<BenchState> = {
       const off = Math.abs(s.pos - s.zoneCenter);
       s.outcomeTick = s.tick;
       s.cooldown = BENCH.cooldownTicks;
+      let jump: number;
       if (off <= (s.zoneWidth * BENCH.perfectFraction) / 2) {
         s.outcome = "perfect";
-        s.score += award(BENCH.perfectPoints, s.combo);
         s.combo++;
         s.perfects++;
+        jump = BENCH.perfectJump;
       } else if (off <= s.zoneWidth / 2) {
         s.outcome = "good";
-        s.score += award(BENCH.goodPoints, s.combo);
+        jump = BENCH.goodJump;
       } else {
         s.outcome = "miss";
         s.combo = 0;
@@ -65,7 +67,9 @@ export const bench: LiftSim<BenchState> = {
         return;
       }
       s.reps++;
-      s.kg = BENCH.startKg + BENCH.kgPerRep * s.reps;
+      s.bestKg = s.kg;
+      s.score = s.bestKg;
+      s.kg += jump;
       const z = zoneFor(s.seed, s.reps);
       s.zoneCenter = z.center;
       s.zoneWidth = z.width;

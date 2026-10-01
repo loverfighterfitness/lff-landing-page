@@ -1,4 +1,3 @@
-import { award } from "./combo";
 import { SQUAT } from "./config";
 import type { LiftSim, LiftStateBase } from "./lift";
 
@@ -13,6 +12,10 @@ export interface SquatState extends LiftStateBase {
   cooldown: number;
   tutTriggers: number;
   formBreaks: number;
+  /** Weight on the bar for the next rep. */
+  kg: number;
+  /** Heaviest rep completed. Score = bestKg minus any TUT penalties. */
+  bestKg: number;
 }
 
 /** Mash to drive out of the hole — but mash too fast and your form breaks. Grind too slow and Levi calls out your TUT. */
@@ -24,6 +27,7 @@ export const squat: LiftSim<SquatState> = {
     return {
       tick: 0, done: false, score: 0, combo: 0, perfects: 0, outcome: null, outcomeTick: 0,
       progress: 0, strain: 0, lastPressTick: -1000, idleTicks: 0, reps: 0, cooldown: 0, tutTriggers: 0, formBreaks: 0,
+      kg: SQUAT.startKg, bestKg: 0,
     };
   },
 
@@ -52,11 +56,13 @@ export const squat: LiftSim<SquatState> = {
         const perfect = s.strain <= SQUAT.perfectStrainMax;
         s.outcome = perfect ? "perfect" : "good";
         s.outcomeTick = s.tick;
-        s.score += award(SQUAT.repPoints, s.combo);
         if (perfect) {
           s.combo++;
           s.perfects++;
         }
+        s.bestKg = s.kg;
+        s.kg += perfect ? SQUAT.perfectJump : SQUAT.goodJump;
+        s.score = Math.max(0, s.bestKg - s.tutTriggers * SQUAT.tutPenaltyKg);
         s.reps++;
         s.progress = 0;
         s.cooldown = SQUAT.cooldownTicks;
@@ -71,7 +77,7 @@ export const squat: LiftSim<SquatState> = {
         s.outcomeTick = s.tick;
         s.tutTriggers++;
         s.combo = 0;
-        s.score = Math.max(0, s.score - SQUAT.tutPenalty);
+        s.score = Math.max(0, s.bestKg - s.tutTriggers * SQUAT.tutPenaltyKg);
         s.progress = 0;
         s.idleTicks = 0;
       }

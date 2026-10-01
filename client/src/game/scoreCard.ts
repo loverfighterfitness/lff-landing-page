@@ -61,10 +61,10 @@ export async function renderScoreCard(opts: {
 
   const info = CHARACTER_INFO[opts.character];
   label(ctx, `TEAM ${info.name}`, W / 2, 1350, 34, BLUE);
-  label(ctx, `${opts.total}`, W / 2, 1410, 110, CREAM);
+  label(ctx, `${opts.total}KG`, W / 2, 1410, 100, CREAM);
   if (opts.rank) label(ctx, `RANK #${opts.rank}`, W / 2, 1545, 40, STONE);
   const s = opts.scores;
-  label(ctx, `BENCH ${s.bench} · SQUAT ${s.squat} · DL ${s.deadlift}`, W / 2, 1620, 24, STONE);
+  label(ctx, `BENCH ${s.bench} · SQUAT ${s.squat} · DEADLIFT ${s.deadlift}`, W / 2, 1620, 24, STONE);
 
   // Call to action panel.
   ctx.fillStyle = BROWN;
@@ -72,7 +72,7 @@ export async function renderScoreCard(opts: {
   ctx.strokeStyle = CREAM;
   ctx.lineWidth = 6;
   ctx.strokeRect(92, 1702, W - 184, 126);
-  label(ctx, "THINK YOU CAN BEAT ME?", W / 2, 1725, 30, CREAM);
+  label(ctx, "THINK YOU CAN OUTLIFT ME?", W / 2, 1725, 28, CREAM);
   label(ctx, GAME_URL.toUpperCase(), W / 2, 1775, 26, BLUE);
 
   return new Promise((resolve) => cv.toBlob((b) => resolve(b), "image/png"));

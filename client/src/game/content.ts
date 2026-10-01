@@ -43,9 +43,9 @@ export const POPUPS: Record<Exclude<Outcome, null>, string[]> = {
 export const LIFT_NAMES: Record<LiftId, string> = { bench: "BENCH PRESS", squat: "SQUATS", deadlift: "DEADLIFT" };
 
 export const LIFT_TIPS: Record<LiftId, string> = {
-  bench: "TAP when the marker hits the green. Dead centre = PERFECT.",
-  squat: "TAP to drive up. Steady rhythm - mash too fast and your form breaks.",
-  deadlift: "HOLD to pull. RELEASE in the green to lock out.",
+  bench: "TAP when the marker is in the zone. Dead centre = PERFECT = +10KG next rep.",
+  squat: "TAP to drive up. Steady rhythm = PERFECT = +10KG. Mash too fast and your form breaks.",
+  deadlift: "HOLD to pull. RELEASE in the zone to lock out. Dead centre = +10KG.",
 };
 
 export const TUT_LINE = "TUT doesn't grow muscle. Mechanical tension does.";

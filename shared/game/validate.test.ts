@@ -36,7 +36,7 @@ describe("replayRun", () => {
     const live = liveRun();
     const r = replayRun(SEED, live.logs);
     expect(r.scores.bench).toBe(live.benchScore);
-    expect(r.total).toBe(BENCH.perfectPoints);
+    expect(r.total).toBe(BENCH.startKg);
   });
 });
 
@@ -69,7 +69,7 @@ describe("checkRun", () => {
     const live = liveRun();
     const res = checkRun(SEED, live.logs, live.ticks * TICK_MS + 5000);
     expect(res.ok).toBe(true);
-    if (res.ok) expect(res.total).toBe(BENCH.perfectPoints);
+    if (res.ok) expect(res.total).toBe(BENCH.startKg);
   });
 
   it("rejects a run submitted faster than it could be played", () => {

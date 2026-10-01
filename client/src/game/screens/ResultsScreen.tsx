@@ -117,11 +117,11 @@ export default function ResultsScreen({
       {character === "ruby" && result.perfects >= 8 && <p className="text-lg">{RUBY_PODIUM_LINE}</p>}
       <Panel>
       <div className="w-full flex flex-col gap-2 text-[10px]">
-        <div className="flex justify-between"><span>BENCH</span><span>{result.scores.bench}</span></div>
-        <div className="flex justify-between"><span>SQUATS</span><span>{result.scores.squat}</span></div>
-        <div className="flex justify-between"><span>DEADLIFT</span><span>{result.scores.deadlift}</span></div>
+        <div className="flex justify-between"><span>BENCH</span><span>{result.scores.bench}KG</span></div>
+        <div className="flex justify-between"><span>SQUATS</span><span>{result.scores.squat}KG</span></div>
+        <div className="flex justify-between"><span>DEADLIFT</span><span>{result.scores.deadlift}KG</span></div>
         <div className="flex justify-between text-sm pt-2" style={{ borderTop: "2px solid #EAE6D2" }}>
-          <span>TOTAL</span><span style={{ color: BLUE }}>{total}</span>
+          <span>TOTAL</span><span style={{ color: BLUE }}>{total}KG</span>
         </div>
       </div>
       </Panel>
@@ -129,7 +129,7 @@ export default function ResultsScreen({
       {canPost ? (
         <Panel>
         <form onSubmit={post} className="w-full flex flex-col gap-3 text-[10px]">
-          <p className="leading-loose">Post your score. Top score when the comp closes wins a free tee.</p>
+          <p className="leading-loose">Post your total. The heaviest total when the comp closes wins a free tee.</p>
           <input
             required
             value={handle}

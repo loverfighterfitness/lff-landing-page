@@ -11,8 +11,14 @@ export const MIN_PLAYTIME_FRACTION = 0.8;
 export const COMBO_STEP = 0.1;
 export const COMBO_MAX_MULT = 2;
 
+/**
+ * Scoring is a powerlifting total: best bench + best squat + best deadlift, in kg.
+ * Every successful rep locks in the weight on the bar; a PERFECT rep earns a bigger jump for the
+ * next one than a GOOD rep, so timing decides how heavy you get. All jumps are multiples of 5 kg.
+ */
+
 export const BENCH = {
-  maxTicks: 2500,
+  maxTicks: 1800,
   maxMisses: 3,
   zoneStart: 0.24,
   zoneMin: 0.08,
@@ -22,11 +28,11 @@ export const BENCH = {
   speedStart: 0.006,
   speedStep: 0.0006,
   speedMax: 0.02,
-  goodPoints: 100,
-  perfectPoints: 200,
-  cooldownTicks: 30,
-  startKg: 60,
-  kgPerRep: 10,
+  /** Each rep takes ~0.8 s to press and re-rack, which keeps a set to ~10-14 reps. */
+  cooldownTicks: 80,
+  startKg: 30,
+  perfectJump: 10,
+  goodJump: 5,
 } as const;
 
 export const SQUAT = {
@@ -38,18 +44,22 @@ export const SQUAT = {
   strainPerFastPress: 0.25,
   strainDecayPerTick: 0.004,
   perfectStrainMax: 0.3,
-  repPoints: 250,
+  startKg: 50,
+  perfectJump: 10,
+  goodJump: 5,
   cooldownTicks: 40,
   formBreakCooldownTicks: 60,
   /** Sitting in a rep this long without pressing = chasing "time under tension". */
   tutIdleTicks: 150,
-  tutPenalty: 50,
+  /** Chasing TUT costs kg off your best squat. */
+  tutPenaltyKg: 10,
 } as const;
 
 export const DEADLIFT = {
   maxTicks: 2000,
   startKg: 100,
-  kgStep: 20,
+  perfectJump: 10,
+  goodJump: 5,
   gaugeRateStart: 0.008,
   gaugeRateStep: 0.001,
   sweetMin: 0.72,
@@ -58,7 +68,4 @@ export const DEADLIFT = {
   /** Releases below this are treated as an accidental tap, not a failed pull. */
   ignoreBelow: 0.05,
   cooldownTicks: 60,
-  /** Points per kg locked out (perfect / good), so deadlift is ~a third of a run, not most of it. */
-  perfectPointsPerKg: 0.75,
-  goodPointsPerKg: 0.4,
 } as const;

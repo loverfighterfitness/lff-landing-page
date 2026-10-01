@@ -35,7 +35,7 @@ export default function Leaderboard({ highlightHandle }: { highlightHandle?: str
       )}
       <div className="text-center">
         <p className="text-xs" style={{ color: BLUE }}>{data.event?.name ?? "NEXT COMP COMING SOON"}</p>
-        {data.event && <p className="text-[8px] mt-2 opacity-75">{timeLeft(data.event.endsAt)} · TOP SCORE WINS A TEE · EARLIEST SCORE WINS TIES</p>}
+        {data.event && <p className="text-[8px] mt-2 opacity-75">{timeLeft(data.event.endsAt)} · HEAVIEST TOTAL WINS A TEE · EARLIEST SCORE WINS TIES</p>}
       </div>
       <ol className="w-full flex flex-col gap-1">
         {data.rows.length === 0 && (
@@ -58,7 +58,7 @@ export default function Leaderboard({ highlightHandle }: { highlightHandle?: str
             <span className="w-6 text-right">{r.rank}</span>
             <img src={poseUrl(r.character, "stance")} alt="" style={{ imageRendering: "pixelated", height: 36, width: "auto" }} />
             <span className="flex-1 truncate">@{r.handle}</span>
-            <span>{r.total}</span>
+            <span>{r.total}KG</span>
           </li>
         ))}
       </ol>
@@ -67,7 +67,7 @@ export default function Leaderboard({ highlightHandle }: { highlightHandle?: str
         {data.teams.map((t) => (
           <div key={t.character} className="p-2" style={{ border: `2px solid ${CREAM}`, backgroundColor: "rgba(84,65,47,0.5)" }}>
             <p className="text-[8px]">{CHARACTER_INFO[t.character].name}</p>
-            <p className="text-[10px] mt-2">{t.top}</p>
+            <p className="text-[10px] mt-2">{t.top}KG</p>
             <p className="text-[8px] mt-1 opacity-75">{t.players} LIFTERS</p>
           </div>
         ))}

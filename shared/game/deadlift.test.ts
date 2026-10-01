@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { award } from "./combo";
 import { DEADLIFT } from "./config";
 import { deadlift, DEADLIFT_CENTRE, type DeadliftState } from "./deadlift";
 import { LiftRunner, replayLift } from "./lift";
@@ -20,21 +19,22 @@ describe("deadlift", () => {
     expect(s.tick).toBe(DEADLIFT.maxTicks);
   });
 
-  it("releasing dead-centre is a perfect lockout worth the most per kg", () => {
+  it("releasing dead-centre is a perfect lockout with the biggest jump", () => {
     const r = new LiftRunner(deadlift, 1);
     pullTo(r, (s) => Math.abs(s.gauge - DEADLIFT_CENTRE) < 0.005);
     expect(r.state.outcome).toBe("perfect");
-    expect(r.state.score).toBe(award(DEADLIFT.startKg * DEADLIFT.perfectPointsPerKg, 0));
+    expect(r.state.score).toBe(DEADLIFT.startKg);
     expect(r.state.bestKg).toBe(DEADLIFT.startKg);
-    expect(r.state.kg).toBe(DEADLIFT.startKg + DEADLIFT.kgStep);
+    expect(r.state.kg).toBe(DEADLIFT.startKg + DEADLIFT.perfectJump);
     expect(r.state.done).toBe(false);
   });
 
-  it("releasing inside the sweet spot but off-centre is a good lockout", () => {
+  it("releasing inside the sweet spot but off-centre is a good lockout with a smaller jump", () => {
     const r = new LiftRunner(deadlift, 1);
     pullTo(r, (s) => s.gauge > DEADLIFT.sweetMin + 0.01 && s.gauge < DEADLIFT_CENTRE - 0.04);
     expect(r.state.outcome).toBe("good");
-    expect(r.state.score).toBe(award(DEADLIFT.startKg * DEADLIFT.goodPointsPerKg, 0));
+    expect(r.state.score).toBe(DEADLIFT.startKg);
+    expect(r.state.kg).toBe(DEADLIFT.startKg + DEADLIFT.goodJump);
     expect(r.state.combo).toBe(0);
   });
 
@@ -61,15 +61,13 @@ describe("deadlift", () => {
     expect(r.state.pulling).toBe(false);
   });
 
-  it("each lockout loads more weight and keeps the combo", () => {
+  it("each lockout loads more weight and the heaviest is the score", () => {
     const r = new LiftRunner(deadlift, 1);
     pullTo(r, (s) => Math.abs(s.gauge - DEADLIFT_CENTRE) < 0.005);
     idle(r, DEADLIFT.cooldownTicks);
     pullTo(r, (s) => Math.abs(s.gauge - DEADLIFT_CENTRE) < 0.005);
-    const second = DEADLIFT.startKg + DEADLIFT.kgStep;
-    expect(r.state.score).toBe(
-      award(DEADLIFT.startKg * DEADLIFT.perfectPointsPerKg, 0) + award(second * DEADLIFT.perfectPointsPerKg, 1),
-    );
+    const second = DEADLIFT.startKg + DEADLIFT.perfectJump;
+    expect(r.state.score).toBe(second);
     expect(r.state.bestKg).toBe(second);
   });
 

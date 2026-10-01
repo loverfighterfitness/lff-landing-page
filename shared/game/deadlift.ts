@@ -1,4 +1,3 @@
-import { award } from "./combo";
 import { DEADLIFT } from "./config";
 import type { LiftSim, LiftStateBase } from "./lift";
 
@@ -72,14 +71,14 @@ export const deadlift: LiftSim<DeadliftState> = {
     const perfect = Math.abs(s.gauge - DEADLIFT_CENTRE) <= DEADLIFT.perfectHalfWidth;
     s.outcome = perfect ? "perfect" : "good";
     s.outcomeTick = s.tick;
-    s.score += award(s.kg * (perfect ? DEADLIFT.perfectPointsPerKg : DEADLIFT.goodPointsPerKg), s.combo);
     if (perfect) {
       s.combo++;
       s.perfects++;
     }
     s.bestKg = s.kg;
+    s.score = s.bestKg;
     s.attempt++;
-    s.kg += DEADLIFT.kgStep;
+    s.kg += perfect ? DEADLIFT.perfectJump : DEADLIFT.goodJump;
     s.gauge = 0;
     s.cooldown = DEADLIFT.cooldownTicks;
   },

@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import { bench, type BenchState } from "./bench";
-import { award } from "./combo";
 import { BENCH } from "./config";
 import { LiftRunner, replayLift } from "./lift";
 import { stepUntil, tap } from "./testHelpers";
@@ -24,27 +23,28 @@ describe("bench", () => {
     expect(stepUntil(r, inCentre)).toBe(true);
     tap(r);
     expect(r.state.outcome).toBe("perfect");
-    expect(r.state.score).toBe(BENCH.perfectPoints);
+    expect(r.state.score).toBe(BENCH.startKg);
     expect(r.state.reps).toBe(1);
-    expect(r.state.kg).toBe(BENCH.startKg + BENCH.kgPerRep);
+    expect(r.state.kg).toBe(BENCH.startKg + BENCH.perfectJump);
     expect(r.state.combo).toBe(1);
   });
 
-  it("perfects in a row build the combo", () => {
+  it("each perfect rep loads a bigger jump and the best rep is the score", () => {
     const r = new LiftRunner(bench, SEED);
     stepUntil(r, inCentre);
     tap(r);
     stepUntil(r, inCentre);
     tap(r);
-    expect(r.state.score).toBe(BENCH.perfectPoints + award(BENCH.perfectPoints, 1));
+    expect(r.state.score).toBe(BENCH.startKg + BENCH.perfectJump);
   });
 
-  it("a tap in the zone but off-centre is a good rep with no combo", () => {
+  it("a tap in the zone but off-centre is a good rep with a smaller jump", () => {
     const r = new LiftRunner(bench, SEED);
     expect(stepUntil(r, inZoneNotCentre)).toBe(true);
     tap(r);
     expect(r.state.outcome).toBe("good");
-    expect(r.state.score).toBe(BENCH.goodPoints);
+    expect(r.state.score).toBe(BENCH.startKg);
+    expect(r.state.kg).toBe(BENCH.startKg + BENCH.goodJump);
     expect(r.state.combo).toBe(0);
   });
 

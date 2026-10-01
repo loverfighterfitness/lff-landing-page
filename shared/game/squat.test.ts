@@ -24,7 +24,8 @@ describe("squat", () => {
     tapEvery(r, 12, (s) => s.reps === 1);
     expect(r.state.reps).toBe(1);
     expect(r.state.outcome).toBe("perfect");
-    expect(r.state.score).toBe(SQUAT.repPoints);
+    expect(r.state.score).toBe(SQUAT.startKg);
+    expect(r.state.kg).toBe(SQUAT.startKg + SQUAT.perfectJump);
     expect(r.state.combo).toBe(1);
   });
 
@@ -47,13 +48,13 @@ describe("squat", () => {
     expect(r.state.score).toBe(0);
   });
 
-  it("the TUT penalty comes off points already earned", () => {
+  it("the TUT penalty comes off your best squat", () => {
     const r = new LiftRunner(squat, 1);
     tapEvery(r, 12, (s) => s.reps === 1);
     idle(r, SQUAT.cooldownTicks);
     tapEvery(r, 12, (s) => s.progress > 0.5);
     idle(r, SQUAT.tutIdleTicks);
-    expect(r.state.score).toBe(SQUAT.repPoints - SQUAT.tutPenalty);
+    expect(r.state.score).toBe(SQUAT.startKg - SQUAT.tutPenaltyKg);
     expect(r.state.combo).toBe(0);
   });
 });

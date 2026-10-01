@@ -42,7 +42,7 @@ export default function TitleScreen({ onPlay, onBoard }: { onPlay: () => void; o
         <span className="text-[8px]">
           {comp.open ? (
             <>
-              TOP SCORE ON <span style={{ color: BLUE }}>TEAM LFF</span> WINS A FREE TEE
+              HEAVIEST TOTAL ON <span style={{ color: BLUE }}>TEAM LFF</span> WINS A FREE TEE
               <br />
               {comp.line}
             </>

@@ -113,10 +113,10 @@ describe("game.submitRun", () => {
 
   it("re-scores the run server-side and saves it", async () => {
     db.getEventRuns.mockResolvedValue([
-      { email: "ruby@example.com", handle: "ruby.lifts", character: "ruby", total: BENCH.perfectPoints } as never,
+      { email: "ruby@example.com", handle: "ruby.lifts", character: "ruby", total: BENCH.startKg } as never,
     ]);
     const res = await publicCaller().game.submitRun(submission());
-    expect(res.total).toBe(BENCH.perfectPoints);
+    expect(res.total).toBe(BENCH.startKg);
     expect(res.rank).toBe(1);
     expect(db.insertRun).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -124,8 +124,8 @@ describe("game.submitRun", () => {
         handle: "ruby.lifts",
         email: "ruby@example.com",
         character: "ruby",
-        benchScore: BENCH.perfectPoints,
-        total: BENCH.perfectPoints,
+        benchScore: BENCH.startKg,
+        total: BENCH.startKg,
         runTokenId: RUN_ID,
         inputLog: JSON.stringify(submission().logs),
         marketingOptIn: true,

@@ -18,6 +18,7 @@ const Success = lazy(() => import("./pages/Success"));
 const Referral = lazy(() => import("./pages/Referral"));
 const Shop = lazy(() => import("./pages/Shop"));
 const Program = lazy(() => import("./pages/Program"));
+const Game = lazy(() => import("./pages/Game"));
 
 function Router() {
   // Client-side route changes count as page views (the first one is sent on load).
@@ -41,6 +42,7 @@ function Router() {
       </Route>
       <Route path={"/shop"} component={Shop} />
       <Route path={"/program"} component={Program} />
+      <Route path={"/game"} component={Game} />
       <Route path={"/success"} component={Success} />
       <Route path={"/ref/:code"} component={Referral} />
 

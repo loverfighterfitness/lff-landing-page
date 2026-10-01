@@ -28,7 +28,7 @@ Out of scope (later, if wanted): extra lifts, more characters, real-time sockets
 |---|---|---|
 | Levi | Black LFF tee | Coach mode; quotes use Levi's real phrases ("mark my words", "that's the meta", "pretty damn good") |
 | Ruby | Cream LFF tee | Comp stage; "🥈 → 🥇" gag on a perfect run (2nd at her first ICN show) |
-| Benny | Brown LFF tee | General hype quotes until Levi supplies Benny-specific lore |
+| Benny | Brown LFF tee | 55-year-old old-school lifter, nearly benching 3 plates. The resident gym bro (more than Levi). Quotes Ronnie Coleman: "YEAH BUDDY!", "LIGHT WEIGHT BABY!", "Ain't nothin' but a peanut!" |
 
 Sprites are drawn as pixel art from existing photos (shop tee shots, program photos). Use of Ruby's and Benny's likeness requires their OK before launch.
 
@@ -51,6 +51,8 @@ Exact numbers (zone widths, speeds, durations) are tuning values in one config f
 - **Palette & art:** LFF brown/cream palette, 8-bit LFF logo on the title, gym backdrop inspired by LFF training spots, plus an "under the bridge" stage.
 - **Pop-up text in Levi's voice (never bro):** "SMASHED IT", "INSANE", "GOAT REP", "MECHANICAL TENSION ✓", "0 RIR".
 - **TUT trap:** if a player deliberately goes very slow on squats, pixel-Levi appears: "TUT doesn't grow muscle. Mechanical tension does." Small score penalty.
+- **Benny's 3-plate quest:** when Benny's bench bar reaches 3 plates a side (140kg), the bar visibly "almost" goes, then a gag: "55 years young. 3 plates loading..." If a Benny run clears it with a perfect, the bar explodes in confetti and "LIGHT WEIGHT BABY!" — the 3-plate PR he's chasing in real life.
+- **Old school vs science banter:** Benny's bro-isms ("YEAH BUDDY!") occasionally get a deadpan pixel-Levi reply ("…technically that's mechanical tension, Benny"). Gym bro vs coach, played for laughs.
 - **"Just eat whole foods bro" NPC** cameo that gets shut down.
 - **Merch cosmetics:** LFF straps glow on the deadlift, cuffs visible on bench. Cosmetic only.
 - **Cheat code:** typing `TRANSFORM` on the title screen unlocks a gold "Coached by Levi" skin. Cosmetic only.
@@ -122,6 +124,5 @@ New "Game" tab in the existing password-protected `/admin`: leaderboard with ema
 
 ## Open items
 
-- Benny's personality/catchphrase — Levi to supply; placeholder hype quotes until then.
 - Ruby's and Benny's OK to use their likeness.
 - Event dates and which tee/size the winner gets.

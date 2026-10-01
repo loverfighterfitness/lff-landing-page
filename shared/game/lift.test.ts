@@ -99,45 +99,64 @@ describe("LiftRunner", () => {
     expect(live.state.presses).toBeGreaterThan(10);
   });
 
-  it("ignores a repeated down press while swallowing and clears on release", () => {
+  it("ignores repeated down presses while swallowing until release, then accepts after MIN_PRESS_GAP_TICKS", () => {
     const r = new LiftRunner(counter, 1);
-    // First press-release cycle
+
+    // Press at tick 0 (accepted)
     r.setDown(true); // tick 0
     r.advance(); // tick 1
+    expect(r.events).toEqual([{ tick: 0, down: true }]);
+    expect(r.state.presses).toBe(1);
+
+    // Release at tick 1
     r.setDown(false); // tick 1
     r.advance(); // tick 2
-    expect(r.events).toHaveLength(2);
+    expect(r.events).toEqual([
+      { tick: 0, down: true },
+      { tick: 1, down: false },
+    ]);
     expect(r.state.presses).toBe(1);
 
-    // Too-soon press (swallowing = true)
-    r.setDown(true); // tick 2, only 2 ticks after the first press (0)
+    // Press at tick 2 (swallowed: 2 - 0 = 2 < 5)
+    r.setDown(true); // tick 2
     r.advance(); // tick 3
-    expect(r.events).toHaveLength(2); // not recorded
-    expect(r.state.presses).toBe(1); // no press counted
-
-    // Repeated down while swallowing (should be ignored)
-    r.setDown(true); // tick 3, should be ignored while swallowing
-    r.advance(); // tick 4
-    expect(r.events).toHaveLength(2); // still not recorded
+    expect(r.events).toHaveLength(2); // still just the first press-release
     expect(r.state.presses).toBe(1);
 
-    // Release clears swallowing but doesn't record
-    r.setDown(false); // tick 4
-    r.advance(); // tick 5
-    expect(r.events).toHaveLength(2); // still 2
+    // Advance to tick 7 without releasing (will be tick 7 after this advance)
+    for (let i = 0; i < 4; i++) r.advance(); // tick 4, 5, 6, 7
+    expect(r.state.tick).toBe(7);
+
+    // Call setDown(true) again at tick 7 (must be ignored: 7 - 0 >= 5 but swallowing is true)
+    r.setDown(true); // tick 7, should be ignored by swallowing guard
+    expect(r.events).toHaveLength(2); // still just 2 events
     expect(r.state.presses).toBe(1);
 
-    // Now a later press should work normally (gap from tick 0 is 5 ticks)
-    r.setDown(true); // tick 5, gap is 5 - 0 = 5 >= 5
-    r.advance(); // tick 6
-    expect(r.events).toHaveLength(3); // should record this one
-    expect(r.state.presses).toBe(2);
+    // Release clears swallowing but records nothing (no down to match)
+    r.setDown(false); // tick 7
+    expect(r.events).toHaveLength(2); // still 2, release not recorded because swallowing suppressed the down
+    expect(r.state.presses).toBe(1);
 
-    // And we can release normally
-    r.setDown(false); // tick 6
-    r.advance(); // tick 7
+    // Advance a few ticks
+    for (let i = 0; i < 3; i++) r.advance(); // tick 8, 9, 10
+    expect(r.state.tick).toBe(10);
+
+    // Now press again (gap from original press at 0 is 10, well over 5)
+    r.setDown(true); // tick 10
+    expect(r.events).toHaveLength(3); // should now record this press
+    expect(r.events[2]).toEqual({ tick: 10, down: true });
+
+    // Advance to trigger the press counting
+    r.advance(); // tick 11
+    expect(r.state.presses).toBe(2); // press is counted on advance after setDown(true)
+
+    // Release
+    r.setDown(false); // tick 11
+    r.advance(); // tick 12
     expect(r.events).toHaveLength(4);
+    expect(r.events[3]).toEqual({ tick: 11, down: false });
     expect(r.events[r.events.length - 1].down).toBe(false);
+    expect(r.state.presses).toBe(2);
   });
 
   it("caps events at MAX_EVENTS_PER_LIFT and always ends with release", () => {

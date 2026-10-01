@@ -1,7 +1,7 @@
 import { trpc } from "@/lib/trpc";
 import { CHARACTER_INFO, COACHED_BY_LINE } from "../content";
 import { poseUrl } from "../poses";
-import { BLUE, BROWN, CREAM, INK } from "../theme";
+import { BLUE, BROWN, CREAM, gameAsset, INK } from "../theme";
 
 function timeLeft(endsAt: Date) {
   const ms = new Date(endsAt).getTime() - Date.now();
@@ -27,7 +27,7 @@ export default function Leaderboard({ highlightHandle }: { highlightHandle?: str
           className="flex items-center gap-3 p-3"
           style={{ backgroundColor: BROWN, border: `3px solid ${CREAM}`, boxShadow: `4px 4px 0 ${BLUE}`, animation: "lff-pop 0.4s ease-out both" }}
         >
-          <img src="/game/lff_logo_small.png" alt="" style={{ imageRendering: "pixelated", width: 28, height: 28 }} />
+          <img src={gameAsset("lff_logo_small.png")} alt="" style={{ imageRendering: "pixelated", width: 28, height: 28 }} />
           <div>
             <p className="text-[9px]" style={{ color: CREAM }}>{COACHED_BY_LINE}</p>
             <p className="text-[7px] mt-1" style={{ color: BLUE }}>YOU'RE #{mine.rank} ON TEAM LFF</p>

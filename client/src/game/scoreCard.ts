@@ -1,7 +1,7 @@
 import type { Character, LiftScores } from "@shared/game/types";
 import { CHARACTER_INFO, GAME_URL } from "./content";
 import { poseUrl } from "./poses";
-import { BLUE, BROWN, CREAM, INK, STONE } from "./theme";
+import { BLUE, BROWN, CREAM, gameAsset, INK, STONE } from "./theme";
 
 const W = 1080;
 const H = 1920;
@@ -36,10 +36,10 @@ export async function renderScoreCard(opts: {
 }): Promise<Blob | null> {
   await document.fonts.load(`24px ${FONT}`).catch(() => undefined);
   const [bg, hero, wordmark, logo] = await Promise.all([
-    load("/game/gym_bg.png"),
+    load(gameAsset("gym_bg.png")),
     load(poseUrl(opts.character, "victory")),
-    load("/game/lover_fighter.png"),
-    load("/game/lff_logo.png"),
+    load(gameAsset("lover_fighter.png")),
+    load(gameAsset("lff_logo.png")),
   ]);
   const cv = document.createElement("canvas");
   cv.width = W;

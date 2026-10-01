@@ -1,4 +1,5 @@
 import type { Character } from "@shared/game/types";
+import { gameAsset } from "./theme";
 
 /**
  * 16-bit sprites, generated from photos of Levi, Ruby and Benny and pixelated to a shared palette.
@@ -39,7 +40,7 @@ export function resolvePose(id: SpriteId, pose: Pose): Pose {
 }
 
 export function poseUrl(id: SpriteId, pose: Pose): string {
-  return `/game/sprites/${id}_${resolvePose(id, pose)}.png`;
+  return gameAsset(`sprites/${id}_${resolvePose(id, pose)}.png`);
 }
 
 /** Canvas pixels per logical pixel (the scene is laid out on a 180×320 grid). */
@@ -63,11 +64,11 @@ export function loadPoses(): Promise<void> {
       images.set(`${id}:${pose}`, img);
       jobs.push(new Promise((resolve) => {
         img.onload = img.onerror = () => resolve(undefined);
-        img.src = `/game/sprites/${id}_${pose}.png`;
+        img.src = gameAsset(`sprites/${id}_${pose}.png`);
       }));
     }
     jobs.push(
-      fetch(`/game/sprites/${id}.json`)
+      fetch(gameAsset(`sprites/${id}.json`))
         .then((r) => (r.ok ? r.json() : {}))
         .then((m) => meta.set(id, m))
         .catch(() => meta.set(id, {})),
@@ -77,13 +78,13 @@ export function loadPoses(): Promise<void> {
   images.set("mark", mark);
   jobs.push(new Promise((resolve) => {
     mark.onload = mark.onerror = () => resolve(undefined);
-    mark.src = "/game/lff_mark.png";
+    mark.src = gameAsset("lff_mark.png");
   }));
   const bg = new Image();
   images.set("bg", bg);
   jobs.push(new Promise((resolve) => {
     bg.onload = bg.onerror = () => resolve(undefined);
-    bg.src = "/game/gym_bg.png";
+    bg.src = gameAsset("gym_bg.png");
   }));
   loading = Promise.all(jobs).then(() => undefined);
   return loading;

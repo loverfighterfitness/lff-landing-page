@@ -1,4 +1,5 @@
 import { CHARACTERS, type Character } from "@shared/game/types";
+import { gameAsset } from "../theme";
 import { useEffect, useState } from "react";
 import { isMuted, jingle, setMuted } from "../audio";
 import type { Pose } from "../poses";
@@ -28,7 +29,7 @@ export default function TitleScreen({ onPlay, onBoard }: { onPlay: () => void; o
   const show = useShowOff();
 
   return (
-    <Screen dim={0.35} bg="/game/gym_bg_plain.png">
+    <Screen dim={0.35} bg={gameAsset("gym_bg_plain.png")}>
       <div
         className="flex items-center justify-center px-6 py-3 mt-1"
         style={{ backgroundColor: "rgba(84,65,47,0.92)", border: `3px solid ${CREAM}`, boxShadow: `inset 0 0 0 3px ${INK}, 5px 5px 0 rgba(0,0,0,0.5)` }}

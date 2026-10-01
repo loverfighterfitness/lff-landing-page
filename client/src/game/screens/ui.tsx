@@ -1,7 +1,7 @@
 import type { Character } from "@shared/game/types";
 import type { CSSProperties, ReactNode } from "react";
 import { poseUrl, type Pose, type SpriteId } from "../poses";
-import { BLUE, BROWN, CREAM, GRAIN, INK } from "../theme";
+import { BLUE, BROWN, CREAM, gameAsset, GRAIN, INK } from "../theme";
 
 export const PIXEL_FONT = '"Press Start 2P", monospace';
 export { BLUE, BROWN, CREAM, INK };
@@ -18,7 +18,7 @@ const KEYFRAMES = `
 `;
 
 /** Full-screen game page over the pixel gym, dimmed so text reads. */
-export function Screen({ children, dim = 0.6, bg = "/game/gym_bg.png" }: { children: ReactNode; dim?: number; bg?: string }) {
+export function Screen({ children, dim = 0.6, bg = gameAsset("gym_bg.png") }: { children: ReactNode; dim?: number; bg?: string }) {
   return (
     <div
       className="min-h-screen w-full flex flex-col items-center px-4 py-6 gap-5 relative overflow-hidden"

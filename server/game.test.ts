@@ -195,3 +195,39 @@ describe("game.leaderboard", () => {
     expect(res.rows).toEqual([]);
   });
 });
+
+describe("game.admin", () => {
+  it("is locked to admins", async () => {
+    await expect(publicCaller().game.admin.overview()).rejects.toThrow();
+  });
+
+  it("shows the current event's runs including emails", async () => {
+    db.listEventRunsForAdmin.mockResolvedValue([{ id: 7, email: "a@x.com" } as never]);
+    const res = await adminCaller().game.admin.overview();
+    expect(res.event?.name).toBe("Launch comp");
+    expect(res.runs).toHaveLength(1);
+  });
+
+  it("removes and restores a run", async () => {
+    await adminCaller().game.admin.setRunRemoved({ id: 7, removed: true });
+    expect(db.setRunRemoved).toHaveBeenCalledWith(7, true);
+  });
+
+  it("starts an event and refuses one that ends before it starts", async () => {
+    const startsAt = new Date("2026-10-10T00:00:00Z");
+    const endsAt = new Date("2026-10-24T00:00:00Z");
+    await adminCaller().game.admin.startEvent({ name: "Tee drop comp", startsAt, endsAt });
+    expect(db.startEvent).toHaveBeenCalledWith({ name: "Tee drop comp", startsAt, endsAt });
+    await expect(
+      adminCaller().game.admin.startEvent({ name: "Backwards", startsAt: endsAt, endsAt: startsAt }),
+    ).rejects.toThrow();
+  });
+
+  it("exports entrants as CSV", async () => {
+    db.getEventRuns.mockResolvedValue([
+      { email: "a@x.com", handle: "amy", character: "ruby", total: 10, marketingOptIn: true } as never,
+    ]);
+    const { csv } = await adminCaller().game.admin.entrantsCsv();
+    expect(csv).toContain('"amy","a@x.com","ruby",10,1,yes');
+  });
+});

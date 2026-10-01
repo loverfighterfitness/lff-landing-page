@@ -5,8 +5,8 @@ import { MAX_EVENTS_PER_LIFT } from "@shared/game/config";
 import { CHARACTERS } from "@shared/game/types";
 import { checkRun } from "@shared/game/validate";
 import { clientIp } from "../_core/systemRouter";
-import { publicProcedure, router } from "../_core/trpc";
-import { buildBoard } from "../gameBoard";
+import { adminProcedure, publicProcedure, router } from "../_core/trpc";
+import { buildBoard, entrantsCsv } from "../gameBoard";
 import {
   createRunToken,
   getActiveEvent,
@@ -14,7 +14,10 @@ import {
   getEventRuns,
   getRunToken,
   insertRun,
+  listEventRunsForAdmin,
   markRunTokenUsed,
+  setRunRemoved,
+  startEvent,
 } from "../gameDb";
 
 const REJECTED = "That run didn't check out — run it back.";
@@ -137,5 +140,35 @@ export const gameRouter = router({
       rows: board.rows.slice(0, 20),
       teams: board.teams,
     };
+  }),
+
+  admin: router({
+    overview: adminProcedure.query(async () => {
+      const event = await getCurrentEvent();
+      return { event, runs: event ? await listEventRunsForAdmin(event.id) : [] };
+    }),
+
+    setRunRemoved: adminProcedure
+      .input(z.object({ id: z.number().int().positive(), removed: z.boolean() }))
+      .mutation(async ({ input }) => {
+        await setRunRemoved(input.id, input.removed);
+        return { ok: true } as const;
+      }),
+
+    startEvent: adminProcedure
+      .input(
+        z
+          .object({ name: z.string().trim().min(1).max(120), startsAt: z.coerce.date(), endsAt: z.coerce.date() })
+          .refine((e) => e.endsAt > e.startsAt, { message: "End must be after start" }),
+      )
+      .mutation(async ({ input }) => {
+        await startEvent(input);
+        return { ok: true } as const;
+      }),
+
+    entrantsCsv: adminProcedure.query(async () => {
+      const event = await getCurrentEvent();
+      return { csv: entrantsCsv(event ? await getEventRuns(event.id) : []) };
+    }),
   }),
 });

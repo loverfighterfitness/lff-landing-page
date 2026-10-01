@@ -282,3 +282,50 @@ export const shopOrderItems = mysqlTable("shop_order_items", {
 
 export type ShopOrderItem = typeof shopOrderItems.$inferSelect;
 export type InsertShopOrderItem = typeof shopOrderItems.$inferInsert;
+
+/**
+ * LFF Gym — the 8-bit workout game at /game.
+ * One active event (e.g. a two-week tee giveaway) at a time.
+ */
+export const gameEvents = mysqlTable("game_events", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 120 }).notNull(),
+  startsAt: timestamp("startsAt").notNull(),
+  endsAt: timestamp("endsAt").notNull(),
+  isActive: boolean("isActive").default(true).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type GameEvent = typeof gameEvents.$inferSelect;
+
+/** One-time tickets handed out when a run starts. The seed makes the run replayable server-side. */
+export const gameRunTokens = mysqlTable("game_run_tokens", {
+  id: varchar("id", { length: 36 }).primaryKey(),
+  seed: bigint("seed", { mode: "number" }).notNull(),
+  character: varchar("character", { length: 16 }).notNull(),
+  issuedAt: timestamp("issuedAt").notNull(),
+  usedAt: timestamp("usedAt"),
+});
+
+export type GameRunToken = typeof gameRunTokens.$inferSelect;
+
+/** Verified, finished runs. Scores are recomputed server-side from the input log. */
+export const gameRuns = mysqlTable("game_runs", {
+  id: int("id").autoincrement().primaryKey(),
+  eventId: int("eventId").notNull(),
+  handle: varchar("handle", { length: 31 }).notNull(),
+  email: varchar("email", { length: 320 }).notNull(),
+  marketingOptIn: boolean("marketingOptIn").default(false).notNull(),
+  character: varchar("character", { length: 16 }).notNull(),
+  benchScore: int("benchScore").notNull(),
+  squatScore: int("squatScore").notNull(),
+  deadliftScore: int("deadliftScore").notNull(),
+  total: int("total").notNull(),
+  runTokenId: varchar("runTokenId", { length: 36 }).notNull().unique(),
+  ipHash: varchar("ipHash", { length: 64 }).notNull(),
+  removed: boolean("removed").default(false).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type GameRun = typeof gameRuns.$inferSelect;
+export type InsertGameRun = typeof gameRuns.$inferInsert;

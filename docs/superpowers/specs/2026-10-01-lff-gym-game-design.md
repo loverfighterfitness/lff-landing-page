@@ -1,7 +1,7 @@
 # LFF Gym — 8-bit Workout Game — Design
 
 **Date:** 2026-10-01
-**Status:** Draft for review
+**Status:** Approved
 **Owner:** Levi
 
 ## Goal
@@ -30,7 +30,7 @@ Out of scope (later, if wanted): extra lifts, more characters, real-time sockets
 | Ruby | Cream LFF tee | Comp stage; "🥈 → 🥇" gag on a perfect run (2nd at her first ICN show) |
 | Benny | Brown LFF tee | 55-year-old old-school lifter, nearly benching 3 plates. The resident gym bro (more than Levi). Quotes Ronnie Coleman: "YEAH BUDDY!", "LIGHT WEIGHT BABY!", "Ain't nothin' but a peanut!" |
 
-Sprites are drawn as pixel art from existing photos (shop tee shots, program photos). Use of Ruby's and Benny's likeness requires their OK before launch.
+Sprites are drawn as pixel art from existing photos (shop tee shots, program photos). Ruby and Benny have approved use of their likeness.
 
 **The circuit:**
 
@@ -124,5 +124,4 @@ New "Game" tab in the existing password-protected `/admin`: leaderboard with ema
 
 ## Open items
 
-- Ruby's and Benny's OK to use their likeness.
 - Event dates and which tee/size the winner gets.

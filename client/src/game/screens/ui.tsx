@@ -18,7 +18,7 @@ const KEYFRAMES = `
 `;
 
 /** Full-screen game page over the pixel gym, dimmed so text reads. */
-export function Screen({ children, dim = 0.6 }: { children: ReactNode; dim?: number }) {
+export function Screen({ children, dim = 0.6, bg = "/game/gym_bg.png" }: { children: ReactNode; dim?: number; bg?: string }) {
   return (
     <div
       className="min-h-screen w-full flex flex-col items-center px-4 py-6 gap-5 relative overflow-hidden"
@@ -26,7 +26,7 @@ export function Screen({ children, dim = 0.6 }: { children: ReactNode; dim?: num
         color: CREAM,
         fontFamily: PIXEL_FONT,
         backgroundColor: INK,
-        backgroundImage: `linear-gradient(rgba(42,31,21,${dim}), rgba(20,14,9,${Math.min(0.95, dim + 0.3)})), url(/game/gym_bg.png)`,
+        backgroundImage: `linear-gradient(rgba(42,31,21,${dim}), rgba(20,14,9,${Math.min(0.95, dim + 0.3)})), url(${bg})`,
         backgroundSize: "cover",
         backgroundPosition: "center top",
         imageRendering: "pixelated",

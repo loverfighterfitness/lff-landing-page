@@ -3,11 +3,12 @@ import { useEffect, useState } from "react";
 import { trpc } from "@/lib/trpc";
 import { startMusic, stopMusic } from "@/game/audio";
 import CircuitCanvas, { type CircuitResult } from "@/game/CircuitCanvas";
+import { loadPoses } from "@/game/render";
 import Leaderboard from "@/game/screens/Leaderboard";
 import ResultsScreen from "@/game/screens/ResultsScreen";
 import SelectScreen from "@/game/screens/SelectScreen";
 import TitleScreen from "@/game/screens/TitleScreen";
-import { PixelButton, Screen } from "@/game/screens/ui";
+import { ArcadeTitle, Panel, PixelButton, Screen } from "@/game/screens/ui";
 
 const FONT_HREF = "https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap";
 
@@ -25,6 +26,7 @@ export default function Game() {
 
   // Pixel font only loads on /game.
   useEffect(() => {
+    void loadPoses();
     document.title = "LFF Gym — win a free tee";
     const link = document.createElement("link");
     link.rel = "stylesheet";
@@ -82,9 +84,11 @@ export default function Game() {
     case "board":
       return (
         <Screen>
-          <h2 className="text-sm mt-4">LEADERBOARD</h2>
-          <Leaderboard highlightHandle={view.highlight} />
-          <PixelButton onClick={() => setView({ name: "select" })}>{view.highlight ? "RUN IT BACK" : "PLAY"}</PixelButton>
+          <ArcadeTitle size={16} style={{ marginTop: 4 }}>LEADERBOARD</ArcadeTitle>
+          <Panel>
+            <Leaderboard highlightHandle={view.highlight} />
+          </Panel>
+          <PixelButton variant="gold" onClick={() => setView({ name: "select" })}>{view.highlight ? "RUN IT BACK" : "PLAY"}</PixelButton>
           <PixelButton variant="ghost" onClick={() => setView({ name: "title" })}>TITLE</PixelButton>
         </Screen>
       );

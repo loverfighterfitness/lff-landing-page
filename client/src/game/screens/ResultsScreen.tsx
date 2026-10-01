@@ -3,7 +3,7 @@ import { useState } from "react";
 import { trpc } from "@/lib/trpc";
 import type { CircuitResult } from "../CircuitCanvas";
 import { CHARACTER_INFO, COACHING_CTA, IG_DM_URL, RUBY_PODIUM_LINE, SHOP_CTA } from "../content";
-import { PixelButton, Screen } from "./ui";
+import { ArcadeTitle, Fighter, Panel, PixelButton, Screen } from "./ui";
 
 const SAVED_KEY = "lff-gym-entrant";
 
@@ -67,19 +67,25 @@ export default function ResultsScreen({
 
   return (
     <Screen>
-      <h2 className="text-sm mt-4" style={{ color: "#d4af37" }}>CIRCUIT COMPLETE</h2>
-      <p className="text-[10px] text-center leading-loose">"{quote}" - {info.name}</p>
+      <ArcadeTitle size={16} style={{ marginTop: 4, animation: "lff-pop 0.4s ease-out both" }}>
+        CIRCUIT COMPLETE
+      </ArcadeTitle>
+      <Fighter id={character} pose="victory" height={190} />
+      <p className="text-[9px] text-center leading-loose" style={{ textShadow: "2px 2px 0 #000" }}>"{quote}" - {info.name}</p>
       {character === "ruby" && result.perfects >= 8 && <p className="text-lg">{RUBY_PODIUM_LINE}</p>}
+      <Panel>
       <div className="w-full flex flex-col gap-2 text-[10px]">
         <div className="flex justify-between"><span>BENCH</span><span>{result.scores.bench}</span></div>
         <div className="flex justify-between"><span>SQUATS</span><span>{result.scores.squat}</span></div>
         <div className="flex justify-between"><span>DEADLIFT</span><span>{result.scores.deadlift}</span></div>
         <div className="flex justify-between text-sm pt-2" style={{ borderTop: "2px solid #EAE6D2" }}>
-          <span>TOTAL</span><span>{total}</span>
+          <span>TOTAL</span><span style={{ color: "#d4af37" }}>{total}</span>
         </div>
       </div>
+      </Panel>
 
       {canPost ? (
+        <Panel>
         <form onSubmit={post} className="w-full flex flex-col gap-3 text-[9px]">
           <p className="leading-loose">Post your score. Top score when the comp closes wins a free tee.</p>
           <input
@@ -88,7 +94,7 @@ export default function ResultsScreen({
             onChange={(e) => setHandle(e.target.value)}
             placeholder="@instagram"
             className="w-full px-3 py-3 text-[10px]"
-            style={{ backgroundColor: "#2e2318", color: "#EAE6D2", border: "2px solid #EAE6D2", fontFamily: "inherit" }}
+            style={{ backgroundColor: "#0d0b09", color: "#EAE6D2", border: "2px solid #EAE6D2", fontFamily: "inherit" }}
           />
           <input
             required
@@ -97,7 +103,7 @@ export default function ResultsScreen({
             onChange={(e) => setEmail(e.target.value)}
             placeholder="email (private, only to contact the winner)"
             className="w-full px-3 py-3 text-[10px]"
-            style={{ backgroundColor: "#2e2318", color: "#EAE6D2", border: "2px solid #EAE6D2", fontFamily: "inherit" }}
+            style={{ backgroundColor: "#0d0b09", color: "#EAE6D2", border: "2px solid #EAE6D2", fontFamily: "inherit" }}
           />
           <label className="flex items-start gap-2 leading-relaxed">
             <input type="checkbox" checked={optIn} onChange={(e) => setOptIn(e.target.checked)} />
@@ -108,6 +114,7 @@ export default function ResultsScreen({
             {submit.isPending ? "POSTING..." : error ? "RETRY" : "POST SCORE"}
           </PixelButton>
         </form>
+        </Panel>
       ) : (
         <p className="text-[9px] text-center leading-loose opacity-80">
           {runId ? "The comp isn't open right now, this one's for practice." : "Practice run — scores can't be posted right now."}

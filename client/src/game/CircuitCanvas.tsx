@@ -4,8 +4,8 @@ import { useEffect, useRef } from "react";
 import { sfx } from "./audio";
 import { Circuit } from "./circuit";
 import { attachInput } from "./input";
-import { loadPoses, PIXEL_RATIO } from "./poses";
-import { drawFrame, VIEW_H, VIEW_W } from "./render";
+import { PIXEL_RATIO } from "./poses";
+import { drawFrame, loadPoses, VIEW_H, VIEW_W } from "./render";
 
 export type CircuitResult = { logs: RunLogs; scores: LiftScores; perfects: number };
 

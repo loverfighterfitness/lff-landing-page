@@ -48,6 +48,8 @@ export class LiftRunner<S extends LiftStateBase> {
       this.swallowing = false;
       return;
     }
+    // While swallowing, ignore any down=true (only release clears it)
+    if (this.swallowing && down) return;
     if (down === this.down) return;
     if (down) {
       const tooSoon = this.state.tick - this.lastDownTick < MIN_PRESS_GAP_TICKS;

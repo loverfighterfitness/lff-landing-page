@@ -22,7 +22,8 @@ import {
 
 const REJECTED = "That run didn't check out — run it back.";
 const SUBMIT_LIMIT = 30;
-const START_LIMIT = 120;
+// Site-wide flood guard: the Cloudflare Worker in front of the site may hide visitor IPs, so this is shared.
+const START_LIMIT = 3000;
 const SUBMIT_WINDOW_MS = 60 * 60_000;
 const SWEEP_THRESHOLD = 10_000;
 const submits = new Map<string, { count: number; until: number }>();
@@ -90,9 +91,8 @@ export const gameRouter = router({
     .mutation(async ({ ctx, input }) => {
       const now = Date.now();
       const ip = clientIp(ctx.req);
-      const ipLimited = overLimit(`ip:${ip}`, now);
-      const emailLimited = overLimit(`email:${input.email}`, now);
-      if (ipLimited || emailLimited) {
+      // Per email only: the Worker may make every visitor share one IP, so an IP limit would lock everyone out.
+      if (overLimit(`email:${input.email}`, now)) {
         throw new TRPCError({ code: "TOO_MANY_REQUESTS", message: "Easy, champ — too many runs. Have a rest and try again in a bit." });
       }
 
@@ -124,6 +124,7 @@ export const gameRouter = router({
         deadliftScore: check.scores.deadlift,
         total: check.total,
         runTokenId: token.id,
+        inputLog: JSON.stringify(input.logs),
         ipHash: createHash("sha256").update(`lff-gym:${ip}`).digest("hex"),
       });
 

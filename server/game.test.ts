@@ -82,8 +82,8 @@ describe("game.startRun", () => {
 });
 
 describe("game.startRun rate limit", () => {
-  it("allows 120 starts per IP per hour, then rejects", async () => {
-    for (let i = 0; i < 120; i++) await publicCaller().game.startRun({ character: "levi" });
+  it("allows 3000 starts per IP per hour, then rejects", async () => {
+    for (let i = 0; i < 3000; i++) await publicCaller().game.startRun({ character: "levi" });
     await expect(publicCaller().game.startRun({ character: "levi" })).rejects.toThrow(/too many/i);
   });
 
@@ -127,6 +127,7 @@ describe("game.submitRun", () => {
         benchScore: BENCH.perfectPoints,
         total: BENCH.perfectPoints,
         runTokenId: RUN_ID,
+        inputLog: JSON.stringify(submission().logs),
         marketingOptIn: true,
       }),
     );
@@ -172,9 +173,17 @@ describe("game.submitRun", () => {
     await expect(publicCaller().game.submitRun({ ...submission(), handle: "not a handle!" })).rejects.toThrow();
   });
 
-  it("rate-limits a single IP", async () => {
+  it("rate-limits a single email", async () => {
     for (let i = 0; i < 30; i++) await publicCaller().game.submitRun(submission());
     await expect(publicCaller().game.submitRun(submission())).rejects.toThrow(/too many runs/i);
+  });
+
+  it("does not rate-limit different emails from one IP", async () => {
+    for (let i = 0; i < 31; i++) {
+      await expect(
+        publicCaller().game.submitRun({ ...submission(), email: `player${i}@example.com` }),
+      ).resolves.toBeDefined();
+    }
   });
 });
 

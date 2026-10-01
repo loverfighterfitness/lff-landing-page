@@ -1,4 +1,4 @@
-import { boolean, int, mysqlEnum, mysqlTable, text, timestamp, varchar, bigint } from "drizzle-orm/mysql-core";
+import { boolean, index, int, mysqlEnum, mysqlTable, text, timestamp, varchar, bigint } from "drizzle-orm/mysql-core";
 
 /**
  * Core user table backing auth flow.
@@ -322,10 +322,12 @@ export const gameRuns = mysqlTable("game_runs", {
   deadliftScore: int("deadliftScore").notNull(),
   total: int("total").notNull(),
   runTokenId: varchar("runTokenId", { length: 36 }).notNull().unique(),
+  /** JSON of the submitted logs, so the winning run can be checked for scripted play. */
+  inputLog: text("inputLog").notNull(),
   ipHash: varchar("ipHash", { length: 64 }).notNull(),
   removed: boolean("removed").default(false).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
-});
+}, (t) => [index("game_runs_event_removed_total_idx").on(t.eventId, t.removed, t.total)]);
 
 export type GameRun = typeof gameRuns.$inferSelect;
 export type InsertGameRun = typeof gameRuns.$inferInsert;

@@ -1,6 +1,25 @@
 import { CHARACTERS, type Character } from "@shared/game/types";
 
-type RunLike = { email: string; handle: string; character: string; total: number; marketingOptIn?: boolean };
+type RunLike = {
+  email: string;
+  handle: string;
+  character: string;
+  total: number;
+  marketingOptIn?: boolean;
+  createdAt?: Date | string | number;
+  id?: number;
+};
+
+const time = (r: RunLike) => (r.createdAt === undefined ? NaN : new Date(r.createdAt).getTime());
+
+/** Total desc, then earliest post, then lowest id. Equal/unknown keys keep input order (sort is stable). */
+function compareRuns(a: RunLike, b: RunLike): number {
+  if (a.total !== b.total) return b.total - a.total;
+  const ta = time(a), tb = time(b);
+  if (!Number.isNaN(ta) && !Number.isNaN(tb) && ta !== tb) return ta - tb;
+  if (a.id !== undefined && b.id !== undefined && a.id !== b.id) return a.id - b.id;
+  return 0;
+}
 
 export type BoardRow = { rank: number; handle: string; character: Character; total: number };
 export type TeamRow = { character: Character; players: number; top: number };
@@ -9,7 +28,7 @@ export type TeamRow = { character: Character; players: number; top: number };
 export function buildBoard(runs: RunLike[]) {
   const best: RunLike[] = [];
   const seen = new Set<string>();
-  for (const r of [...runs].sort((a, b) => b.total - a.total)) {
+  for (const r of [...runs].sort(compareRuns)) {
     const key = r.email.toLowerCase();
     if (seen.has(key)) continue;
     seen.add(key);
@@ -41,11 +60,11 @@ export function entrantsCsv(runs: RunLike[]): string {
     else {
       cur.runs++;
       cur.optIn ||= !!r.marketingOptIn;
-      if (r.total > cur.best.total) cur.best = r;
+      if (compareRuns(r, cur.best) < 0) cur.best = r;
     }
   }
   const lines = ["handle,email,character,best,runs,marketing_opt_in"];
-  for (const { best, runs: count, optIn } of Array.from(byEmail.values()).sort((a, b) => b.best.total - a.best.total)) {
+  for (const { best, runs: count, optIn } of Array.from(byEmail.values()).sort((a, b) => compareRuns(a.best, b.best))) {
     lines.push(
       [q(best.handle), q(best.email.toLowerCase()), q(best.character), best.total, count, optIn ? "yes" : "no"].join(","),
     );

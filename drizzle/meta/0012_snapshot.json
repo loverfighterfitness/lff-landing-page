@@ -1,7 +1,7 @@
 {
   "version": "5",
   "dialect": "mysql",
-  "id": "1437995d-2e3b-47e4-9b06-b271aefed25a",
+  "id": "233aa6a1-4544-4fdb-b21e-c52cf310cdc0",
   "prevId": "b0b78135-ad73-4fad-8fea-cc10fb553fc6",
   "tables": {
     "calculator_leads": {
@@ -410,6 +410,13 @@
           "notNull": true,
           "autoincrement": false
         },
+        "inputLog": {
+          "name": "inputLog",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
         "ipHash": {
           "name": "ipHash",
           "type": "varchar(64)",
@@ -434,7 +441,17 @@
           "default": "(now())"
         }
       },
-      "indexes": {},
+      "indexes": {
+        "game_runs_event_removed_total_idx": {
+          "name": "game_runs_event_removed_total_idx",
+          "columns": [
+            "eventId",
+            "removed",
+            "total"
+          ],
+          "isUnique": false
+        }
+      },
       "foreignKeys": {},
       "compositePrimaryKeys": {
         "game_runs_id": {

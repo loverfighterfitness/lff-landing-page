@@ -29,9 +29,12 @@ CREATE TABLE `game_runs` (
 	`deadliftScore` int NOT NULL,
 	`total` int NOT NULL,
 	`runTokenId` varchar(36) NOT NULL,
+	`inputLog` text NOT NULL,
 	`ipHash` varchar(64) NOT NULL,
 	`removed` boolean NOT NULL DEFAULT false,
 	`createdAt` timestamp NOT NULL DEFAULT (now()),
 	CONSTRAINT `game_runs_id` PRIMARY KEY(`id`),
 	CONSTRAINT `game_runs_runTokenId_unique` UNIQUE(`runTokenId`)
 );
+--> statement-breakpoint
+CREATE INDEX `game_runs_event_removed_total_idx` ON `game_runs` (`eventId`,`removed`,`total`);

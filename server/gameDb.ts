@@ -1,4 +1,4 @@
-import { and, desc, eq, gte, isNull, lte } from "drizzle-orm";
+import { and, asc, desc, eq, gte, isNull, lte } from "drizzle-orm";
 import type { Character } from "@shared/game/types";
 import {
   gameEvents,
@@ -67,17 +67,17 @@ export async function getEventRuns(eventId: number): Promise<GameRun[]> {
     .select()
     .from(gameRuns)
     .where(and(eq(gameRuns.eventId, eventId), eq(gameRuns.removed, false)))
-    .orderBy(desc(gameRuns.total))
+    .orderBy(desc(gameRuns.total), asc(gameRuns.createdAt), asc(gameRuns.id))
     .limit(5000);
 }
 
-/** Every run for an event including removed ones, newest first. Admin only. */
+/** Every run for an event including removed ones, best first (earliest wins ties) so the top can always be moderated. Admin only. */
 export async function listEventRunsForAdmin(eventId: number): Promise<GameRun[]> {
   return (await db())
     .select()
     .from(gameRuns)
     .where(eq(gameRuns.eventId, eventId))
-    .orderBy(desc(gameRuns.createdAt))
+    .orderBy(desc(gameRuns.total), asc(gameRuns.createdAt), asc(gameRuns.id))
     .limit(1000);
 }
 

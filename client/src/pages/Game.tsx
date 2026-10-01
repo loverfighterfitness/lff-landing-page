@@ -11,7 +11,7 @@ import { PixelButton, Screen } from "@/game/screens/ui";
 
 const FONT_HREF = "https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap";
 
-type Run = { character: Character; gold: boolean; seed: number; runId: string | null; eventOpen: boolean };
+type Run = { character: Character; seed: number; runId: string | null; eventOpen: boolean };
 type View =
   | { name: "title" }
   | { name: "select" }
@@ -36,15 +36,15 @@ export default function Game() {
     };
   }, []);
 
-  const begin = async (character: Character, gold: boolean) => {
+  const begin = async (character: Character) => {
     startMusic();
     try {
       const res = await startRun.mutateAsync({ character });
-      setView({ name: "play", run: { character, gold, seed: res.seed, runId: res.runId, eventOpen: res.eventOpen } });
+      setView({ name: "play", run: { character, seed: res.seed, runId: res.runId, eventOpen: res.eventOpen } });
     } catch {
       // Server down: still playable as a practice run.
       const seed = Math.floor(Math.random() * 2 ** 32);
-      setView({ name: "play", run: { character, gold, seed, runId: null, eventOpen: false } });
+      setView({ name: "play", run: { character, seed, runId: null, eventOpen: false } });
     }
   };
 
@@ -59,7 +59,6 @@ export default function Game() {
           key={view.run.seed}
           seed={view.run.seed}
           character={view.run.character}
-          gold={view.run.gold}
           onFinish={(result) => setView({ name: "results", run: view.run, result })}
         />
       );
@@ -70,7 +69,7 @@ export default function Game() {
           runId={view.run.runId}
           eventOpen={view.run.eventOpen}
           result={view.result}
-          onAgain={() => begin(view.run.character, view.run.gold)}
+          onAgain={() => begin(view.run.character)}
           onPosted={(handle) => setView({ name: "board", highlight: handle })}
         />
       );

@@ -1,7 +1,4 @@
-import { useEffect, useRef, useState } from "react";
-import { toast } from "sonner";
-import { CHEAT_CODE } from "../content";
-import { hasGold, unlockGold } from "../gold";
+import { useState } from "react";
 import { isMuted, setMuted } from "../audio";
 import { PixelButton, Screen } from "./ui";
 
@@ -10,42 +7,12 @@ const LOGO =
 
 export default function TitleScreen({ onPlay, onBoard }: { onPlay: () => void; onBoard: () => void }) {
   const [muted, setMutedState] = useState(isMuted());
-  const typed = useRef("");
-  const logoTaps = useRef(0);
-
-  const tryUnlock = (code: string) => {
-    if (code.toUpperCase() !== CHEAT_CODE) return false;
-    if (!hasGold()) unlockGold();
-    toast.success("GOLD UNLOCKED — Coached by Levi 🤎");
-    return true;
-  };
-
-  // Desktop: type TRANSFORM anywhere on the title screen.
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key.length !== 1) return;
-      typed.current = (typed.current + e.key.toUpperCase()).slice(-CHEAT_CODE.length);
-      if (typed.current === CHEAT_CODE) tryUnlock(typed.current);
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, []);
-
-  // Phones: tap the logo 5 times to enter a code.
-  const tapLogo = () => {
-    logoTaps.current++;
-    if (logoTaps.current < 5) return;
-    logoTaps.current = 0;
-    const code = window.prompt("Enter code");
-    if (code && !tryUnlock(code.trim())) toast("Nope. Coaching's the only cheat code.");
-  };
 
   return (
     <Screen>
       <img
         src={LOGO}
         alt="LFF"
-        onClick={tapLogo}
         className="w-40 mt-6"
         style={{ imageRendering: "pixelated", filter: "contrast(1.2)" }}
       />

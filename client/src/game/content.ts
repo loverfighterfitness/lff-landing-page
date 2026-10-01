@@ -1,7 +1,6 @@
 import type { Character, LiftId, Outcome } from "@shared/game/types";
 
 export const IG_DM_URL = "https://ig.me/m/loverfighterfitness";
-export const CHEAT_CODE = "TRANSFORM";
 
 export const CHARACTER_INFO: Record<
   Character,
@@ -48,7 +47,7 @@ export const LIFT_TIPS: Record<LiftId, string> = {
 
 export const TUT_LINE = "TUT doesn't grow muscle. Mechanical tension does.";
 export const WHOLE_FOODS_BRO = "Just eat whole foods bro";
-export const LEVI_REPLY_WHOLE_FOODS = "You can massively overeat on whole foods. Track it.";
+export const LEVI_REPLY_WHOLE_FOODS = "You can overeat whole foods. Track it.";
 export const BENNY_BANTER_REPLY = "...technically that's mechanical tension, Benny.";
 export const BENNY_3_PLATES_LOADING = "55 YEARS YOUNG. 3 PLATES LOADING...";
 export const BENNY_3_PLATES_DONE = "3 PLATES! LIGHT WEIGHT BABY!";

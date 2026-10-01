@@ -12,12 +12,10 @@ export type CircuitResult = { logs: RunLogs; scores: LiftScores; perfects: numbe
 export default function CircuitCanvas({
   seed,
   character,
-  gold,
   onFinish,
 }: {
   seed: number;
   character: Character;
-  gold: boolean;
   onFinish: (r: CircuitResult) => void;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -63,7 +61,7 @@ export default function CircuitCanvas({
           sfx(s.outcome === "formbreak" ? "miss" : s.outcome);
         }
       }
-      drawFrame(ctx, circuit, character, gold);
+      drawFrame(ctx, circuit, character);
       if (circuit.done && !finished) {
         finished = true;
         sfx("done");
@@ -79,7 +77,7 @@ export default function CircuitCanvas({
       detach();
       window.removeEventListener("resize", resize);
     };
-  }, [seed, character, gold]);
+  }, [seed, character]);
 
   return (
     <div

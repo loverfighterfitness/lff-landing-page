@@ -16,7 +16,7 @@ function timeLeft(endsAt: Date) {
 export default function Leaderboard({ highlightHandle }: { highlightHandle?: string }) {
   const { data, isLoading, error } = trpc.game.leaderboard.useQuery(undefined, { refetchInterval: 10_000, retry: 1 });
   const icons = useMemo(
-    () => Object.fromEntries((["levi", "ruby", "benny"] as Character[]).map((c) => [c, spriteDataUrl(c, false, 1)])),
+    () => Object.fromEntries((["levi", "ruby", "benny"] as Character[]).map((c) => [c, spriteDataUrl(c, 1)])),
     [],
   );
 
@@ -41,7 +41,7 @@ export default function Leaderboard({ highlightHandle }: { highlightHandle?: str
             }}
           >
             <span className="w-6 text-right">{r.rank}</span>
-            <img src={icons[r.character]} alt="" width={16} height={24} style={{ imageRendering: "pixelated" }} />
+            <img src={icons[r.character]} alt="" width={20} height={30} style={{ imageRendering: "pixelated" }} />
             <span className="flex-1 truncate">@{r.handle}</span>
             <span>{r.total}</span>
           </li>

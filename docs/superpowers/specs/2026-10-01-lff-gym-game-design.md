@@ -30,7 +30,7 @@ Out of scope (later, if wanted): extra lifts, more characters, real-time sockets
 | Ruby | Cream LFF tee | Comp stage; "🥈 → 🥇" gag on a perfect run (2nd at her first ICN show) |
 | Benny | Brown LFF tee | 55-year-old old-school lifter, nearly benching 3 plates. The resident gym bro (more than Levi). Quotes Ronnie Coleman: "YEAH BUDDY!", "LIGHT WEIGHT BABY!", "Ain't nothin' but a peanut!" |
 
-Sprites are code-defined pixel maps coloured per character (hair, skin, tee) to match their photos — swappable for hand-drawn sheets later. Ruby and Benny have approved use of their likeness.
+Sprites are code-defined pixel maps drawn from their photos: Levi (light-brown swept hair, black tee), Ruby (long dark hair in a ponytail, cream tee, black bike shorts, white socks/sneakers), Benny (bleached-blonde crop with faded sides, short dark stubble, tattoo sleeves, brown tee). Every tee carries a pixel "lff" mark on the left chest. Bench is drawn side-on with the bar seen end-on. Ruby and Benny have approved use of their likeness.
 
 **The circuit:**
 
@@ -55,7 +55,6 @@ Exact numbers (zone widths, speeds, durations) are tuning values in one config f
 - **Old school vs science banter:** Benny's bro-isms ("YEAH BUDDY!") occasionally get a deadpan pixel-Levi reply ("…technically that's mechanical tension, Benny"). Gym bro vs coach, played for laughs.
 - **"Just eat whole foods bro" NPC** cameo that gets shut down.
 - **Merch cosmetics:** LFF straps glow on the deadlift, cuffs visible on bench. Cosmetic only.
-- **Cheat code:** typing `TRANSFORM` on the title screen unlocks a gold "Coached by Levi" skin. Cosmetic only.
 - **Mystery 4th character:** locked silhouette on select screen, reserved for a future reveal/drop.
 - **Score-screen CTAs:** "Rep the same [colour] tee as [character] → /shop" and "Want coaching built for you? DM me 'TRANSFORM'".
 

@@ -4,6 +4,7 @@ import { trpc } from "@/lib/trpc";
 import { startMusic, stopMusic } from "@/game/audio";
 import CircuitCanvas, { type CircuitResult } from "@/game/CircuitCanvas";
 import { loadPoses } from "@/game/render";
+import { track } from "@/lib/analytics";
 import Leaderboard from "@/game/screens/Leaderboard";
 import ResultsScreen from "@/game/screens/ResultsScreen";
 import SelectScreen from "@/game/screens/SelectScreen";
@@ -27,7 +28,7 @@ export default function Game() {
   // Pixel font only loads on /game.
   useEffect(() => {
     void loadPoses();
-    document.title = "LFF Gym — win a free tee";
+    document.title = "LFF Lover Fighter — win a free tee";
     const link = document.createElement("link");
     link.rel = "stylesheet";
     link.href = FONT_HREF;
@@ -45,6 +46,7 @@ export default function Game() {
   }, []);
 
   const begin = async (character: Character) => {
+    track(`game_start:${character}`);
     startMusic();
     try {
       const res = await startRun.mutateAsync({ character });
@@ -84,7 +86,7 @@ export default function Game() {
     case "board":
       return (
         <Screen>
-          <ArcadeTitle size={16} style={{ marginTop: 4 }}>LEADERBOARD</ArcadeTitle>
+          <ArcadeTitle size={14} style={{ marginTop: 4 }}>TEAM LFF LEADERBOARD</ArcadeTitle>
           <Panel>
             <Leaderboard highlightHandle={view.highlight} />
           </Panel>

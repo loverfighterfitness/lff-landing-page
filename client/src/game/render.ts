@@ -34,12 +34,9 @@ export { loadPoses } from "./poses";
 export const VIEW_W = 180;
 export const VIEW_H = 320;
 
-const BROWN = "#54412F";
-const DARK = "#2e2318";
-const CREAM = "#EAE6D2";
-const GREEN = "#5fbf4a";
-const LIME = "#c8f560";
-const RED = "#d9503f";
+import { BAD, BLUE, BROWN, CREAM, INK, STONE, TAUPE } from "./theme";
+
+const DARK = INK;
 const FONT = '"Press Start 2P", monospace';
 const SCALE = 3;
 const POPUP_TICKS = 70;
@@ -52,6 +49,15 @@ function text(ctx: CanvasRenderingContext2D, s: string, x: number, y: number, si
   ctx.fillText(s, x + 1, y + 1);
   ctx.fillStyle = colour;
   ctx.fillText(s, x, y);
+}
+
+/** Text on a small ink plate, for labels that sit over the busy gym wall. */
+function tag(ctx: CanvasRenderingContext2D, s: string, x: number, y: number, size = 8, colour = CREAM) {
+  ctx.font = `${size}px ${FONT}`;
+  const w = ctx.measureText(s).width;
+  ctx.fillStyle = "rgba(42,31,21,0.85)";
+  ctx.fillRect(Math.round(x - w / 2 - 4), y - 3, Math.round(w + 8), size + 6);
+  text(ctx, s, x, y, size, colour);
 }
 
 /** Word-wrap into lines that fit `maxW`. */
@@ -74,7 +80,7 @@ function wrap(ctx: CanvasRenderingContext2D, s: string, x: number, y: number, ma
 /** The pixel-art gym, with a dark gradient behind the HUD and meters so text stays readable. */
 function background(ctx: CanvasRenderingContext2D) {
   if (!drawBackground(ctx)) {
-    ctx.fillStyle = "#16120f";
+    ctx.fillStyle = INK;
     ctx.fillRect(0, 0, VIEW_W, VIEW_H);
   }
   const top = ctx.createLinearGradient(0, 0, 0, 56);
@@ -91,7 +97,7 @@ function background(ctx: CanvasRenderingContext2D) {
 
 /** A framed pixel panel for meters. */
 function panel(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number) {
-  ctx.fillStyle = "rgba(10,8,6,0.82)";
+  ctx.fillStyle = "rgba(42,31,21,0.86)";
   ctx.fillRect(x, y, w, h);
   ctx.strokeStyle = "rgba(234,230,210,0.55)";
   ctx.lineWidth = 1;
@@ -102,9 +108,9 @@ function hud(ctx: CanvasRenderingContext2D, c: Circuit, s: LiftStateBase, maxTic
   text(ctx, lift, 6, 6, 8, CREAM, "left");
   const done = c.scores();
   const total = done.bench + done.squat + done.deadlift + s.score;
-  text(ctx, `${s.score}`, 6, 18, 8, LIME, "left");
+  text(ctx, `${s.score}`, 6, 18, 8, BLUE, "left");
   text(ctx, `TOTAL ${total}`, VIEW_W - 6, 18, 6, CREAM, "right");
-  if (s.combo > 0) text(ctx, `x${comboMultiplier(s.combo).toFixed(1)}`, VIEW_W - 6, 30, 8, "#d4af37", "right");
+  if (s.combo > 0) text(ctx, `x${comboMultiplier(s.combo).toFixed(1)}`, VIEW_W - 6, 30, 8, BLUE, "right");
   // Time bar.
   ctx.fillStyle = DARK;
   ctx.fillRect(6, 30, 100, 4);
@@ -121,19 +127,19 @@ function popup(ctx: CanvasRenderingContext2D, s: LiftStateBase, character: Chara
   if (!s.outcome) return;
   const age = s.tick - s.outcomeTick;
   if (age > POPUP_TICKS) return;
-  const y = 70 - Math.floor(age / 4);
+  const y = 62 - Math.floor(age / 5);
   if (s.outcome === "tut") {
     miniLevi(ctx, 22, 124);
     wrap(ctx, TUT_LINE, 104, 74, 130, 6, CREAM);
-    text(ctx, `-50`, VIEW_W / 2, y + 40, 8, RED);
+    text(ctx, `-50`, VIEW_W / 2, y + 40, 8, BAD);
     return;
   }
   const pool = s.outcome === "perfect" ? CHARACTER_INFO[character].perfectQuotes : POPUPS[s.outcome];
   const line = pool[s.outcomeTick % pool.length];
-  const colour = s.outcome === "perfect" ? "#d4af37" : s.outcome === "good" ? LIME : RED;
+  const colour = s.outcome === "perfect" ? BLUE : s.outcome === "good" ? CREAM : BAD;
   ctx.font = `8px ${FONT}`;
   if (ctx.measureText(line).width > 168) wrap(ctx, line, VIEW_W / 2, y, 168, 6, colour);
-  else text(ctx, line, VIEW_W / 2, y, 8, colour);
+  else tag(ctx, line, VIEW_W / 2, y, 8, colour);
   if (character === "benny" && s.outcome === "perfect" && s.outcomeTick % 3 === 0) {
     miniLevi(ctx, 14, y + 44, 0.5);
     wrap(ctx, BENNY_BANTER_REPLY, 100, y + 16, 140, 5, CREAM);
@@ -153,32 +159,34 @@ function drawBench(ctx: CanvasRenderingContext2D, s: BenchState, character: Char
   const pose = frame3(depth, "bench_up" as const, "bench_mid" as const, "bench_down" as const);
   const placed = drawPose(ctx, character, pose, 40, FLOOR, { anchor: "left" });
   drawPlateEndOn(ctx, placed, s.kg);
-  text(ctx, `${s.kg}KG`, 64, FLOOR - poseHeight(character, "bench_up") - 16, 6, CREAM);
+  tag(ctx, `${s.kg}KG`, 64, FLOOR - poseHeight(character, "bench_up") - 16, 6, CREAM);
   // Timing meter.
   const mx = 20, my = 262, mw = 140, mh = 14;
   panel(ctx, mx - 4, my - 4, mw + 8, mh + 22);
-  ctx.fillStyle = "#3a2e22";
+  ctx.fillStyle = BROWN;
   ctx.fillRect(mx, my, mw, mh);
-  ctx.fillStyle = GREEN;
+  ctx.fillStyle = STONE;
   ctx.fillRect(mx + (s.zoneCenter - s.zoneWidth / 2) * mw, my, s.zoneWidth * mw, mh);
   const pw = s.zoneWidth * BENCH.perfectFraction;
-  ctx.fillStyle = LIME;
+  ctx.fillStyle = BLUE;
   ctx.fillRect(mx + (s.zoneCenter - pw / 2) * mw, my, pw * mw, mh);
+  ctx.fillStyle = INK;
+  ctx.fillRect(mx + s.pos * mw - 2, my - 4, 5, mh + 8);
   ctx.fillStyle = CREAM;
   ctx.fillRect(mx + s.pos * mw - 1, my - 3, 3, mh + 6);
   for (let i = 0; i < BENCH.maxMisses; i++) {
-    ctx.fillStyle = i < s.misses ? RED : "#5a4634";
+    ctx.fillStyle = i < s.misses ? BAD : TAUPE;
     ctx.fillRect(mx + i * 10, my + mh + 4, 7, 4);
   }
   // Benny's 3-plate quest.
   if (character === "benny") {
-    if (s.kg === 140) wrap(ctx, BENNY_3_PLATES_LOADING, VIEW_W / 2, 42, 160, 6, "#d4af37");
+    if (s.kg === 140) wrap(ctx, BENNY_3_PLATES_LOADING, VIEW_W / 2, 42, 160, 6, BLUE);
     if (s.kg === 150 && s.outcome === "perfect" && s.tick - s.outcomeTick < 90) {
       for (let i = 0; i < 40; i++) {
-        ctx.fillStyle = ["#d4af37", CREAM, LIME, RED][i % 4];
+        ctx.fillStyle = [BLUE, CREAM, STONE, TAUPE][i % 4];
         ctx.fillRect((i * 37 + s.tick * 3) % VIEW_W, (i * 53 + s.tick * 2) % 220, 3, 3);
       }
-      text(ctx, BENNY_3_PLATES_DONE, VIEW_W / 2, 42, 6, "#d4af37");
+      text(ctx, BENNY_3_PLATES_DONE, VIEW_W / 2, 42, 6, BLUE);
     }
   }
 }
@@ -189,17 +197,17 @@ function drawSquat(ctx: CanvasRenderingContext2D, s: SquatState, character: Char
   const pose = frame3(up, "squat_bottom" as const, "squat_mid" as const, "squat_top" as const);
   const kg = Math.min(200, 60 + s.reps * 10);
   drawPlatesFront(ctx, drawPose(ctx, character, pose, VIEW_W / 2, FLOOR), kg);
-  text(ctx, `${kg}KG`, VIEW_W / 2, 100, 8);
+  tag(ctx, `${kg}KG`, VIEW_W / 2, 100, 8);
   // Drive meter (left) and form meter (right).
   const mh = 120, my = 104;
   panel(ctx, 5, my - 14, 16, mh + 18);
   panel(ctx, VIEW_W - 21, my - 14, 16, mh + 18);
-  ctx.fillStyle = "#3a2e22";
+  ctx.fillStyle = BROWN;
   ctx.fillRect(9, my, 8, mh);
   ctx.fillRect(VIEW_W - 17, my, 8, mh);
-  ctx.fillStyle = LIME;
+  ctx.fillStyle = CREAM;
   ctx.fillRect(9, my + mh * (1 - s.progress), 8, mh * s.progress);
-  ctx.fillStyle = s.strain > 0.6 ? RED : s.strain > 0.3 ? "#e0a030" : GREEN;
+  ctx.fillStyle = s.strain > 0.6 ? BAD : s.strain > 0.3 ? TAUPE : STONE;
   ctx.fillRect(VIEW_W - 17, my + mh * (1 - Math.min(1, s.strain)), 8, mh * Math.min(1, s.strain));
   text(ctx, "UP", 13, my - 10, 5);
   text(ctx, "FORM", VIEW_W - 13, my - 10, 4);
@@ -213,15 +221,15 @@ function drawDeadlift(ctx: CanvasRenderingContext2D, s: DeadliftState, character
   // During lockout the bar shows the weight just lifted; otherwise what's loaded.
   const kg = lockedOut ? s.kg - DEADLIFT.kgStep : s.kg;
   drawPlatesFront(ctx, drawPose(ctx, character, pose, VIEW_W / 2 - 6, FLOOR), kg);
-  text(ctx, lockedOut ? `NEXT ${s.kg}KG` : `${s.kg}KG`, VIEW_W / 2, 100, 8);
+  tag(ctx, lockedOut ? `NEXT ${s.kg}KG` : `${s.kg}KG`, VIEW_W / 2, 100, 8);
   // Power gauge.
   const gx = VIEW_W - 22, gy = 100, gh = 120;
   panel(ctx, gx - 4, gy - 4, 22, gh + 8);
-  ctx.fillStyle = "#3a2e22";
+  ctx.fillStyle = BROWN;
   ctx.fillRect(gx, gy, 14, gh);
-  ctx.fillStyle = GREEN;
+  ctx.fillStyle = STONE;
   ctx.fillRect(gx + 1, gy + gh * (1 - DEADLIFT.sweetMax), 12, gh * (DEADLIFT.sweetMax - DEADLIFT.sweetMin));
-  ctx.fillStyle = LIME;
+  ctx.fillStyle = BLUE;
   ctx.fillRect(gx + 1, gy + gh * (1 - DEADLIFT_CENTRE - DEADLIFT.perfectHalfWidth), 12, gh * DEADLIFT.perfectHalfWidth * 2);
   ctx.fillStyle = CREAM;
   ctx.fillRect(gx - 3, gy + gh * (1 - s.gauge) - 1, 20, 3);
@@ -230,23 +238,58 @@ function drawDeadlift(ctx: CanvasRenderingContext2D, s: DeadliftState, character
   text(ctx, `BEST ${s.bestKg}KG`, VIEW_W / 2, 284, 6);
 }
 
+/** A tiny looping demo of the lift's control, shown during the countdown. */
+function demo(ctx: CanvasRenderingContext2D, lift: "bench" | "squat" | "deadlift", t: number) {
+  const x = 40, y = 120, w = 100, h = 8;
+  ctx.fillStyle = BROWN;
+  if (lift === "bench") {
+    ctx.fillRect(x, y, w, h);
+    ctx.fillStyle = STONE;
+    ctx.fillRect(x + 56, y, 22, h);
+    ctx.fillStyle = BLUE;
+    ctx.fillRect(x + 63, y, 8, h);
+    const pos = Math.abs(((t * 1.4) % (2 * w)) - w);
+    const hit = Math.abs(pos - 67) < 5;
+    ctx.fillStyle = CREAM;
+    ctx.fillRect(x + pos - 1, y - 2, 3, h + 4);
+    if (hit) text(ctx, "TAP!", x + w + 12, y, 5, BLUE, "left");
+  } else if (lift === "squat") {
+    ctx.fillRect(x, y, w, h);
+    const fill = (t % 90) / 90;
+    ctx.fillStyle = CREAM;
+    ctx.fillRect(x, y, w * fill, h);
+    if (t % 10 < 5) text(ctx, "TAP TAP", x + w + 8, y, 5, BLUE, "left");
+  } else {
+    ctx.fillRect(x, y, w, h);
+    ctx.fillStyle = STONE;
+    ctx.fillRect(x + w * DEADLIFT.sweetMin, y, w * (DEADLIFT.sweetMax - DEADLIFT.sweetMin), h);
+    ctx.fillStyle = BLUE;
+    ctx.fillRect(x + w * (DEADLIFT_CENTRE - DEADLIFT.perfectHalfWidth), y, w * DEADLIFT.perfectHalfWidth * 2, h);
+    const g = Math.min(1, (t % 110) / 85);
+    ctx.fillStyle = CREAM;
+    ctx.fillRect(x + w * g - 1, y - 2, 3, h + 4);
+    text(ctx, g < DEADLIFT_CENTRE ? "HOLD" : "LET GO!", x + w + 8, y, 5, g < DEADLIFT_CENTRE ? CREAM : BLUE, "left");
+  }
+}
+
 function drawIntro(ctx: CanvasRenderingContext2D, c: Circuit, character: Character) {
   if (c.phase.kind !== "intro") return;
   const p = c.phase;
-  panel(ctx, 10, 64, VIEW_W - 20, 54);
-  text(ctx, LIFT_NAMES[p.lift], VIEW_W / 2, 72, 10, "#d4af37");
+  panel(ctx, 10, 64, VIEW_W - 20, 74);
+  text(ctx, LIFT_NAMES[p.lift], VIEW_W / 2, 72, 10, BLUE);
   wrap(ctx, LIFT_TIPS[p.lift], VIEW_W / 2, 88, 150, 5);
+  demo(ctx, p.lift, INTRO_TICKS - p.ticksLeft);
   drawPose(ctx, character, "stance", VIEW_W / 2, FLOOR);
   const secs = Math.ceil((p.ticksLeft / INTRO_TICKS) * 3);
-  text(ctx, secs > 0 ? `${secs}` : "GO!", VIEW_W / 2, 262, 16, secs > 0 ? CREAM : "#d4af37");
+  text(ctx, secs > 0 ? `${secs}` : "GO!", VIEW_W / 2, 262, 16, secs > 0 ? CREAM : BLUE);
   if (p.npc) {
     // The "just eat whole foods bro" guy gets shut down before deadlifts, off to the sides.
     drawPose(ctx, "bro", p.ticksLeft % 60 < 30 ? "point" : "idle", 22, FLOOR, { scale: 1 });
-    panel(ctx, 2, 126, 62, 30);
-    wrap(ctx, WHOLE_FOODS_BRO, 33, 130, 56, 5, CREAM);
+    panel(ctx, 2, 144, 62, 30);
+    wrap(ctx, WHOLE_FOODS_BRO, 33, 148, 56, 5, CREAM);
     miniLevi(ctx, 158, FLOOR);
-    panel(ctx, 114, 126, 64, 38);
-    wrap(ctx, LEVI_REPLY_WHOLE_FOODS, 146, 130, 58, 5, LIME);
+    panel(ctx, 114, 144, 64, 38);
+    wrap(ctx, LEVI_REPLY_WHOLE_FOODS, 146, 148, 58, 5, BLUE);
   }
 }
 

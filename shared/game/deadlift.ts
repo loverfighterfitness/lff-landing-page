@@ -72,7 +72,7 @@ export const deadlift: LiftSim<DeadliftState> = {
     const perfect = Math.abs(s.gauge - DEADLIFT_CENTRE) <= DEADLIFT.perfectHalfWidth;
     s.outcome = perfect ? "perfect" : "good";
     s.outcomeTick = s.tick;
-    s.score += award(s.kg * (perfect ? 2 : 1), s.combo);
+    s.score += award(s.kg * (perfect ? DEADLIFT.perfectPointsPerKg : DEADLIFT.goodPointsPerKg), s.combo);
     if (perfect) {
       s.combo++;
       s.perfects++;

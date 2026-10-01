@@ -1,6 +1,7 @@
 import { trpc } from "@/lib/trpc";
-import { CHARACTER_INFO } from "../content";
+import { CHARACTER_INFO, COACHED_BY_LINE } from "../content";
 import { poseUrl } from "../poses";
+import { BLUE, BROWN, CREAM, INK } from "../theme";
 
 function timeLeft(endsAt: Date) {
   const ms = new Date(endsAt).getTime() - Date.now();
@@ -17,10 +18,24 @@ export default function Leaderboard({ highlightHandle }: { highlightHandle?: str
   if (isLoading) return <p className="text-[10px]">LOADING BOARD...</p>;
   if (error || !data) return <p className="text-[10px] text-center">Board's offline right now. Try again soon.</p>;
 
+  const mine = highlightHandle ? data.rows.find((r) => r.handle === highlightHandle) : undefined;
+
   return (
     <div className="w-full flex flex-col gap-4">
+      {mine && mine.rank <= 10 && (
+        <div
+          className="flex items-center gap-3 p-3"
+          style={{ backgroundColor: BROWN, border: `3px solid ${CREAM}`, boxShadow: `4px 4px 0 ${BLUE}`, animation: "lff-pop 0.4s ease-out both" }}
+        >
+          <img src="/game/lff_logo_small.png" alt="" style={{ imageRendering: "pixelated", width: 28, height: 28 }} />
+          <div>
+            <p className="text-[9px]" style={{ color: CREAM }}>{COACHED_BY_LINE}</p>
+            <p className="text-[7px] mt-1" style={{ color: BLUE }}>YOU'RE #{mine.rank} ON TEAM LFF</p>
+          </div>
+        </div>
+      )}
       <div className="text-center">
-        <p className="text-xs" style={{ color: "#d4af37" }}>{data.event?.name ?? "NEXT COMP COMING SOON"}</p>
+        <p className="text-xs" style={{ color: BLUE }}>{data.event?.name ?? "NEXT COMP COMING SOON"}</p>
         {data.event && <p className="text-[8px] mt-2 opacity-75">{timeLeft(data.event.endsAt)} · TOP SCORE WINS A TEE · EARLIEST SCORE WINS TIES</p>}
       </div>
       <ol className="w-full flex flex-col gap-1">
@@ -30,12 +45,12 @@ export default function Leaderboard({ highlightHandle }: { highlightHandle?: str
             key={r.rank}
             className="flex items-center gap-2 px-2 py-1.5 text-[9px]"
             style={{
-              backgroundColor: r.handle === highlightHandle ? "#d4af37" : r.rank === 1 ? "#2e2318" : "transparent",
-              color: r.handle === highlightHandle ? "#2e2318" : undefined,
+              backgroundColor: r.handle === highlightHandle ? BLUE : r.rank === 1 ? BROWN : "transparent",
+              color: r.handle === highlightHandle ? INK : undefined,
             }}
           >
             <span className="w-6 text-right">{r.rank}</span>
-            <img src={poseUrl(r.character, "idle")} alt="" style={{ imageRendering: "pixelated", height: 36, width: "auto" }} />
+            <img src={poseUrl(r.character, "stance")} alt="" style={{ imageRendering: "pixelated", height: 36, width: "auto" }} />
             <span className="flex-1 truncate">@{r.handle}</span>
             <span>{r.total}</span>
           </li>
@@ -43,7 +58,7 @@ export default function Leaderboard({ highlightHandle }: { highlightHandle?: str
       </ol>
       <div className="grid grid-cols-3 gap-2 text-center">
         {data.teams.map((t) => (
-          <div key={t.character} className="p-2" style={{ border: "2px solid #EAE6D2" }}>
+          <div key={t.character} className="p-2" style={{ border: `2px solid ${CREAM}`, backgroundColor: "rgba(84,65,47,0.5)" }}>
             <p className="text-[8px]">TEAM {CHARACTER_INFO[t.character].name}</p>
             <p className="text-[10px] mt-2">{t.top}</p>
             <p className="text-[7px] mt-1 opacity-75">{t.players} LIFTERS</p>

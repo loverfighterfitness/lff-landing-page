@@ -1,8 +1,12 @@
 import type { Character } from "@shared/game/types";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { track } from "@/lib/analytics";
 import { trpc } from "@/lib/trpc";
+import { jingle } from "../audio";
 import type { CircuitResult } from "../CircuitCanvas";
-import { CHARACTER_INFO, COACHING_CTA, IG_DM_URL, RUBY_PODIUM_LINE, SHOP_CTA } from "../content";
+import { CHARACTER_INFO, COACHING_CTA, IG_DM_URL, IG_PROFILE_URL, PRACTICE_LINE, RUBY_PODIUM_LINE, SHOP_CTA } from "../content";
+import { renderScoreCard, shareScoreCard } from "../scoreCard";
+import { BAD, BLUE } from "../theme";
 import { ArcadeTitle, Fighter, Panel, PixelButton, Screen } from "./ui";
 
 const SAVED_KEY = "lff-gym-entrant";
@@ -39,6 +43,38 @@ export default function ResultsScreen({
   const total = result.scores.bench + result.scores.squat + result.scores.deadlift;
   const info = CHARACTER_INFO[character];
   const quote = info.winQuotes[total % info.winQuotes.length];
+  const [sharing, setSharing] = useState(false);
+  const [newPb, setNewPb] = useState(false);
+
+  useEffect(() => {
+    track("game_finish", Math.min(86400, total));
+    // Personal best (per device): play the LFF sting.
+    try {
+      const best = Number(localStorage.getItem("lff-gym-pb") ?? 0);
+      if (total > best) {
+        localStorage.setItem("lff-gym-pb", String(total));
+        if (best > 0) {
+          setNewPb(true);
+          jingle();
+        }
+      }
+    } catch {
+      /* private mode */
+    }
+  }, [total]);
+
+  const share = async () => {
+    setSharing(true);
+    try {
+      const blob = await renderScoreCard({ character, scores: result.scores, total, rank: null });
+      if (blob) {
+        const how = await shareScoreCard(blob, character);
+        if (how !== "cancelled") track(`game_share:${how}`);
+      }
+    } finally {
+      setSharing(false);
+    }
+  };
 
   const post = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,6 +86,7 @@ export default function ResultsScreen({
     }
     try {
       await submit.mutateAsync({ runId, handle, email, marketingOptIn: optIn, logs: result.logs });
+      track("game_post", Math.min(86400, total));
       try {
         localStorage.setItem(SAVED_KEY, JSON.stringify({ handle, email }));
       } catch {
@@ -71,6 +108,11 @@ export default function ResultsScreen({
         CIRCUIT COMPLETE
       </ArcadeTitle>
       <Fighter id={character} pose="victory" height={190} />
+      {newPb && (
+        <p className="text-[10px]" style={{ color: BLUE, animation: "lff-blink 0.6s steps(1) 6" }}>
+          NEW PB
+        </p>
+      )}
       <p className="text-[9px] text-center leading-loose" style={{ textShadow: "2px 2px 0 #000" }}>"{quote}" - {info.name}</p>
       {character === "ruby" && result.perfects >= 8 && <p className="text-lg">{RUBY_PODIUM_LINE}</p>}
       <Panel>
@@ -79,7 +121,7 @@ export default function ResultsScreen({
         <div className="flex justify-between"><span>SQUATS</span><span>{result.scores.squat}</span></div>
         <div className="flex justify-between"><span>DEADLIFT</span><span>{result.scores.deadlift}</span></div>
         <div className="flex justify-between text-sm pt-2" style={{ borderTop: "2px solid #EAE6D2" }}>
-          <span>TOTAL</span><span style={{ color: "#d4af37" }}>{total}</span>
+          <span>TOTAL</span><span style={{ color: BLUE }}>{total}</span>
         </div>
       </div>
       </Panel>
@@ -109,7 +151,7 @@ export default function ResultsScreen({
             <input type="checkbox" checked={optIn} onChange={(e) => setOptIn(e.target.checked)} />
             Send me LFF training tips and drops
           </label>
-          {error && <p style={{ color: "#ff8a7a" }} className="leading-relaxed">{error}</p>}
+          {error && <p style={{ color: BAD }} className="leading-relaxed">{error}</p>}
           <PixelButton type="submit" disabled={submit.isPending}>
             {submit.isPending ? "POSTING..." : error ? "RETRY" : "POST SCORE"}
           </PixelButton>
@@ -117,13 +159,31 @@ export default function ResultsScreen({
         </Panel>
       ) : (
         <p className="text-[9px] text-center leading-loose opacity-80">
-          {runId ? "The comp isn't open right now, this one's for practice." : "Practice run — scores can't be posted right now."}
+          {PRACTICE_LINE}{" "}
+          <a href={IG_PROFILE_URL} target="_blank" rel="noreferrer" className="underline" style={{ color: BLUE }}>
+            @loverfighterfitness
+          </a>
         </p>
       )}
 
-      <PixelButton variant={canPost ? "ghost" : "cream"} onClick={onAgain}>RUN IT BACK</PixelButton>
-      <a href="/shop" className="text-[9px] underline text-center leading-loose">{SHOP_CTA(character)} {">"}</a>
-      <a href={IG_DM_URL} target="_blank" rel="noreferrer" className="text-[9px] underline text-center leading-loose">
+      <PixelButton variant="gold" onClick={share} disabled={sharing}>
+        {sharing ? "MAKING YOUR CARD..." : "SHARE MY SCORE"}
+      </PixelButton>
+      <PixelButton variant="ghost" onClick={onAgain}>RUN IT BACK</PixelButton>
+      <a
+        href={`/shop?tee=${info.tee}`}
+        onClick={() => track(`game_shop_click:${info.tee}`)}
+        className="text-[9px] underline text-center leading-loose"
+      >
+        {SHOP_CTA(character)} {">"}
+      </a>
+      <a
+        href={IG_DM_URL}
+        onClick={() => track("game_dm_click")}
+        target="_blank"
+        rel="noreferrer"
+        className="text-[9px] underline text-center leading-loose"
+      >
         {COACHING_CTA}
       </a>
     </Screen>

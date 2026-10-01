@@ -1,9 +1,9 @@
 import { CHARACTERS, type Character } from "@shared/game/types";
 import { useEffect, useRef, useState } from "react";
 import { sfx } from "../audio";
-import { CHARACTER_INFO } from "../content";
+import { CHARACTER_INFO, IG_DM_URL, NEXT_FIGHTER_BODY, NEXT_FIGHTER_TITLE } from "../content";
 import { poseUrl, type Pose } from "../poses";
-import { ArcadeTitle, CREAM, Fighter, GOLD, PixelButton, Screen } from "./ui";
+import { ArcadeTitle, BLUE, CREAM, Fighter, INK, Panel, PixelButton, Screen } from "./ui";
 
 /** Mortal Kombat-style fighter select: big fighter on stage, portrait row below. */
 export default function SelectScreen({
@@ -19,6 +19,7 @@ export default function SelectScreen({
   const [pose, setPose] = useState<Pose>("stance");
   const [flashKey, setFlashKey] = useState(0);
   const [locked, setLocked] = useState(false);
+  const [teaser, setTeaser] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   useEffect(() => () => clearTimeout(timer.current), []);
@@ -54,7 +55,7 @@ export default function SelectScreen({
       <div className="relative w-full flex flex-col items-center justify-end" style={{ height: 300 }}>
         <div
           className="absolute bottom-2 left-1/2 -translate-x-1/2"
-          style={{ width: 200, height: 18, borderRadius: "50%", background: "radial-gradient(rgba(212,175,55,0.45), transparent 70%)" }}
+          style={{ width: 200, height: 18, borderRadius: "50%", background: "radial-gradient(rgba(169,212,245,0.4), transparent 70%)" }}
         />
         <div key={`${picked}-${flashKey}`} style={{ animation: "lff-slide-in 0.25s ease-out both" }}>
           <Fighter id={picked} pose={pose} height={pose === "victory" ? 290 : 270} />
@@ -71,7 +72,7 @@ export default function SelectScreen({
         <ArcadeTitle size={22} colour={CREAM}>
           {info.name}
         </ArcadeTitle>
-        <p className="text-[8px] leading-loose mt-1" style={{ color: GOLD, textShadow: "2px 2px 0 #000" }}>
+        <p className="text-[8px] leading-loose mt-1" style={{ color: BLUE, textShadow: `2px 2px 0 ${INK}` }}>
           {info.tagline.toUpperCase()}
         </p>
       </div>
@@ -88,8 +89,8 @@ export default function SelectScreen({
               className="relative overflow-hidden"
               style={{
                 height: 84,
-                backgroundColor: on ? "#2a1f12" : "rgba(0,0,0,0.6)",
-                border: `3px solid ${on ? GOLD : "rgba(234,230,210,0.5)"}`,
+                backgroundColor: on ? "#54412F" : "rgba(42,31,21,0.75)",
+                border: `3px solid ${on ? BLUE : "rgba(234,230,210,0.5)"}`,
                 animation: on ? "lff-pulse 0.8s steps(2) infinite" : undefined,
               }}
             >
@@ -102,20 +103,21 @@ export default function SelectScreen({
               />
               <span
                 className="absolute bottom-0 inset-x-0 text-[6px] py-1"
-                style={{ backgroundColor: "rgba(0,0,0,0.75)", color: on ? GOLD : CREAM }}
+                style={{ backgroundColor: "rgba(42,31,21,0.85)", color: on ? BLUE : CREAM }}
               >
                 {CHARACTER_INFO[c].name}
               </span>
             </button>
           );
         })}
-        <div
+        <button
+          onClick={() => setTeaser(true)}
           className="flex flex-col items-center justify-center"
-          style={{ height: 84, border: "3px dashed rgba(234,230,210,0.4)", backgroundColor: "rgba(0,0,0,0.6)" }}
+          style={{ height: 84, border: "3px dashed rgba(234,230,210,0.5)", backgroundColor: "rgba(42,31,21,0.75)" }}
         >
-          <span className="text-xl" style={{ color: "rgba(234,230,210,0.5)" }}>?</span>
-          <span className="text-[6px] mt-1 opacity-60">LOCKED</span>
-        </div>
+          <span className="text-xl" style={{ color: BLUE }}>?</span>
+          <span className="text-[6px] mt-1" style={{ color: CREAM }}>YOU?</span>
+        </button>
       </div>
 
       <PixelButton variant="gold" big onClick={confirm} disabled={starting || locked}>
@@ -125,6 +127,30 @@ export default function SelectScreen({
       <PixelButton variant="ghost" onClick={onBack}>
         BACK
       </PixelButton>
+
+      {teaser && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-6" style={{ backgroundColor: "rgba(20,14,9,0.85)" }} onClick={() => setTeaser(false)}>
+          <div className="w-full max-w-sm" onClick={(e) => e.stopPropagation()} style={{ animation: "lff-pop 0.25s ease-out both" }}>
+            <Panel>
+              <div className="flex flex-col items-center gap-4 text-center">
+                <span className="text-3xl" style={{ color: BLUE }}>?</span>
+                <ArcadeTitle size={13}>{NEXT_FIGHTER_TITLE}</ArcadeTitle>
+                <p className="text-[9px] leading-loose">{NEXT_FIGHTER_BODY}</p>
+                <a
+                  href={IG_DM_URL}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="w-full px-4 py-3 text-xs"
+                  style={{ backgroundColor: CREAM, color: INK, border: `3px solid ${INK}`, boxShadow: `4px 4px 0 ${BLUE}` }}
+                >
+                  DM ME "TRANSFORM"
+                </a>
+                <button className="text-[9px] underline opacity-70" onClick={() => setTeaser(false)}>BACK TO SELECT</button>
+              </div>
+            </Panel>
+          </div>
+        </div>
+      )}
     </Screen>
   );
 }

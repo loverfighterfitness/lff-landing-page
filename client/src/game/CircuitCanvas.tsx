@@ -1,7 +1,7 @@
 import { TICK_MS } from "@shared/game/config";
 import type { Character, LiftScores, RunLogs } from "@shared/game/types";
 import { useEffect, useRef } from "react";
-import { sfx } from "./audio";
+import { haptic, sfx } from "./audio";
 import { Circuit } from "./circuit";
 import { attachInput } from "./input";
 import { PIXEL_RATIO } from "./poses";
@@ -62,6 +62,8 @@ export default function CircuitCanvas({
         if (key !== lastOutcomeKey) {
           lastOutcomeKey = key;
           sfx(s.outcome === "formbreak" ? "miss" : s.outcome);
+          if (s.outcome === "perfect") haptic(25);
+          else if (s.outcome === "miss" || s.outcome === "formbreak" || s.outcome === "tut") haptic([40, 40, 40]);
         }
       }
       drawFrame(ctx, circuit, character);

@@ -38,7 +38,7 @@ export const SQUAT = {
   strainPerFastPress: 0.25,
   strainDecayPerTick: 0.004,
   perfectStrainMax: 0.3,
-  repPoints: 150,
+  repPoints: 250,
   cooldownTicks: 40,
   formBreakCooldownTicks: 60,
   /** Sitting in a rep this long without pressing = chasing "time under tension". */
@@ -58,4 +58,7 @@ export const DEADLIFT = {
   /** Releases below this are treated as an accidental tap, not a failed pull. */
   ignoreBelow: 0.05,
   cooldownTicks: 60,
+  /** Points per kg locked out (perfect / good), so deadlift is ~a third of a run, not most of it. */
+  perfectPointsPerKg: 0.75,
+  goodPointsPerKg: 0.4,
 } as const;

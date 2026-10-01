@@ -73,6 +73,12 @@ export function loadPoses(): Promise<void> {
         .catch(() => meta.set(id, {})),
     );
   }
+  const mark = new Image();
+  images.set("mark", mark);
+  jobs.push(new Promise((resolve) => {
+    mark.onload = mark.onerror = () => resolve(undefined);
+    mark.src = "/game/lff_mark.png";
+  }));
   const bg = new Image();
   images.set("bg", bg);
   jobs.push(new Promise((resolve) => {
@@ -139,15 +145,21 @@ export function poseHeight(id: SpriteId, pose: Pose, scale = SPRITE_SCALE): numb
   return img?.naturalHeight ? (img.naturalHeight * scale) / PIXEL_RATIO : 0;
 }
 
-/** Olympic plates per side, heaviest first: kg, colour, height (sprite px), thickness (sprite px). */
+/**
+ * LFF black bumper plates per side, heaviest first: kg, height and thickness (sprite px).
+ * Weight reads from size and count; the cream band is the LFF stripe.
+ */
 const PLATES = [
-  { kg: 25, colour: "#c0392b", h: 40, t: 5 },
-  { kg: 20, colour: "#2e5fa8", h: 40, t: 5 },
-  { kg: 15, colour: "#d4a017", h: 34, t: 4 },
-  { kg: 10, colour: "#3e8e41", h: 28, t: 3 },
-  { kg: 5, colour: "#e8e8e8", h: 20, t: 3 },
-  { kg: 2.5, colour: "#222222", h: 15, t: 2 },
+  { kg: 25, h: 42, t: 6 },
+  { kg: 20, h: 42, t: 5 },
+  { kg: 15, h: 36, t: 5 },
+  { kg: 10, h: 30, t: 4 },
+  { kg: 5, h: 22, t: 3 },
+  { kg: 2.5, h: 16, t: 2 },
 ] as const;
+/** Stone plates with a brown LFF band: on-brand and readable against the dark gym. */
+const PLATE_BODY = "#D4CEBA";
+const PLATE_BAND = "#54412F";
 
 /** Plates for one side of a bar loaded to `kg` (20 kg bar). */
 export function platesFor(kg: number) {
@@ -179,10 +191,14 @@ export function drawPlatesFront(ctx: CanvasRenderingContext2D, placed: Placed | 
     let x = side < 0 ? bar.x0 + sleeve : bar.x1 - sleeve;
     for (const p of plates) {
       const left = side < 0 ? x - p.t : x;
-      ctx.fillStyle = "#111";
+      ctx.fillStyle = "#2A1F15";
       ctx.fillRect(px + (left - 0.5) * s, py + (bar.y - p.h / 2 - 0.5) * s, (p.t + 1) * s, (p.h + 1) * s);
-      ctx.fillStyle = p.colour;
+      ctx.fillStyle = PLATE_BODY;
       ctx.fillRect(px + left * s, py + (bar.y - p.h / 2) * s, p.t * s, p.h * s);
+      // Cream LFF band across the big plates, cream edge on the small ones.
+      ctx.fillStyle = PLATE_BAND;
+      if (p.kg >= 15) ctx.fillRect(px + left * s, py + (bar.y - 4) * s, p.t * s, 2 * s);
+      else ctx.fillRect(px + left * s, py + (bar.y - p.h / 2) * s, p.t * s, s);
       x = side < 0 ? x - p.t - 0.5 : x + p.t + 0.5;
     }
   }
@@ -208,17 +224,29 @@ export function drawPlateEndOn(ctx: CanvasRenderingContext2D, placed: Placed | n
     ctx.arc(cx, cy, radius, 0, Math.PI * 2);
     ctx.fill();
   };
-  disc(r + s, "#111");
-  disc(r, outer.colour);
-  // A thin ring per extra plate so heavier bars look heavier.
+  // Bench plate face: brown with a cream rim and the cream lff mark.
+  disc(r + s, "#2A1F15");
+  disc(r, "#54412F");
+  // Cream rim, plus a faint ring per extra plate so heavier bars look heavier.
+  ctx.lineWidth = s;
+  ctx.strokeStyle = "#EAE6D2";
+  ctx.beginPath();
+  ctx.arc(cx, cy, r - s, 0, Math.PI * 2);
+  ctx.stroke();
   for (let i = 1; i < Math.min(plates.length, 5); i++) {
-    ctx.strokeStyle = "rgba(0,0,0,0.35)";
-    ctx.lineWidth = s;
+    ctx.strokeStyle = "rgba(234,230,210,0.18)";
     ctx.beginPath();
-    ctx.arc(cx, cy, r - i * 1.5 * s, 0, Math.PI * 2);
+    ctx.arc(cx, cy, r - (i * 2 + 1) * s, 0, Math.PI * 2);
     ctx.stroke();
   }
-  disc(4 * s, "#1c1c1c");
-  disc(2 * s, "#c8c8c8");
+  // The lff mark on the plate face.
+  const mark = images.get("mark");
+  if (mark?.naturalWidth) {
+    ctx.imageSmoothingEnabled = false;
+    const mw = mark.naturalWidth * s;
+    ctx.drawImage(mark, cx - mw / 2, cy - r * 0.62 - mw / 2, mw, mark.naturalHeight * s);
+  }
+  disc(3 * s, "#2a2a2a");
+  disc(1.5 * s, "#c8c8c8");
   ctx.restore();
 }

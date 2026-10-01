@@ -87,3 +87,26 @@ export function stopMusic() {
   if (musicTimer) clearInterval(musicTimer);
   musicTimer = null;
 }
+
+/** The LFF sting: a short rising motif for the title screen and personal bests. */
+export function jingle() {
+  const notes: [number, number, number][] = [
+    [392, 0, 0.1],
+    [523, 0.1, 0.1],
+    [659, 0.2, 0.1],
+    [784, 0.32, 0.12],
+    [659, 0.46, 0.08],
+    [1047, 0.56, 0.32],
+  ];
+  for (const [f, start, dur] of notes) beep(f, start, dur, "square", 0.05);
+  beep(262, 0.56, 0.34, "triangle", 0.05);
+}
+
+/** A short buzz on phones that support it (Android). Silently does nothing elsewhere. */
+export function haptic(pattern: number | number[]) {
+  try {
+    if (!isMuted()) navigator.vibrate?.(pattern);
+  } catch {
+    /* unsupported */
+  }
+}

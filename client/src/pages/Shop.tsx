@@ -2309,7 +2309,18 @@ function ThreePackSelector({ addToCart }: { addToCart: (item: { id: string; name
 function TeeSection() {
   const { addToCart } = useContext(CartContext);
   const { teeStock } = useContext(StockContext);
-  const [selectedColour, setSelectedColour] = useState<TeeColour>("brown");
+  // /shop?tee=black (e.g. from the LFF Gym game) opens on that colour and scrolls to the tees.
+  const [selectedColour, setSelectedColour] = useState<TeeColour>(() => {
+    const tee = new URLSearchParams(window.location.search).get("tee");
+    return tee === "black" || tee === "cream" || tee === "brown" ? tee : "brown";
+  });
+  const teeSectionRef = useRef<HTMLElement>(null);
+  useEffect(() => {
+    if (!new URLSearchParams(window.location.search).has("tee")) return;
+    // Wait for the hero above to lay out, then jump to the tees.
+    const t = setTimeout(() => teeSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 600);
+    return () => clearTimeout(t);
+  }, []);
   const [selectedSize, setSelectedSize] = useState<TeeSize | null>(null);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [sizeChartOpen, setSizeChartOpen] = useState(false);
@@ -2330,7 +2341,7 @@ function TeeSection() {
   const canAdd = selectedSize !== null && !isSoldOut;
 
   return (
-    <section className="lg:min-h-[100dvh] flex items-center px-4 md:px-8 lg:px-16 py-12 md:py-16 lg:py-0">
+    <section ref={teeSectionRef} className="lg:min-h-[100dvh] flex items-center px-4 md:px-8 lg:px-16 py-12 md:py-16 lg:py-0">
       <div className="w-full max-w-[1400px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-12 items-center">
         {/* Info card — left 35% */}
         <div className="lg:col-span-4 order-2 lg:order-1">

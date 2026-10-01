@@ -23,7 +23,7 @@ export default function GameTab() {
     },
     onError: (e) => toast.error(e.message),
   });
-  const [name, setName] = useState("LFF Gym launch comp");
+  const [name, setName] = useState("LFF SZN 2 TEE DROP");
   const [startsAt, setStartsAt] = useState("");
   const [endsAt, setEndsAt] = useState("");
 

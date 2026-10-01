@@ -69,7 +69,7 @@ export const gameRouter = router({
     .input(z.object({ character: z.enum(CHARACTERS) }))
     .mutation(async ({ ctx, input }) => {
       if (overLimit(`start:${clientIp(ctx.req)}`, Date.now(), START_LIMIT)) {
-        throw new TRPCError({ code: "TOO_MANY_REQUESTS", message: "Easy, champ — too many runs. Have a rest and try again in a bit." });
+        throw new TRPCError({ code: "TOO_MANY_REQUESTS", message: "Too many runs. Rest up and go again in a bit." });
       }
       const runId = randomUUID();
       const seed = randomInt(0, 2 ** 32);
@@ -93,7 +93,7 @@ export const gameRouter = router({
       const ip = clientIp(ctx.req);
       // Per email only: the Worker may make every visitor share one IP, so an IP limit would lock everyone out.
       if (overLimit(`email:${input.email}`, now)) {
-        throw new TRPCError({ code: "TOO_MANY_REQUESTS", message: "Easy, champ — too many runs. Have a rest and try again in a bit." });
+        throw new TRPCError({ code: "TOO_MANY_REQUESTS", message: "Too many runs. Rest up and go again in a bit." });
       }
 
       const event = await getActiveEvent();

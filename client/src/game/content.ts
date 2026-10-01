@@ -1,6 +1,9 @@
 import type { Character, LiftId, Outcome } from "@shared/game/types";
 
 export const IG_DM_URL = "https://ig.me/m/loverfighterfitness";
+export const IG_PROFILE_URL = "https://www.instagram.com/loverfighterfitness/";
+export const GAME_NAME = "LOVER FIGHTER";
+export const GAME_URL = "loverfighterfitness.com/game";
 
 export const CHARACTER_INFO: Record<
   Character,
@@ -30,9 +33,9 @@ export const CHARACTER_INFO: Record<
 };
 
 export const POPUPS: Record<Exclude<Outcome, null>, string[]> = {
-  perfect: ["PERFECT", "GOAT REP", "INSANE"],
-  good: ["GOOD REP", "SOLID", "NICE"],
-  miss: ["MISSED", "FAILED REP", "RESET"],
+  perfect: ["GOAT REP", "PERFECT", "INSANE"],
+  good: ["SMASHED IT", "THAT'S THE META", "PRETTY DAMN GOOD"],
+  miss: ["MISSED", "FAILED REP", "GO AGAIN"],
   formbreak: ["FORM BREAK", "TOO FAST!", "CONTROL IT"],
   tut: ["TUT?!"],
 };
@@ -57,3 +60,7 @@ export function SHOP_CTA(c: Character) {
   return `Rep the same ${CHARACTER_INFO[c].tee} tee as ${CHARACTER_INFO[c].name[0]}${CHARACTER_INFO[c].name.slice(1).toLowerCase()}`;
 }
 export const COACHING_CTA = "Want coaching built for you? DM me 'TRANSFORM'";
+export const NEXT_FIGHTER_TITLE = "THIS COULD BE YOU";
+export const NEXT_FIGHTER_BODY = "Join Team LFF and you could be the next playable fighter.";
+export const PRACTICE_LINE = "Next comp drops soon. Follow @loverfighterfitness so you don't miss it.";
+export const COACHED_BY_LINE = "TOP 10. COACHED BY LEVI.";

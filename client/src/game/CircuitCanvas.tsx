@@ -7,6 +7,9 @@ import { attachInput } from "./input";
 import { PIXEL_RATIO } from "./poses";
 import { drawFrame, loadPoses, VIEW_H, VIEW_W } from "./render";
 
+/** Tallest view (logical px) before we letterbox; covers 9:21 phones. */
+const MAX_VIEW_H = 420;
+
 export type CircuitResult = { logs: RunLogs; scores: LiftScores; perfects: number };
 
 /** Runs the 3-lift circuit on a pixel canvas. Calls `onFinish` once with the input logs and live scores. */
@@ -32,12 +35,16 @@ export default function CircuitCanvas({
     const circuit = new Circuit(seed, character);
     const detach = attachInput(wrap, (down) => circuit.setDown(down));
 
-    // Integer-scale the 180×320 view to fit the screen.
+    // Fill the phone screen: the view is always 180 wide, and grows taller than 320 on tall phones
+    // (capped so very tall windows letterbox). The canvas renders at 3× so sprites stay crisp.
     const resize = () => {
-      // Fit the phone screen; the canvas itself renders at 3× the logical grid so sprites stay crisp.
-      const s = Math.min(window.innerWidth / VIEW_W, (window.innerHeight - 16) / VIEW_H);
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      const h = Math.round(Math.min(MAX_VIEW_H, Math.max(VIEW_H, (VIEW_W * vh) / vw)));
+      if (canvas.height !== h * PIXEL_RATIO) canvas.height = h * PIXEL_RATIO;
+      const s = Math.min(vw / VIEW_W, vh / h);
       canvas.style.width = `${VIEW_W * s}px`;
-      canvas.style.height = `${VIEW_H * s}px`;
+      canvas.style.height = `${h * s}px`;
     };
     resize();
     window.addEventListener("resize", resize);
@@ -87,7 +94,7 @@ export default function CircuitCanvas({
   return (
     <div
       ref={wrapRef}
-      className="flex min-h-screen items-center justify-center select-none"
+      className="flex h-[100dvh] items-center justify-center overflow-hidden select-none"
       style={{ touchAction: "none", backgroundColor: "#2e2318", WebkitUserSelect: "none" }}
     >
       <canvas ref={canvasRef} width={VIEW_W * PIXEL_RATIO} height={VIEW_H * PIXEL_RATIO} style={{ imageRendering: "pixelated" }} />

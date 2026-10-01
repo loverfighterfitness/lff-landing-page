@@ -91,7 +91,10 @@ export function drawBackground(ctx: CanvasRenderingContext2D): boolean {
   ctx.save();
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.imageSmoothingEnabled = false;
-  ctx.drawImage(bg, 0, 0, ctx.canvas.width, ctx.canvas.height);
+  // Cover the canvas (taller phones get a taller canvas): fill the height, crop the sides evenly.
+  const k = Math.max(ctx.canvas.width / bg.naturalWidth, ctx.canvas.height / bg.naturalHeight);
+  const w = bg.naturalWidth * k;
+  ctx.drawImage(bg, (ctx.canvas.width - w) / 2, 0, w, bg.naturalHeight * k);
   ctx.restore();
   return true;
 }

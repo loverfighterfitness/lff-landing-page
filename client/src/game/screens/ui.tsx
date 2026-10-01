@@ -21,7 +21,7 @@ const KEYFRAMES = `
 export function Screen({ children, dim = 0.6, bg = gameAsset("gym_bg.png") }: { children: ReactNode; dim?: number; bg?: string }) {
   return (
     <div
-      className="min-h-screen w-full flex flex-col items-center px-4 py-6 gap-5 relative overflow-hidden"
+      className="min-h-[100dvh] w-full flex flex-col items-center px-4 py-6 gap-5 relative overflow-hidden"
       style={{
         color: CREAM,
         fontFamily: PIXEL_FONT,

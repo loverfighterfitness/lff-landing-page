@@ -77,21 +77,22 @@ function wrap(ctx: CanvasRenderingContext2D, s: string, x: number, y: number, ma
 }
 
 /** The pixel-art gym, with a dark gradient behind the HUD and meters so text stays readable. */
-function background(ctx: CanvasRenderingContext2D) {
+function background(ctx: CanvasRenderingContext2D, h: number) {
   if (!drawBackground(ctx)) {
     ctx.fillStyle = INK;
-    ctx.fillRect(0, 0, VIEW_W, VIEW_H);
+    ctx.fillRect(0, 0, VIEW_W, h);
   }
   const top = ctx.createLinearGradient(0, 0, 0, 56);
   top.addColorStop(0, "rgba(0,0,0,0.75)");
   top.addColorStop(1, "rgba(0,0,0,0)");
   ctx.fillStyle = top;
   ctx.fillRect(0, 0, VIEW_W, 56);
-  const bottom = ctx.createLinearGradient(0, 244, 0, VIEW_H);
+  const y0 = h - (VIEW_H - 244);
+  const bottom = ctx.createLinearGradient(0, y0, 0, h);
   bottom.addColorStop(0, "rgba(0,0,0,0)");
   bottom.addColorStop(1, "rgba(0,0,0,0.7)");
   ctx.fillStyle = bottom;
-  ctx.fillRect(0, 244, VIEW_W, VIEW_H - 244);
+  ctx.fillRect(0, y0, VIEW_W, h - y0);
 }
 
 /** A framed pixel panel for meters. */
@@ -303,16 +304,22 @@ function drawIntro(ctx: CanvasRenderingContext2D, c: Circuit, character: Charact
 
 export function drawFrame(ctx: CanvasRenderingContext2D, c: Circuit, character: Character) {
   // Lay the scene out on the 180×320 logical grid; sprites draw at native canvas pixels.
+  // Tall phones get a taller canvas: the gym background covers it, the scene shifts down so its
+  // floor lands on the background's floor, and the HUD stays pinned to the top.
+  const h = Math.max(VIEW_H, ctx.canvas.height / PIXEL_RATIO);
+  const sceneY = Math.round(FLOOR * (h / VIEW_H - 1));
   ctx.setTransform(PIXEL_RATIO, 0, 0, PIXEL_RATIO, 0, 0);
   ctx.imageSmoothingEnabled = false;
-  background(ctx);
+  background(ctx, h);
   const p = c.phase;
+  ctx.setTransform(PIXEL_RATIO, 0, 0, PIXEL_RATIO, 0, sceneY * PIXEL_RATIO);
   if (p.kind === "intro") return drawIntro(ctx, c, character);
   if (p.kind !== "lift" || !c.current) return;
   const s = c.current.state;
   if (p.lift === "bench") drawBench(ctx, s as BenchState, character);
   if (p.lift === "squat") drawSquat(ctx, s as SquatState, character);
   if (p.lift === "deadlift") drawDeadlift(ctx, s as DeadliftState, character);
-  hud(ctx, c, s, LIFT_SIMS[p.lift].maxTicks, LIFT_NAMES[p.lift]);
   popup(ctx, s, character);
+  ctx.setTransform(PIXEL_RATIO, 0, 0, PIXEL_RATIO, 0, 0);
+  hud(ctx, c, s, LIFT_SIMS[p.lift].maxTicks, LIFT_NAMES[p.lift]);
 }

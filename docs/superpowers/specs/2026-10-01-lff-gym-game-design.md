@@ -30,7 +30,7 @@ Out of scope (later, if wanted): extra lifts, more characters, real-time sockets
 | Ruby | Cream LFF tee | Comp stage; "🥈 → 🥇" gag on a perfect run (2nd at her first ICN show) |
 | Benny | Brown LFF tee | 55-year-old old-school lifter, nearly benching 3 plates. The resident gym bro (more than Levi). Quotes Ronnie Coleman: "YEAH BUDDY!", "LIGHT WEIGHT BABY!", "Ain't nothin' but a peanut!" |
 
-Sprites are drawn as pixel art from existing photos (shop tee shots, program photos). Ruby and Benny have approved use of their likeness.
+Sprites are code-defined pixel maps coloured per character (hair, skin, tee) to match their photos — swappable for hand-drawn sheets later. Ruby and Benny have approved use of their likeness.
 
 **The circuit:**
 
@@ -38,9 +38,9 @@ Sprites are drawn as pixel art from existing photos (shop tee shots, program pho
 |---|---|---|---|
 | Bench press | ~25s | A marker sweeps across a meter; tap in the green zone to complete a rep. Zone shrinks and marker speeds up each rep. 3 misses ends the set. | Sum per rep: 100 for green, 200 for "perfect" (centre band) |
 | Squats | ~20s | Mash to drive the bar up. A form bar fills if mashing is too fast/erratic; if it maxes, the rep is lost. | 150 per clean rep |
-| Deadlift | ~20s | Hold to pull; a power gauge climbs; release in the sweet spot to lock out. Plates get heavier each round; a miss ends the lift. | Heaviest successful lockout (kg) × 10 |
+| Deadlift | ~20s | Hold to pull; a power gauge climbs; release in the sweet spot to lock out. Plates get heavier each round; a miss ends the lift. | Every lockout scores kg × (perfect ? 2 : 1) × combo |
 
-**Combo:** consecutive perfects (any lift) build a multiplier (×1.0 → max ×2.0), reset on a miss. Applied per rep as it's scored.
+**Combo:** consecutive perfects within a lift build a multiplier (×1.0 → max ×2.0), reset on a miss and at the start of each lift. Applied per rep as it's scored.
 
 **Run total** = bench + squat + deadlift (combo included). A player's best total counts on the board.
 
@@ -57,7 +57,7 @@ Exact numbers (zone widths, speeds, durations) are tuning values in one config f
 - **Merch cosmetics:** LFF straps glow on the deadlift, cuffs visible on bench. Cosmetic only.
 - **Cheat code:** typing `TRANSFORM` on the title screen unlocks a gold "Coached by Levi" skin. Cosmetic only.
 - **Mystery 4th character:** locked silhouette on select screen, reserved for a future reveal/drop.
-- **Score-screen CTAs:** "Rep the same tee as [character] → /shop" (deep-links to that tee colour) and "Want coaching built for you? DM me 'TRANSFORM'".
+- **Score-screen CTAs:** "Rep the same [colour] tee as [character] → /shop" and "Want coaching built for you? DM me 'TRANSFORM'".
 
 Copy follows `/Users/levihurst/AI context/brand-voice.md`.
 
@@ -95,7 +95,7 @@ Lives inside the existing `lff-landing-page` app (React + Vite, Express + tRPC, 
 - `game_events`: id, name, startsAt, endsAt, isActive.
 - `game_runs`: id, eventId, handle, email, character (`levi|ruby|benny`), benchScore, squatScore, deadliftScore, total, runTokenId, ip hash, createdAt, removed (bool).
 - `game_run_tokens`: id, issuedAt, usedAt — for one-time use.
-- Opted-in entrants are also inserted into the existing `leads` table (source: `game`) so they enter email nurture. Non-opted-in emails are used only to contact the winner.
+- `game_runs.marketingOptIn` records consent. The admin tab exports an entrants CSV (with the opt-in column) for the email nurture, which is drafted manually from Gmail. The `leads` table is not used (it requires phone + goal). Non-opted-in emails are used only to contact the winner.
 
 ### Anti-cheat (deter casual cheating, not impossible)
 
@@ -113,7 +113,7 @@ Lives inside the existing `lff-landing-page` app (React + Vite, Express + tRPC, 
 
 ### Admin
 
-New "Game" tab in the existing password-protected `/admin`: leaderboard with emails, remove run, set event name/dates, export entrants CSV.
+New "Game" tab in the existing password-protected admin dashboard (`/admin/leads`, alongside Analytics, Orders, etc.): leaderboard with emails, remove run, set event name/dates, export entrants CSV.
 
 ## 4. Testing
 

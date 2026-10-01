@@ -4,7 +4,19 @@
     {
       "name": "lff-landing",
       "runtimeExecutable": "/Users/levihurst/Library/pnpm/pnpm",
-      "runtimeArgs": ["dev"],
+      "runtimeArgs": [
+        "dev"
+      ],
+      "port": 3000,
+      "autoPort": true
+    },
+    {
+      "name": "lff-game-offline",
+      "runtimeExecutable": "/bin/sh",
+      "runtimeArgs": [
+        "-c",
+        "DATABASE_URL= NODE_ENV=development ./node_modules/.bin/tsx server/_core/index.ts"
+      ],
       "port": 3000,
       "autoPort": true
     }

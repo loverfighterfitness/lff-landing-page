@@ -19,23 +19,35 @@ import {
 
 const REJECTED = "That run didn't check out — run it back.";
 const SUBMIT_LIMIT = 30;
+const START_LIMIT = 120;
 const SUBMIT_WINDOW_MS = 60 * 60_000;
+const SWEEP_THRESHOLD = 10_000;
 const submits = new Map<string, { count: number; until: number }>();
 
 /** Counts a submission against `key`; true once the hourly limit is exceeded. */
-function overLimit(key: string, now: number): boolean {
+function overLimit(key: string, now: number, limit = SUBMIT_LIMIT): boolean {
+  if (submits.size > SWEEP_THRESHOLD) {
+    submits.forEach((v, k) => {
+      if (v.until <= now) submits.delete(k);
+    });
+  }
   const rec = submits.get(key);
   if (!rec || rec.until <= now) {
     submits.set(key, { count: 1, until: now + SUBMIT_WINDOW_MS });
     return false;
   }
   rec.count++;
-  return rec.count > SUBMIT_LIMIT;
+  return rec.count > limit;
 }
 
 /** Test hook. */
 export function resetGameRateLimits() {
   submits.clear();
+}
+
+/** Test hook. */
+export function rateLimitSize() {
+  return submits.size;
 }
 
 const handleSchema = z
@@ -51,7 +63,10 @@ const logSchema = z
 export const gameRouter = router({
   startRun: publicProcedure
     .input(z.object({ character: z.enum(CHARACTERS) }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ ctx, input }) => {
+      if (overLimit(`start:${clientIp(ctx.req)}`, Date.now(), START_LIMIT)) {
+        throw new TRPCError({ code: "TOO_MANY_REQUESTS", message: "Easy, champ — too many runs. Have a rest and try again in a bit." });
+      }
       const runId = randomUUID();
       const seed = randomInt(0, 2 ** 32);
       await createRunToken({ id: runId, seed, character: input.character });
@@ -89,6 +104,8 @@ export const gameRouter = router({
       const check = checkRun(Number(token.seed), input.logs, now - token.issuedAt.getTime());
       if (!check.ok) {
         console.warn("[Game] rejected run", input.runId, check.reason);
+        // Burn the token so one seed can't be retried with different logs.
+        await markRunTokenUsed(token.id);
         throw new TRPCError({ code: "BAD_REQUEST", message: REJECTED });
       }
       if (!(await markRunTokenUsed(token.id))) throw new TRPCError({ code: "BAD_REQUEST", message: REJECTED });

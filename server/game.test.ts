@@ -18,7 +18,7 @@ vi.mock("./gameDb", () => ({
 
 import { appRouter } from "./routers";
 import * as gameDb from "./gameDb";
-import { resetGameRateLimits } from "./routers/game";
+import { rateLimitSize, resetGameRateLimits } from "./routers/game";
 import { BENCH, DEADLIFT, SQUAT, TICK_MS } from "@shared/game/config";
 import { LiftRunner } from "@shared/game/lift";
 import { LIFT_SIMS, liftSeed } from "@shared/game/run";
@@ -81,7 +81,36 @@ describe("game.startRun", () => {
   });
 });
 
+describe("game.startRun rate limit", () => {
+  it("allows 120 starts per IP per hour, then rejects", async () => {
+    for (let i = 0; i < 120; i++) await publicCaller().game.startRun({ character: "levi" });
+    await expect(publicCaller().game.startRun({ character: "levi" })).rejects.toThrow(/too many/i);
+  });
+
+  it("sweeps expired entries once the map passes 10,000", async () => {
+    for (let i = 0; i < 10_001; i++) {
+      await appRouter.createCaller(ctx({ "x-real-ip": `ip-${i}` })).game.startRun({ character: "levi" });
+    }
+    expect(rateLimitSize()).toBe(10_001);
+    vi.useFakeTimers({ toFake: ["Date"] });
+    try {
+      vi.setSystemTime(Date.now() + 2 * 60 * 60_000);
+      await publicCaller().game.startRun({ character: "levi" });
+      expect(rateLimitSize()).toBe(1);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+});
+
 describe("game.submitRun", () => {
+  it("burns the token when the replay check fails", async () => {
+    db.getRunToken.mockResolvedValue(token({ issuedAt: new Date() }));
+    await expect(publicCaller().game.submitRun(submission())).rejects.toThrow(/didn't check out/);
+    expect(db.markRunTokenUsed).toHaveBeenCalledWith(RUN_ID);
+    expect(db.insertRun).not.toHaveBeenCalled();
+  });
+
   it("re-scores the run server-side and saves it", async () => {
     db.getEventRuns.mockResolvedValue([
       { email: "ruby@example.com", handle: "ruby.lifts", character: "ruby", total: BENCH.perfectPoints } as never,

@@ -12,6 +12,7 @@ import ShopOrdersTab from "@/components/ShopOrdersTab";
 import ShopInventoryTab from "@/components/ShopInventoryTab";
 import AnalyticsTab from "@/components/AnalyticsTab";
 import EnquiriesTab from "@/components/EnquiriesTab";
+import GameTab from "@/components/GameTab";
 
 const LOGO_CREAM =
   "https://d2xsxph8kpxj0f.cloudfront.net/310519663408040383/TeiTyUgvfabHNSBnznn263/LFFNEWLOGOCREAM_59ca0122.png";
@@ -403,7 +404,7 @@ function SmsJobRow({ job }: { job: any }) {
 }
 
 export default function AdminLeads() {
-  const [activeTab, setActiveTab] = useState<"analytics" | "enquiries" | "leads" | "sms" | "referrals" | "orders" | "inventory">("analytics");
+  const [activeTab, setActiveTab] = useState<"analytics" | "enquiries" | "leads" | "sms" | "referrals" | "orders" | "inventory" | "game">("analytics");
   const push = usePushNotifications();
   const pushStatusQuery = trpc.push.status.useQuery(
     { endpoint: push.endpoint ?? undefined },
@@ -540,7 +541,7 @@ export default function AdminLeads() {
 
         {/* Tabs */}
         <div className="max-w-5xl mx-auto px-4 flex gap-1 pb-2 overflow-x-auto">
-          {(["analytics", "enquiries", "leads", "sms", "referrals", "orders", "inventory"] as const).map((tab) => {
+          {(["analytics", "enquiries", "leads", "sms", "referrals", "orders", "inventory", "game"] as const).map((tab) => {
             const tabLabels: Record<string, string> = {
               analytics: "Analytics",
               enquiries: "Enquiries",
@@ -549,6 +550,7 @@ export default function AdminLeads() {
               referrals: "Referrals",
               orders: "Orders",
               inventory: "Inventory",
+              game: "Game",
             };
             return (
               <button
@@ -619,6 +621,7 @@ export default function AdminLeads() {
         {activeTab === "analytics" && <AnalyticsTab />}
         {activeTab === "enquiries" && <EnquiriesTab />}
         {activeTab === "referrals" && <ReferralsTab />}
+        {activeTab === "game" && <GameTab />}
 
         {/* SMS QUEUE TAB */}
         {activeTab === "sms" && (

@@ -1,4 +1,5 @@
 User-agent: *
 Allow: /
+Disallow: /game
 
 Sitemap: https://www.loverfighterfitness.com/sitemap.xml

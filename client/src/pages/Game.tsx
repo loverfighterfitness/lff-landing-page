@@ -30,8 +30,14 @@ export default function Game() {
     link.rel = "stylesheet";
     link.href = FONT_HREF;
     document.head.appendChild(link);
+    // Unlisted for now: reachable by link only, kept out of search results.
+    const robots = document.createElement("meta");
+    robots.name = "robots";
+    robots.content = "noindex, nofollow";
+    document.head.appendChild(robots);
     return () => {
       link.remove();
+      robots.remove();
       stopMusic();
     };
   }, []);

@@ -1,6 +1,7 @@
 import { CHARACTERS, type Character } from "@shared/game/types";
 import { useEffect, useRef, useState } from "react";
 import { sfx } from "../audio";
+import { useCompStatus } from "../compStatus";
 import { CHARACTER_INFO, IG_DM_URL, NEXT_FIGHTER_BODY, NEXT_FIGHTER_TITLE } from "../content";
 import { poseUrl, type Pose } from "../poses";
 import { ArcadeTitle, BLUE, CREAM, Fighter, INK, Panel, PixelButton, Screen } from "./ui";
@@ -20,6 +21,7 @@ export default function SelectScreen({
   const [flashKey, setFlashKey] = useState(0);
   const [locked, setLocked] = useState(false);
   const [teaser, setTeaser] = useState(false);
+  const comp = useCompStatus();
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   useEffect(() => () => clearTimeout(timer.current), []);
@@ -50,6 +52,11 @@ export default function SelectScreen({
       <ArcadeTitle size={15} style={{ marginTop: 4 }}>
         CHOOSE YOUR FIGHTER
       </ArcadeTitle>
+      {!comp.open && (
+        <p className="text-[8px] -mt-3" style={{ color: BLUE, textShadow: `2px 2px 0 ${INK}` }}>
+          {comp.line}
+        </p>
+      )}
 
       {/* Stage: the selected fighter, big. */}
       <div className="relative w-full flex flex-col items-center justify-end" style={{ height: 300 }}>
@@ -102,7 +109,7 @@ export default function SelectScreen({
                 style={{ top: 4, height: 200, width: "auto", maxWidth: "none", imageRendering: "pixelated", filter: on ? "none" : "grayscale(0.6) brightness(0.8)" }}
               />
               <span
-                className="absolute bottom-0 inset-x-0 text-[6px] py-1"
+                className="absolute bottom-0 inset-x-0 text-[8px] py-1"
                 style={{ backgroundColor: "rgba(42,31,21,0.85)", color: on ? BLUE : CREAM }}
               >
                 {CHARACTER_INFO[c].name}
@@ -116,14 +123,14 @@ export default function SelectScreen({
           style={{ height: 84, border: "3px dashed rgba(234,230,210,0.5)", backgroundColor: "rgba(42,31,21,0.75)" }}
         >
           <span className="text-xl" style={{ color: BLUE }}>?</span>
-          <span className="text-[6px] mt-1" style={{ color: CREAM }}>YOU?</span>
+          <span className="text-[8px] mt-1" style={{ color: CREAM }}>YOU?</span>
         </button>
       </div>
 
       <PixelButton variant="gold" big onClick={confirm} disabled={starting || locked}>
         {starting || locked ? "LOADING PLATES..." : "LIFT!"}
       </PixelButton>
-      <p className="text-[7px] opacity-70 text-center leading-loose">Same lifts, same rules. Pick your team.</p>
+      <p className="text-[8px] opacity-70 text-center leading-loose">Same lifts, same rules. Pick your team.</p>
       <PixelButton variant="ghost" onClick={onBack}>
         BACK
       </PixelButton>
@@ -135,7 +142,7 @@ export default function SelectScreen({
               <div className="flex flex-col items-center gap-4 text-center">
                 <span className="text-3xl" style={{ color: BLUE }}>?</span>
                 <ArcadeTitle size={13}>{NEXT_FIGHTER_TITLE}</ArcadeTitle>
-                <p className="text-[9px] leading-loose">{NEXT_FIGHTER_BODY}</p>
+                <p className="text-[10px] leading-loose">{NEXT_FIGHTER_BODY}</p>
                 <a
                   href={IG_DM_URL}
                   target="_blank"
@@ -145,7 +152,7 @@ export default function SelectScreen({
                 >
                   DM ME "TRANSFORM"
                 </a>
-                <button className="text-[9px] underline opacity-70" onClick={() => setTeaser(false)}>BACK TO SELECT</button>
+                <button className="text-[10px] underline opacity-70" onClick={() => setTeaser(false)}>BACK TO SELECT</button>
               </div>
             </Panel>
           </div>

@@ -9,7 +9,7 @@ export { BLUE, BROWN, CREAM, INK };
 /** Shared keyframes for every game screen (bob, blink, flash, slide). */
 const KEYFRAMES = `
 @keyframes lff-bob { 0%, 100% { transform: translateY(0) } 50% { transform: translateY(-3px) } }
-@keyframes lff-blink { 0%, 49% { opacity: 1 } 50%, 100% { opacity: 0.15 } }
+@keyframes lff-blink { 0%, 49% { opacity: 1 } 50%, 100% { opacity: 0.55 } }
 @keyframes lff-flash { 0% { opacity: 0.9 } 100% { opacity: 0 } }
 @keyframes lff-slide-in { 0% { transform: translateX(-24px); opacity: 0 } 100% { transform: none; opacity: 1 } }
 @keyframes lff-pop { 0% { transform: scale(0.6); opacity: 0 } 70% { transform: scale(1.08) } 100% { transform: scale(1); opacity: 1 } }

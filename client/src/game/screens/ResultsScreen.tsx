@@ -32,7 +32,7 @@ export default function ResultsScreen({
   eventOpen: boolean;
   result: CircuitResult;
   onAgain: () => void;
-  onPosted: (handle: string) => void;
+  onPosted: (handle: string, rank: number | null) => void;
 }) {
   const saved = loadSaved();
   const [handle, setHandle] = useState(saved.handle);
@@ -85,14 +85,14 @@ export default function ResultsScreen({
       return;
     }
     try {
-      await submit.mutateAsync({ runId, handle, email, marketingOptIn: optIn, logs: result.logs });
+      const res = await submit.mutateAsync({ runId, handle, email, marketingOptIn: optIn, logs: result.logs });
       track("game_post", Math.min(86400, total));
       try {
         localStorage.setItem(SAVED_KEY, JSON.stringify({ handle, email }));
       } catch {
         /* ignore */
       }
-      onPosted(handle.trim().replace(/^@/, ""));
+      onPosted(handle.trim().replace(/^@/, ""), res.rank);
     } catch (err) {
       // Network failures keep the run here so the player can retry.
       const msg = err instanceof Error ? err.message : "";
@@ -113,7 +113,7 @@ export default function ResultsScreen({
           NEW PB
         </p>
       )}
-      <p className="text-[9px] text-center leading-loose" style={{ textShadow: "2px 2px 0 #000" }}>"{quote}" - {info.name}</p>
+      <p className="text-[10px] text-center leading-loose" style={{ textShadow: "2px 2px 0 #000" }}>"{quote}" - {info.name}</p>
       {character === "ruby" && result.perfects >= 8 && <p className="text-lg">{RUBY_PODIUM_LINE}</p>}
       <Panel>
       <div className="w-full flex flex-col gap-2 text-[10px]">
@@ -128,7 +128,7 @@ export default function ResultsScreen({
 
       {canPost ? (
         <Panel>
-        <form onSubmit={post} className="w-full flex flex-col gap-3 text-[9px]">
+        <form onSubmit={post} className="w-full flex flex-col gap-3 text-[10px]">
           <p className="leading-loose">Post your score. Top score when the comp closes wins a free tee.</p>
           <input
             required
@@ -151,6 +151,9 @@ export default function ResultsScreen({
             <input type="checkbox" checked={optIn} onChange={(e) => setOptIn(e.target.checked)} />
             Send me LFF training tips and drops
           </label>
+          <p className="text-[8px] leading-relaxed opacity-70">
+            Your email stays private. It's only used to contact the winner, plus LFF tips if you ticked the box. Never shared.
+          </p>
           {error && <p style={{ color: BAD }} className="leading-relaxed">{error}</p>}
           <PixelButton type="submit" disabled={submit.isPending}>
             {submit.isPending ? "POSTING..." : error ? "RETRY" : "POST SCORE"}
@@ -158,7 +161,7 @@ export default function ResultsScreen({
         </form>
         </Panel>
       ) : (
-        <p className="text-[9px] text-center leading-loose opacity-80">
+        <p className="text-[10px] text-center leading-loose opacity-80">
           {PRACTICE_LINE}{" "}
           <a href={IG_PROFILE_URL} target="_blank" rel="noreferrer" className="underline" style={{ color: BLUE }}>
             @loverfighterfitness
@@ -173,7 +176,8 @@ export default function ResultsScreen({
       <a
         href={`/shop?tee=${info.tee}`}
         onClick={() => track(`game_shop_click:${info.tee}`)}
-        className="text-[9px] underline text-center leading-loose"
+        className="w-full block text-[10px] text-center leading-relaxed py-3 px-3"
+        style={{ border: "2px solid rgba(234,230,210,0.5)", backgroundColor: "rgba(42,31,21,0.6)" }}
       >
         {SHOP_CTA(character)} {">"}
       </a>
@@ -182,7 +186,8 @@ export default function ResultsScreen({
         onClick={() => track("game_dm_click")}
         target="_blank"
         rel="noreferrer"
-        className="text-[9px] underline text-center leading-loose"
+        className="w-full block text-[10px] text-center leading-relaxed py-3 px-3"
+        style={{ border: "2px solid rgba(234,230,210,0.5)", backgroundColor: "rgba(42,31,21,0.6)" }}
       >
         {COACHING_CTA}
       </a>

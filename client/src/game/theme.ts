@@ -19,7 +19,7 @@ export const GRAIN =
  * Game art is served with a 7-day cache (and Cloudflare in front), so re-drawn files with the same
  * name would keep showing the old version. Bump this whenever any file in /public/game changes.
  */
-export const ASSET_VERSION = "2026-10-01c";
+export const ASSET_VERSION = "2026-10-01d";
 
 /** URL for a file in /public/game with the cache-busting version attached. */
 export function gameAsset(path: string): string {

@@ -74,12 +74,6 @@ export function loadPoses(): Promise<void> {
         .catch(() => meta.set(id, {})),
     );
   }
-  const mark = new Image();
-  images.set("mark", mark);
-  jobs.push(new Promise((resolve) => {
-    mark.onload = mark.onerror = () => resolve(undefined);
-    mark.src = gameAsset("lff_mark.png");
-  }));
   const bg = new Image();
   images.set("bg", bg);
   jobs.push(new Promise((resolve) => {
@@ -150,8 +144,8 @@ export function poseHeight(id: SpriteId, pose: Pose, scale = SPRITE_SCALE): numb
  * LFF black bumper plates per side, heaviest first: kg, height and thickness (sprite px).
  * Weight reads from size and count; the cream band is the LFF stripe.
  */
+// 20s are "plates" in gym talk, so 140 kg reads as 3 plates a side.
 const PLATES = [
-  { kg: 25, h: 42, t: 6 },
   { kg: 20, h: 42, t: 5 },
   { kg: 15, h: 36, t: 5 },
   { kg: 10, h: 30, t: 4 },
@@ -196,7 +190,7 @@ export function drawPlatesFront(ctx: CanvasRenderingContext2D, placed: Placed | 
       ctx.fillRect(px + (left - 0.5) * s, py + (bar.y - p.h / 2 - 0.5) * s, (p.t + 1) * s, (p.h + 1) * s);
       ctx.fillStyle = PLATE_BODY;
       ctx.fillRect(px + left * s, py + (bar.y - p.h / 2) * s, p.t * s, p.h * s);
-      // Cream LFF band across the big plates, cream edge on the small ones.
+      // Brown band across the big plates, a brown edge on the small ones.
       ctx.fillStyle = PLATE_BAND;
       if (p.kg >= 15) ctx.fillRect(px + left * s, py + (bar.y - 4) * s, p.t * s, 2 * s);
       else ctx.fillRect(px + left * s, py + (bar.y - p.h / 2) * s, p.t * s, s);
@@ -225,7 +219,7 @@ export function drawPlateEndOn(ctx: CanvasRenderingContext2D, placed: Placed | n
     ctx.arc(cx, cy, radius, 0, Math.PI * 2);
     ctx.fill();
   };
-  // Bench plate face: brown with a cream rim and the cream lff mark.
+  // Bench plate face: brown with a cream rim (no logo; the gym wall carries the LFF branding).
   disc(r + s, "#2A1F15");
   disc(r, "#54412F");
   // Cream rim, plus a faint ring per extra plate so heavier bars look heavier.
@@ -239,13 +233,6 @@ export function drawPlateEndOn(ctx: CanvasRenderingContext2D, placed: Placed | n
     ctx.beginPath();
     ctx.arc(cx, cy, r - (i * 2 + 1) * s, 0, Math.PI * 2);
     ctx.stroke();
-  }
-  // The lff mark on the plate face.
-  const mark = images.get("mark");
-  if (mark?.naturalWidth) {
-    ctx.imageSmoothingEnabled = false;
-    const mw = mark.naturalWidth * s;
-    ctx.drawImage(mark, cx - mw / 2, cy - r * 0.62 - mw / 2, mw, mark.naturalHeight * s);
   }
   disc(3 * s, "#2a2a2a");
   disc(1.5 * s, "#c8c8c8");

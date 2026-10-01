@@ -5,6 +5,7 @@ import { startMusic, stopMusic } from "@/game/audio";
 import CircuitCanvas, { type CircuitResult } from "@/game/CircuitCanvas";
 import { loadPoses } from "@/game/render";
 import { track } from "@/lib/analytics";
+import { renderScoreCard, shareScoreCard } from "@/game/scoreCard";
 import Leaderboard from "@/game/screens/Leaderboard";
 import ResultsScreen from "@/game/screens/ResultsScreen";
 import SelectScreen from "@/game/screens/SelectScreen";
@@ -19,7 +20,7 @@ type View =
   | { name: "select" }
   | { name: "play"; run: Run }
   | { name: "results"; run: Run; result: CircuitResult }
-  | { name: "board"; highlight?: string };
+  | { name: "board"; highlight?: string; posted?: { character: Character; result: CircuitResult; rank: number | null } };
 
 export default function Game() {
   const [view, setView] = useState<View>({ name: "title" });
@@ -80,7 +81,7 @@ export default function Game() {
           eventOpen={view.run.eventOpen}
           result={view.result}
           onAgain={() => begin(view.run.character)}
-          onPosted={(handle) => setView({ name: "board", highlight: handle })}
+          onPosted={(handle, rank) => setView({ name: "board", highlight: handle, posted: { character: view.run.character, result: view.result, rank } })}
         />
       );
     case "board":
@@ -90,9 +91,36 @@ export default function Game() {
           <Panel>
             <Leaderboard highlightHandle={view.highlight} />
           </Panel>
-          <PixelButton variant="gold" onClick={() => setView({ name: "select" })}>{view.highlight ? "RUN IT BACK" : "PLAY"}</PixelButton>
+          {view.posted && <ShareRankButton {...view.posted} />}
+          <PixelButton variant={view.posted ? "cream" : "gold"} onClick={() => setView({ name: "select" })}>{view.highlight ? "RUN IT BACK" : "PLAY"}</PixelButton>
           <PixelButton variant="ghost" onClick={() => setView({ name: "title" })}>TITLE</PixelButton>
         </Screen>
       );
   }
+}
+
+/** After posting: share the story card with your leaderboard rank on it. */
+function ShareRankButton({ character, result, rank }: { character: Character; result: CircuitResult; rank: number | null }) {
+  const [busy, setBusy] = useState(false);
+  const total = result.scores.bench + result.scores.squat + result.scores.deadlift;
+  return (
+    <PixelButton
+      variant="gold"
+      disabled={busy}
+      onClick={async () => {
+        setBusy(true);
+        try {
+          const blob = await renderScoreCard({ character, scores: result.scores, total, rank });
+          if (blob) {
+            const how = await shareScoreCard(blob, character);
+            if (how !== "cancelled") track(`game_share_rank:${how}`);
+          }
+        } finally {
+          setBusy(false);
+        }
+      }}
+    >
+      {busy ? "MAKING YOUR CARD..." : rank ? `SHARE MY RANK #${rank}` : "SHARE MY SCORE"}
+    </PixelButton>
+  );
 }

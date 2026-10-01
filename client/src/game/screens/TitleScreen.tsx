@@ -2,11 +2,9 @@ import { CHARACTERS, type Character } from "@shared/game/types";
 import { gameAsset } from "../theme";
 import { useEffect, useState } from "react";
 import { isMuted, jingle, setMuted } from "../audio";
+import { useCompStatus } from "../compStatus";
 import type { Pose } from "../poses";
 import { BLUE, CREAM, Fighter, INK, PixelButton, Screen } from "./ui";
-
-const LOGO =
-  "https://d2xsxph8kpxj0f.cloudfront.net/310519663408040383/TeiTyUgvfabHNSBnznn263/LFFNEWLOGOCREAM_transparent_a5b72c81.png";
 
 /** Every couple of seconds one lifter hits a flex or victory pose, then settles back. */
 function useShowOff() {
@@ -27,19 +25,31 @@ function useShowOff() {
 export default function TitleScreen({ onPlay, onBoard }: { onPlay: () => void; onBoard: () => void }) {
   const [muted, setMutedState] = useState(isMuted());
   const show = useShowOff();
+  const comp = useCompStatus();
 
   return (
     <Screen dim={0.35} bg={gameAsset("gym_bg_plain.png")}>
-      <div
-        className="flex items-center justify-center px-6 py-3 mt-1"
-        style={{ backgroundColor: "rgba(84,65,47,0.92)", border: `3px solid ${CREAM}`, boxShadow: `inset 0 0 0 3px ${INK}, 5px 5px 0 rgba(0,0,0,0.5)` }}
-      >
-        <img src={LOGO} alt="LFF" className="w-14" style={{ animation: "lff-pop 0.6s ease-out both" }} />
-      </div>
-      <p className="text-[8px] text-center leading-loose" style={{ color: CREAM, textShadow: `2px 2px 0 ${INK}` }}>
+      {/* The gym-wall banner (same art as the in-game wall), so the logo reads as part of the gym. */}
+      <img
+        src={gameAsset("wall_banner.png")}
+        alt="LFF Lover Fighter fitness"
+        className="mt-1"
+        style={{ width: 152, height: "auto", imageRendering: "pixelated", filter: "drop-shadow(0 6px 0 rgba(0,0,0,0.45))", animation: "lff-pop 0.6s ease-out both" }}
+      />
+      <p className="text-[10px] text-center leading-loose" style={{ color: CREAM, textShadow: `2px 2px 0 ${INK}` }}>
         BENCH · SQUAT · DEADLIFT
         <br />
-        TOP SCORE ON <span style={{ color: BLUE }}>TEAM LFF</span> WINS A FREE TEE
+        <span className="text-[8px]">
+          {comp.open ? (
+            <>
+              TOP SCORE ON <span style={{ color: BLUE }}>TEAM LFF</span> WINS A FREE TEE
+              <br />
+              {comp.line}
+            </>
+          ) : (
+            <span style={{ color: BLUE }}>{comp.line}</span>
+          )}
+        </span>
       </p>
 
       {/* The roster on stage, overlapping like a fighting-game line-up (coach in front). */}
@@ -71,7 +81,7 @@ export default function TitleScreen({ onPlay, onBoard }: { onPlay: () => void; o
         LEADERBOARD
       </PixelButton>
       <button
-        className="text-[9px] opacity-70 underline"
+        className="text-[10px] opacity-70 underline"
         onClick={() => {
           setMuted(!muted);
           setMutedState(!muted);

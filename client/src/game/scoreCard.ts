@@ -35,12 +35,7 @@ export async function renderScoreCard(opts: {
   handle?: string;
 }): Promise<Blob | null> {
   await document.fonts.load(`24px ${FONT}`).catch(() => undefined);
-  const [bg, hero, wordmark, logo] = await Promise.all([
-    load(gameAsset("gym_bg.png")),
-    load(poseUrl(opts.character, "victory")),
-    load(gameAsset("lover_fighter.png")),
-    load(gameAsset("lff_logo.png")),
-  ]);
+  const [bg, hero] = await Promise.all([load(gameAsset("gym_bg.png")), load(poseUrl(opts.character, "victory"))]);
   const cv = document.createElement("canvas");
   cv.width = W;
   cv.height = H;
@@ -51,28 +46,17 @@ export async function renderScoreCard(opts: {
   ctx.fillRect(0, 0, W, H);
   if (bg) ctx.drawImage(bg, 0, 0, W, (bg.height * W) / bg.width);
   const shade = ctx.createLinearGradient(0, 0, 0, H);
-  shade.addColorStop(0, "rgba(42,31,21,0.75)");
-  shade.addColorStop(0.55, "rgba(42,31,21,0.35)");
+  shade.addColorStop(0, "rgba(42,31,21,0.15)");
+  shade.addColorStop(0.4, "rgba(42,31,21,0.25)");
   shade.addColorStop(1, "rgba(20,14,9,0.95)");
   ctx.fillStyle = shade;
   ctx.fillRect(0, 0, W, H);
 
-  // Header panel: logo + LOVER FIGHTER wordmark on brown, framed in cream.
-  ctx.fillStyle = "rgba(84,65,47,0.95)";
-  ctx.fillRect(80, 60, W - 160, 520);
-  ctx.strokeStyle = CREAM;
-  ctx.lineWidth = 8;
-  ctx.strokeRect(92, 72, W - 184, 496);
-  if (logo) ctx.drawImage(logo, W / 2 - 72, 100, 144, 144);
-  if (wordmark) {
-    const ww = 640;
-    ctx.drawImage(wordmark, W / 2 - ww / 2, 270, ww, (wordmark.height * ww) / wordmark.width);
-  }
-
+  // The gym-wall banner in the background carries the LFF logo and LOVER FIGHTER wordmark.
   if (hero) {
-    const hh = 690;
+    const hh = 600;
     const hw = (hero.width * hh) / hero.height;
-    ctx.drawImage(hero, W / 2 - hw / 2, 630, hw, hh);
+    ctx.drawImage(hero, W / 2 - hw / 2, 745, hw, hh);
   }
 
   const info = CHARACTER_INFO[opts.character];

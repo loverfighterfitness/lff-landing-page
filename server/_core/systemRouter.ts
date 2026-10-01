@@ -6,7 +6,7 @@ import { ADMIN_COOKIE, adminCookieValue, adminProcedure, isAdminPassword, public
 
 // Slow down password guessing: 10 wrong attempts per IP per 15 minutes.
 const failedLogins = new Map<string, { count: number; until: number }>();
-function clientIp(req: { headers: Record<string, unknown>; ip?: string }) {
+export function clientIp(req: { headers: Record<string, unknown>; ip?: string }) {
   for (const h of ["cf-connecting-ip", "x-real-ip", "x-forwarded-for"]) {
     const v = req.headers[h];
     if (typeof v === "string" && v) return v.split(",")[0].trim();

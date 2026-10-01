@@ -1,8 +1,6 @@
-import type { Character } from "@shared/game/types";
-import { useMemo } from "react";
 import { trpc } from "@/lib/trpc";
 import { CHARACTER_INFO } from "../content";
-import { spriteDataUrl } from "../sprites";
+import { poseUrl } from "../poses";
 
 function timeLeft(endsAt: Date) {
   const ms = new Date(endsAt).getTime() - Date.now();
@@ -15,10 +13,6 @@ function timeLeft(endsAt: Date) {
 /** Live board — refreshes every 10s while on screen. */
 export default function Leaderboard({ highlightHandle }: { highlightHandle?: string }) {
   const { data, isLoading, error } = trpc.game.leaderboard.useQuery(undefined, { refetchInterval: 10_000, retry: 1 });
-  const icons = useMemo(
-    () => Object.fromEntries((["levi", "ruby", "benny"] as Character[]).map((c) => [c, spriteDataUrl(c, 1)])),
-    [],
-  );
 
   if (isLoading) return <p className="text-[10px]">LOADING BOARD...</p>;
   if (error || !data) return <p className="text-[10px] text-center">Board's offline right now. Try again soon.</p>;
@@ -41,7 +35,7 @@ export default function Leaderboard({ highlightHandle }: { highlightHandle?: str
             }}
           >
             <span className="w-6 text-right">{r.rank}</span>
-            <img src={icons[r.character]} alt="" width={20} height={30} style={{ imageRendering: "pixelated" }} />
+            <img src={poseUrl(r.character, "idle")} alt="" style={{ imageRendering: "pixelated", height: 36, width: "auto" }} />
             <span className="flex-1 truncate">@{r.handle}</span>
             <span>{r.total}</span>
           </li>

@@ -20,16 +20,8 @@ import {
   TUT_LINE,
   WHOLE_FOODS_BRO,
 } from "./content";
-import {
-  BENCH_SHOULDER,
-  drawBencher,
-  drawBenchArms,
-  drawMiniLevi,
-  drawSprite,
-  MAX_SQUASH,
-  SPRITE_H,
-  SPRITE_W,
-} from "./sprites";
+import { drawPose, PIXEL_RATIO, poseHeight } from "./poses";
+import { drawSprite } from "./sprites";
 
 export const VIEW_W = 180;
 export const VIEW_H = 320;
@@ -120,25 +112,6 @@ function background(ctx: CanvasRenderingContext2D, character: Character) {
   ctx.fillRect(0, 300, VIEW_W, 1);
 }
 
-/** Barbell with plates per side. `kg` includes the 20 kg bar. */
-function barbell(ctx: CanvasRenderingContext2D, cx: number, y: number, width: number, kg: number) {
-  ctx.fillStyle = "#b8b8b8";
-  ctx.fillRect(cx - width / 2, y, width, 2);
-  const perSide = Math.max(0, (kg - 20) / 2);
-  const big = Math.floor(perSide / 20);
-  const small = perSide % 20 > 0 ? 1 : 0;
-  for (const dir of [-1, 1]) {
-    for (let i = 0; i < big; i++) {
-      ctx.fillStyle = i % 2 ? "#8b1e1e" : "#a52a2a";
-      ctx.fillRect(cx + dir * (width / 2 - 4 - i * 4) - (dir < 0 ? 0 : 3), y - 8, 3, 18);
-    }
-    if (small) {
-      ctx.fillStyle = "#3a6ea5";
-      ctx.fillRect(cx + dir * (width / 2 - 4 - big * 4) - (dir < 0 ? 0 : 3), y - 4, 3, 10);
-    }
-  }
-}
-
 function hud(ctx: CanvasRenderingContext2D, c: Circuit, s: LiftStateBase, maxTicks: number, lift: string) {
   text(ctx, lift, 6, 6, 8, CREAM, "left");
   const done = c.scores();
@@ -153,13 +126,18 @@ function hud(ctx: CanvasRenderingContext2D, c: Circuit, s: LiftStateBase, maxTic
   ctx.fillRect(6, 30, Math.max(0, 100 * (1 - s.tick / maxTicks)), 4);
 }
 
+/** Small pixel-Levi cameo (TUT trap, Benny banter, whole-foods bit). */
+function miniLevi(ctx: CanvasRenderingContext2D, x: number, floorY: number, scale = 1) {
+  drawPose(ctx, "levi", "idle", x, floorY, { scale });
+}
+
 function popup(ctx: CanvasRenderingContext2D, s: LiftStateBase, character: Character) {
   if (!s.outcome) return;
   const age = s.tick - s.outcomeTick;
   if (age > POPUP_TICKS) return;
   const y = 70 - Math.floor(age / 4);
   if (s.outcome === "tut") {
-    drawMiniLevi(ctx, 8, 70, 2);
+    miniLevi(ctx, 22, 124);
     wrap(ctx, TUT_LINE, 104, 74, 130, 6, CREAM);
     text(ctx, `-50`, VIEW_W / 2, y + 40, 8, RED);
     return;
@@ -171,55 +149,17 @@ function popup(ctx: CanvasRenderingContext2D, s: LiftStateBase, character: Chara
   if (ctx.measureText(line).width > 168) wrap(ctx, line, VIEW_W / 2, y, 168, 6, colour);
   else text(ctx, line, VIEW_W / 2, y, 8, colour);
   if (character === "benny" && s.outcome === "perfect" && s.outcomeTick % 3 === 0) {
-    drawMiniLevi(ctx, 6, y + 14, 1);
+    miniLevi(ctx, 14, y + 44, 0.5);
     wrap(ctx, BENNY_BANTER_REPLY, 100, y + 16, 140, 5, CREAM);
   }
 }
 
-/** The bar seen end-on (side view): the outer plate face, hub and collar. */
-function plateEndOn(ctx: CanvasRenderingContext2D, cx: number, cy: number, kg: number) {
-  const plates = Math.max(1, Math.floor((kg - 20) / 40));
-  const r = Math.min(16, 9 + plates);
-  ctx.fillStyle = "#111";
-  ctx.beginPath();
-  ctx.arc(cx, cy, r + 1, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.fillStyle = plates >= 3 ? "#a52a2a" : "#2f5fa8";
-  ctx.beginPath();
-  ctx.arc(cx, cy, r, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.fillStyle = "#1c1c1c";
-  ctx.beginPath();
-  ctx.arc(cx, cy, r - 4, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.fillStyle = "#c8c8c8";
-  ctx.fillRect(cx - 2, cy - 2, 4, 4);
-}
-
 function drawBench(ctx: CanvasRenderingContext2D, s: BenchState, character: Character) {
-  const scale = 4;
-  const bx = 22;
-  const by = 230 - 16 * scale;
-  // Bench pad + legs under the lifter's back.
-  ctx.fillStyle = "#111";
-  ctx.fillRect(bx, by + 9 * scale, 21 * scale, 3 * scale);
-  ctx.fillStyle = "#a8302a";
-  ctx.fillRect(bx, by + 9 * scale, 21 * scale, 2 * scale);
-  ctx.fillStyle = "#1c1c1c";
-  ctx.fillRect(bx + 2 * scale, by + 12 * scale, 2 * scale, 4 * scale);
-  ctx.fillRect(bx + 17 * scale, by + 12 * scale, 2 * scale, 4 * scale);
-  drawBencher(ctx, character, bx, by, scale);
-  // Bar travels down to the chest and back up during a rep.
-  const shoulderX = bx + BENCH_SHOULDER.x * scale;
-  const shoulderY = by + BENCH_SHOULDER.y * scale;
-  const anim = s.cooldown > 0 && s.outcome !== "miss" ? Math.sin((s.cooldown / BENCH.cooldownTicks) * Math.PI) : 0;
-  const barY = Math.round(shoulderY - 44 + anim * 30);
-  drawBenchArms(ctx, character, shoulderX, shoulderY, barY, scale);
-  // LFF wrist cuffs.
-  ctx.fillStyle = CREAM;
-  ctx.fillRect(shoulderX - 1, barY + 4, 2 * scale + 2, 3);
-  plateEndOn(ctx, shoulderX + scale, barY, s.kg);
-  text(ctx, `${s.kg}KG`, shoulderX + scale, barY - 30, 6, CREAM);
+  // Side-on: arms locked out, or the bar touching the chest mid-rep.
+  const midRep = s.cooldown > 0 && s.outcome !== "miss" && s.cooldown > BENCH.cooldownTicks * 0.3 && s.cooldown < BENCH.cooldownTicks * 0.8;
+  const pose = midRep ? "bench_down" : "bench_up";
+  drawPose(ctx, character, pose, 52, 230, { anchor: "left" });
+  text(ctx, `${s.kg}KG`, 120, 230 - poseHeight(character, "bench_up") - 12, 6, CREAM);
   // Timing meter.
   const mx = 20, my = 270, mw = 140, mh = 14;
   ctx.fillStyle = DARK;
@@ -251,11 +191,8 @@ function drawBench(ctx: CanvasRenderingContext2D, s: BenchState, character: Char
 }
 
 function drawSquat(ctx: CanvasRenderingContext2D, s: SquatState, character: Character) {
-  const x = VIEW_W / 2 - (SPRITE_W * SCALE) / 2;
-  const y = 230 - SPRITE_H * SCALE;
-  const squash = s.cooldown > 0 ? 0 : (1 - s.progress) * MAX_SQUASH;
-  drawSprite(ctx, character, x, y, SCALE, { squash });
-  barbell(ctx, VIEW_W / 2, y + 11 * SCALE + Math.round(squash) * SCALE, 150, 100);
+  const standing = s.cooldown > 0 || s.progress > 0.5;
+  drawPose(ctx, character, standing ? "squat_top" : "squat_bottom", VIEW_W / 2, 230);
   // Drive meter (left) and form meter (right).
   const mh = 120, my = 100;
   ctx.fillStyle = DARK;
@@ -271,18 +208,9 @@ function drawSquat(ctx: CanvasRenderingContext2D, s: SquatState, character: Char
 }
 
 function drawDeadlift(ctx: CanvasRenderingContext2D, s: DeadliftState, character: Character) {
-  const x = VIEW_W / 2 - (SPRITE_W * SCALE) / 2;
-  const y = 230 - SPRITE_H * SCALE;
   const lockedOut = s.cooldown > 0;
-  const lift = lockedOut ? 1 : s.gauge;
-  const squash = Math.round((1 - lift) * MAX_SQUASH);
-  drawSprite(ctx, character, x, y, SCALE, { squash });
-  const handY = y + 20 * SCALE + squash * SCALE;
-  // LFF straps glow at the hands.
-  ctx.fillStyle = Math.floor(s.tick / 8) % 2 ? CREAM : "#fff8d8";
-  ctx.fillRect(x + 2 * SCALE, handY - 2, 6, 4);
-  ctx.fillRect(x + 16 * SCALE, handY - 2, 6, 4);
-  barbell(ctx, VIEW_W / 2, Math.min(handY, 222), 160, s.kg);
+  const up = lockedOut || s.gauge >= 0.6;
+  drawPose(ctx, character, up ? "dl_top" : "dl_bottom", VIEW_W / 2 - 6, 230);
   text(ctx, `${s.kg}KG`, VIEW_W / 2, 90, 8);
   // Power gauge.
   const gx = VIEW_W - 22, gy = 100, gh = 120;
@@ -304,7 +232,7 @@ function drawIntro(ctx: CanvasRenderingContext2D, c: Circuit, character: Charact
   const p = c.phase;
   text(ctx, LIFT_NAMES[p.lift], VIEW_W / 2, 92, 10, "#d4af37");
   wrap(ctx, LIFT_TIPS[p.lift], VIEW_W / 2, 106, 150, 5);
-  drawSprite(ctx, character, VIEW_W / 2 - (SPRITE_W * SCALE) / 2, 230 - SPRITE_H * SCALE, SCALE);
+  drawPose(ctx, character, "idle", VIEW_W / 2, 230);
   const secs = Math.ceil((p.ticksLeft / INTRO_TICKS) * 3);
   text(ctx, secs > 0 ? `${secs}` : "GO!", VIEW_W / 2, 270, 16);
   if (p.npc) {
@@ -312,12 +240,14 @@ function drawIntro(ctx: CanvasRenderingContext2D, c: Circuit, character: Charact
     // Off to the sides so the lifter stays clear: bro on the left, Levi's reply on the right.
     drawSprite(ctx, "bro", 2, 170, 2);
     wrap(ctx, WHOLE_FOODS_BRO, 30, 134, 54, 5, CREAM);
-    drawMiniLevi(ctx, 138, 170, 2);
+    miniLevi(ctx, 158, 230);
     wrap(ctx, LEVI_REPLY_WHOLE_FOODS, 152, 134, 54, 5, LIME);
   }
 }
 
 export function drawFrame(ctx: CanvasRenderingContext2D, c: Circuit, character: Character) {
+  // Lay the scene out on the 180×320 logical grid; sprites draw at native canvas pixels.
+  ctx.setTransform(PIXEL_RATIO, 0, 0, PIXEL_RATIO, 0, 0);
   ctx.imageSmoothingEnabled = false;
   background(ctx, character);
   const p = c.phase;

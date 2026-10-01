@@ -1,7 +1,7 @@
 import { CHARACTERS, type Character } from "@shared/game/types";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { CHARACTER_INFO } from "../content";
-import { spriteDataUrl } from "../sprites";
+import { poseUrl } from "../poses";
 import { PixelButton, Screen } from "./ui";
 
 export default function SelectScreen({
@@ -14,10 +14,6 @@ export default function SelectScreen({
   starting: boolean;
 }) {
   const [picked, setPicked] = useState<Character>("levi");
-  const sprites = useMemo(
-    () => Object.fromEntries(CHARACTERS.map((c) => [c, spriteDataUrl(c, 4)])) as Record<Character, string>,
-    [],
-  );
 
   return (
     <Screen>
@@ -30,7 +26,7 @@ export default function SelectScreen({
             className="flex flex-col items-center gap-2 p-3"
             style={{ border: `3px solid ${picked === c ? "#d4af37" : "#EAE6D2"}`, backgroundColor: picked === c ? "#1f170f" : "#2e2318" }}
           >
-            <img src={sprites[c]} alt={CHARACTER_INFO[c].name} width={80} height={120} style={{ imageRendering: "pixelated" }} />
+            <img src={poseUrl(c, "idle")} alt={CHARACTER_INFO[c].name} style={{ imageRendering: "pixelated", height: 144, width: "auto" }} />
             <span className="text-[10px]">{CHARACTER_INFO[c].name}</span>
             <span className="text-[7px] leading-relaxed opacity-75 text-center">{CHARACTER_INFO[c].tagline}</span>
           </button>

@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import { sfx } from "./audio";
 import { Circuit } from "./circuit";
 import { attachInput } from "./input";
+import { loadPoses, PIXEL_RATIO } from "./poses";
 import { drawFrame, VIEW_H, VIEW_W } from "./render";
 
 export type CircuitResult = { logs: RunLogs; scores: LiftScores; perfects: number };
@@ -27,12 +28,14 @@ export default function CircuitCanvas({
     const canvas = canvasRef.current!;
     const wrap = wrapRef.current!;
     const ctx = canvas.getContext("2d")!;
+    void loadPoses();
     const circuit = new Circuit(seed, character);
     const detach = attachInput(wrap, (down) => circuit.setDown(down));
 
     // Integer-scale the 180×320 view to fit the screen.
     const resize = () => {
-      const s = Math.max(1, Math.floor(Math.min(window.innerWidth / VIEW_W, (window.innerHeight - 16) / VIEW_H)));
+      // Fit the phone screen; the canvas itself renders at 3× the logical grid so sprites stay crisp.
+      const s = Math.min(window.innerWidth / VIEW_W, (window.innerHeight - 16) / VIEW_H);
       canvas.style.width = `${VIEW_W * s}px`;
       canvas.style.height = `${VIEW_H * s}px`;
     };
@@ -85,7 +88,7 @@ export default function CircuitCanvas({
       className="flex min-h-screen items-center justify-center select-none"
       style={{ touchAction: "none", backgroundColor: "#2e2318", WebkitUserSelect: "none" }}
     >
-      <canvas ref={canvasRef} width={VIEW_W} height={VIEW_H} style={{ imageRendering: "pixelated" }} />
+      <canvas ref={canvasRef} width={VIEW_W * PIXEL_RATIO} height={VIEW_H * PIXEL_RATIO} style={{ imageRendering: "pixelated" }} />
     </div>
   );
 }

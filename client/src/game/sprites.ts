@@ -89,7 +89,7 @@ function spriteCanvas(c: Character, gold: boolean): HTMLCanvasElement {
 }
 
 /**
- * Draw a lifter. `squash` (0..8 sprite px) bends the knees: the upper body drops while the feet stay planted.
+ * Draw a lifter. `squash` (0..7 sprite px) bends the knees: the upper body drops while the feet stay planted.
  * `rotate` lays them on their back (head to the left) for the bench.
  */
 export function drawSprite(
@@ -101,6 +101,7 @@ export function drawSprite(
   scale: number,
   opts: { squash?: number; rotate?: boolean } = {},
 ) {
+  ctx.imageSmoothingEnabled = false;
   const img = spriteCanvas(c, gold);
   if (opts.rotate) {
     ctx.save();
@@ -110,7 +111,8 @@ export function drawSprite(
     ctx.restore();
     return;
   }
-  const squash = Math.round(opts.squash ?? 0);
+  let squash = Math.round(opts.squash ?? 0);
+  squash = Math.max(0, Math.min(7, squash));
   const legsFrom = 17;
   ctx.drawImage(img, 0, 0, SPRITE_W, legsFrom, x, y + squash * scale, SPRITE_W * scale, legsFrom * scale);
   const legRows = SPRITE_H - legsFrom - squash;

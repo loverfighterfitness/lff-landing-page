@@ -52,7 +52,7 @@ export async function renderScoreCard(opts: {
   ctx.fillStyle = shade;
   ctx.fillRect(0, 0, W, H);
 
-  // The gym-wall banner in the background carries the LFF logo and LOVER FIGHTER wordmark.
+  // The 3D LFF sign on the gym wall in the background is the card's only logo.
   if (hero) {
     const hh = 600;
     const hw = (hero.width * hh) / hero.height;

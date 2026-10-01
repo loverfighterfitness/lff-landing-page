@@ -29,12 +29,12 @@ export default function TitleScreen({ onPlay, onBoard }: { onPlay: () => void; o
 
   return (
     <Screen dim={0.35} bg={gameAsset("gym_bg_plain.png")}>
-      {/* The gym-wall banner (same art as the in-game wall), so the logo reads as part of the gym. */}
+      {/* The 3D wall sign from the in-game gym, so the logo reads as part of the gym. */}
       <img
-        src={gameAsset("wall_banner.png")}
+        src={gameAsset("wall_logo.png")}
         alt="LFF Lover Fighter fitness"
         className="mt-1"
-        style={{ width: 152, height: "auto", imageRendering: "pixelated", filter: "drop-shadow(0 6px 0 rgba(0,0,0,0.45))", animation: "lff-pop 0.6s ease-out both" }}
+        style={{ width: 150, height: "auto", imageRendering: "pixelated", animation: "lff-pop 0.6s ease-out both" }}
       />
       <p className="text-[10px] text-center leading-loose" style={{ color: CREAM, textShadow: `2px 2px 0 ${INK}` }}>
         BENCH · SQUAT · DEADLIFT

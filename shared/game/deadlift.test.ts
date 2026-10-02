@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { DEADLIFT } from "./config";
+import { DEADLIFT, IDLE_LIMIT_TICKS } from "./config";
 import { deadlift, DEADLIFT_CENTRE, type DeadliftState } from "./deadlift";
 import { LiftRunner, replayLift } from "./lift";
 import { idle, stepUntil, tap } from "./testHelpers";
@@ -13,10 +13,10 @@ function pullTo(r: LiftRunner<DeadliftState>, pred: (s: DeadliftState) => boolea
 }
 
 describe("deadlift", () => {
-  it("ends at the time limit with no input", () => {
+  it("ends after standing idle with no input", () => {
     const s = replayLift(deadlift, 1, []);
     expect(s.done).toBe(true);
-    expect(s.tick).toBe(DEADLIFT.maxTicks);
+    expect(s.tick).toBe(IDLE_LIMIT_TICKS);
   });
 
   it("releasing dead-centre is a perfect lockout with the biggest jump", () => {

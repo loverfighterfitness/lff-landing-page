@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { SQUAT } from "./config";
+import { IDLE_LIMIT_TICKS, SQUAT } from "./config";
 import { LiftRunner, replayLift } from "./lift";
 import { squat, type SquatState } from "./squat";
 import { idle, tap } from "./testHelpers";
@@ -12,11 +12,30 @@ function tapEvery(r: LiftRunner<SquatState>, gap: number, until: (s: SquatState)
 }
 
 describe("squat", () => {
-  it("ends at the time limit with no input", () => {
+  it("ends after standing idle with no input", () => {
     const s = replayLift(squat, 1, []);
     expect(s.done).toBe(true);
-    expect(s.tick).toBe(SQUAT.maxTicks);
+    expect(s.tick).toBe(IDLE_LIMIT_TICKS);
     expect(s.score).toBe(0);
+  });
+
+  it("a rep not locked out in time is a failed rep and ends the set", () => {
+    // Taps far too slow to drive the bar up: the rep clock runs out.
+    const events = [];
+    for (let t = 0; t < SQUAT.repTimeLimitTicks + 100; t += 40) events.push({ tick: t, down: true }, { tick: t + 3, down: false });
+    const s = replayLift(squat, 1, events);
+    expect(s.done).toBe(true);
+    expect(s.outcome).toBe("miss");
+    expect(s.reps).toBe(0);
+  });
+
+  it("on-beat taps drive harder than off-beat taps", () => {
+    const drive = (gap: number) => {
+      const events = [];
+      for (let i = 0, t = 0; i < 4; i++, t += gap) events.push({ tick: t, down: true }, { tick: t + 3, down: false });
+      return replayLift({ ...squat, maxTicks: 3 * gap + 1 }, 1, events).progress;
+    };
+    expect(drive(SQUAT.tempoTicks)).toBeGreaterThan(drive(SQUAT.tempoTicks + 4));
   });
 
   it("steady presses drive a clean, perfect rep", () => {

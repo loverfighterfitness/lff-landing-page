@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { BenchState } from "./bench";
-import { BENCH, DEADLIFT, MAX_EVENTS_PER_LIFT, RUN_TOKEN_TTL_MS, SQUAT, TICK_MS } from "./config";
+import { BENCH, DEADLIFT, IDLE_LIMIT_TICKS, MAX_EVENTS_PER_LIFT, RUN_TOKEN_TTL_MS, SQUAT, TICK_MS } from "./config";
 import { LiftRunner } from "./lift";
 import { LIFT_SIMS, liftSeed, replayRun } from "./run";
 import { idle, stepUntil, tap } from "./testHelpers";
@@ -22,10 +22,11 @@ function liveRun() {
 }
 
 describe("replayRun", () => {
-  it("scores an empty run as zero and runs every lift to its limit", () => {
+  it("scores an empty run as zero and ends every lift on idling", () => {
     const r = replayRun(SEED, empty);
     expect(r.total).toBe(0);
-    expect(r.ticks).toBe(ALL_TICKS);
+    // Bench: three idle misses; squat and deadlift: one idle limit each.
+    expect(r.ticks).toBe(5 * IDLE_LIMIT_TICKS + 2 * BENCH.cooldownTicks);
   });
 
   it("gives each lift its own seed", () => {

@@ -13,21 +13,27 @@ export const COMBO_MAX_MULT = 2;
 
 /**
  * Scoring is a powerlifting total: best bench + best squat + best deadlift, in kg.
+ * Each lift is a max-out, not a timed set: it runs until you fail, and every rep is harder than the
+ * last, so how heavy you get is decided by skill. The tick limits are only a safety backstop.
  * Every successful rep locks in the weight on the bar; a PERFECT rep earns a bigger jump for the
  * next one than a GOOD rep, so timing decides how heavy you get. All jumps are multiples of 5 kg.
  */
 
+/** Waiting this long without starting a rep ends the lift (or costs a bench miss): no AFK runs. */
+export const IDLE_LIMIT_TICKS = 600;
+
 export const BENCH = {
-  maxTicks: 1800,
+  /** Safety backstop only; skill ends the set first. */
+  maxTicks: 9000,
   maxMisses: 3,
   zoneStart: 0.24,
-  zoneMin: 0.08,
-  zoneShrink: 0.015,
+  zoneMin: 0.03,
+  zoneShrink: 0.01,
   /** Perfect band as a fraction of the green zone's width. */
   perfectFraction: 0.3,
   speedStart: 0.006,
-  speedStep: 0.0006,
-  speedMax: 0.02,
+  speedStep: 0.0007,
+  speedMax: 0.04,
   /** Each rep takes ~0.8 s to press and re-rack, which keeps a set to ~10-14 reps. */
   cooldownTicks: 80,
   startKg: 30,
@@ -36,12 +42,25 @@ export const BENCH = {
 } as const;
 
 export const SQUAT = {
-  maxTicks: 2000,
+  maxTicks: 9000,
   drivePerPress: 0.12,
   gravityPerTick: 0.002,
+  /**
+   * Rhythm: a tap drives fully when it lands this many ticks after the last one (120 ms, ~8 taps/s),
+   * and loses drive the further off the beat it is, down to nothing at `tempoTolTicks` off.
+   */
+  tempoTicks: 12,
+  tempoTolTicks: 7,
+  /** Average beat quality a rep needs to count as PERFECT. */
+  perfectTempo: 0.8,
+  /** Heavier reps: each one gets less drive per tap and more pull back down. */
+  driveDecayPerRep: 0.975,
+  gravityGrowthPerRep: 1.02,
+  /** A rep not locked out this long after its first tap is a failed rep, and the set ends. */
+  repTimeLimitTicks: 450,
   /** Presses closer together than this strain your form. */
   fastPressTicks: 9,
-  strainPerFastPress: 0.25,
+  strainPerFastPress: 0.2,
   strainDecayPerTick: 0.004,
   perfectStrainMax: 0.3,
   startKg: 50,
@@ -56,12 +75,12 @@ export const SQUAT = {
 } as const;
 
 export const DEADLIFT = {
-  maxTicks: 2000,
+  maxTicks: 9000,
   startKg: 100,
   perfectJump: 10,
   goodJump: 5,
   gaugeRateStart: 0.008,
-  gaugeRateStep: 0.001,
+  gaugeRateStep: 0.0012,
   sweetMin: 0.72,
   sweetMax: 0.9,
   perfectHalfWidth: 0.025,

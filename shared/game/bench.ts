@@ -1,4 +1,4 @@
-import { BENCH } from "./config";
+import { BENCH, IDLE_LIMIT_TICKS } from "./config";
 import type { LiftSim, LiftStateBase } from "./lift";
 import { randAt } from "./rng";
 
@@ -17,6 +17,8 @@ export interface BenchState extends LiftStateBase {
   kg: number;
   /** Heaviest rep completed — this lift's score. */
   bestKg: number;
+  /** Ticks since the bar was ready without a tap. */
+  idleTicks: number;
 }
 
 function zoneFor(seed: number, reps: number) {
@@ -37,7 +39,7 @@ export const bench: LiftSim<BenchState> = {
       tick: 0, done: false, score: 0, combo: 0, perfects: 0, outcome: null, outcomeTick: 0,
       seed, pos: 0, dir: 1, reps: 0, misses: 0,
       zoneCenter: z.center, zoneWidth: z.width,
-      speed: BENCH.speedStart, cooldown: 0, kg: BENCH.startKg, bestKg: 0,
+      speed: BENCH.speedStart, cooldown: 0, kg: BENCH.startKg, bestKg: 0, idleTicks: 0,
     };
   },
 
@@ -46,7 +48,19 @@ export const bench: LiftSim<BenchState> = {
       s.cooldown--;
       return;
     }
+    if (!input.pressed && ++s.idleTicks >= IDLE_LIMIT_TICKS) {
+      // Sat there with the bar unracked: that's a missed rep.
+      s.idleTicks = 0;
+      s.outcome = "miss";
+      s.outcomeTick = s.tick;
+      s.combo = 0;
+      s.misses++;
+      s.cooldown = BENCH.cooldownTicks;
+      if (s.misses >= BENCH.maxMisses) s.done = true;
+      return;
+    }
     if (input.pressed) {
+      s.idleTicks = 0;
       const off = Math.abs(s.pos - s.zoneCenter);
       s.outcomeTick = s.tick;
       s.cooldown = BENCH.cooldownTicks;

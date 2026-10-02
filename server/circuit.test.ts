@@ -10,7 +10,7 @@ describe("client Circuit", () => {
     let t = 0;
     let lastLift = "";
     let phaseTick = 0;
-    while (!c.done && t < 20_000) {
+    while (!c.done && t < 60_000) {
       const p = c.phase;
       if (p.kind === "lift") {
         if (p.lift !== lastLift) {

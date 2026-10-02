@@ -1,4 +1,4 @@
-import { DEADLIFT } from "./config";
+import { DEADLIFT, IDLE_LIMIT_TICKS } from "./config";
 import type { LiftSim, LiftStateBase } from "./lift";
 
 export const DEADLIFT_CENTRE = (DEADLIFT.sweetMin + DEADLIFT.sweetMax) / 2;
@@ -14,6 +14,8 @@ export interface DeadliftState extends LiftStateBase {
   cooldown: number;
   /** Player was still holding when the plates finished loading — must let go first. */
   needRelease: boolean;
+  /** Ticks standing over the bar without pulling. */
+  waitTicks: number;
 }
 
 function fail(s: DeadliftState) {
@@ -32,7 +34,7 @@ export const deadlift: LiftSim<DeadliftState> = {
   init() {
     return {
       tick: 0, done: false, score: 0, combo: 0, perfects: 0, outcome: null, outcomeTick: 0,
-      gauge: 0, pulling: false, attempt: 0, kg: DEADLIFT.startKg, bestKg: 0, cooldown: 0, needRelease: false,
+      gauge: 0, pulling: false, attempt: 0, kg: DEADLIFT.startKg, bestKg: 0, cooldown: 0, needRelease: false, waitTicks: 0,
     };
   },
 
@@ -50,6 +52,9 @@ export const deadlift: LiftSim<DeadliftState> = {
       if (input.pressed) {
         s.pulling = true;
         s.gauge = 0;
+        s.waitTicks = 0;
+      } else if (++s.waitTicks >= IDLE_LIMIT_TICKS) {
+        fail(s);
       }
       return;
     }

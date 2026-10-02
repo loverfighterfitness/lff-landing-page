@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { bench, type BenchState } from "./bench";
-import { BENCH } from "./config";
+import { BENCH, IDLE_LIMIT_TICKS } from "./config";
 import { LiftRunner, replayLift } from "./lift";
 import { stepUntil, tap } from "./testHelpers";
 
@@ -11,10 +11,11 @@ const inZoneNotCentre = (s: BenchState) => s.cooldown === 0 && off(s) > 0.05 && 
 const farAway = (s: BenchState) => s.cooldown === 0 && off(s) > 0.3;
 
 describe("bench", () => {
-  it("scores nothing and ends at the time limit with no input", () => {
+  it("scores nothing and ends on idle misses with no input", () => {
     const s = replayLift(bench, SEED, []);
     expect(s.done).toBe(true);
-    expect(s.tick).toBe(BENCH.maxTicks);
+    expect(s.misses).toBe(BENCH.maxMisses);
+    expect(s.tick).toBe(BENCH.maxMisses * IDLE_LIMIT_TICKS + (BENCH.maxMisses - 1) * BENCH.cooldownTicks);
     expect(s.score).toBe(0);
   });
 

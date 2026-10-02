@@ -2,7 +2,6 @@ import type { BenchState } from "@shared/game/bench";
 import { BENCH, DEADLIFT, SQUAT } from "@shared/game/config";
 import { DEADLIFT_CENTRE, type DeadliftState } from "@shared/game/deadlift";
 import type { LiftStateBase } from "@shared/game/lift";
-import { LIFT_SIMS } from "@shared/game/run";
 import type { SquatState } from "@shared/game/squat";
 import type { Character } from "@shared/game/types";
 import type { Circuit } from "./circuit";
@@ -105,18 +104,19 @@ function panel(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h
   ctx.strokeRect(x + 0.5, y + 0.5, w - 1, h - 1);
 }
 
-function hud(ctx: CanvasRenderingContext2D, c: Circuit, s: LiftStateBase, maxTicks: number, lift: string) {
+/** Top bar. `bar` is an optional 0..1 countdown (the squat's rep clock); lifts are max-outs, not timed. */
+function hud(ctx: CanvasRenderingContext2D, c: Circuit, s: LiftStateBase, bar: number | null, lift: string) {
   text(ctx, lift, 6, 6, 8, CREAM, "left");
   const done = c.scores();
   const total = done.bench + done.squat + done.deadlift + s.score;
   text(ctx, `BEST ${s.score}KG`, 6, 18, 7, BLUE, "left");
   text(ctx, `TOTAL ${total}KG`, VIEW_W - 6, 18, 6, CREAM, "right");
   if (s.combo > 1) text(ctx, `STREAK ${s.combo}`, VIEW_W - 6, 30, 6, BLUE, "right");
-  // Time bar.
+  if (bar === null) return;
   ctx.fillStyle = DARK;
   ctx.fillRect(6, 30, 100, 4);
-  ctx.fillStyle = CREAM;
-  ctx.fillRect(6, 30, Math.max(0, 100 * (1 - s.tick / maxTicks)), 4);
+  ctx.fillStyle = bar < 0.3 ? BAD : CREAM;
+  ctx.fillRect(6, 30, Math.max(0, 100 * bar), 4);
 }
 
 /** Small pixel-Levi cameo (TUT trap, Benny banter, whole-foods bit). */
@@ -224,7 +224,20 @@ function drawSquat(ctx: CanvasRenderingContext2D, s: SquatState, character: Char
   ctx.fillRect(VIEW_W - 17, my + mh * (1 - Math.min(1, s.strain)), 8, mh * Math.min(1, s.strain));
   text(ctx, "UP", 13, my - 10, 5);
   text(ctx, "FORM", VIEW_W - 13, my - 10, 4);
-  text(ctx, `REPS ${s.reps}`, VIEW_W / 2, 272, 8);
+  // Beat ring: closes on the dot when the next tap is due; the dot shows how on-beat the last tap was.
+  const bx = VIEW_W / 2, by = 258;
+  const since = s.tick - s.lastPressTick;
+  if (s.repStart >= 0 && s.cooldown === 0) {
+    const r = Math.max(3, 14 * (1 - since / SQUAT.tempoTicks));
+    ctx.strokeStyle = since >= SQUAT.tempoTicks - 1 && since <= SQUAT.tempoTicks + 1 ? BLUE : STONE;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.arc(bx, by, r, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+  ctx.fillStyle = s.repStart < 0 ? TAUPE : s.beat >= SQUAT.perfectTempo ? BLUE : s.beat > 0.3 ? CREAM : BAD;
+  ctx.fillRect(bx - 2, by - 2, 5, 5);
+  text(ctx, `REPS ${s.reps}`, VIEW_W / 2, 276, 8);
 }
 
 function drawDeadlift(ctx: CanvasRenderingContext2D, s: DeadliftState, character: Character) {
@@ -342,5 +355,7 @@ export function drawFrame(ctx: CanvasRenderingContext2D, c: Circuit, character: 
   if (p.lift === "deadlift") drawDeadlift(ctx, s as DeadliftState, character);
   popup(ctx, s, character);
   ctx.setTransform(PIXEL_RATIO, 0, 0, PIXEL_RATIO, 0, 0);
-  hud(ctx, c, s, LIFT_SIMS[p.lift].maxTicks, LIFT_NAMES[p.lift]);
+  const sq = s as SquatState;
+  const bar = p.lift === "squat" && sq.repStart >= 0 && sq.cooldown === 0 ? 1 - (sq.tick - sq.repStart) / SQUAT.repTimeLimitTicks : null;
+  hud(ctx, c, s, bar, LIFT_NAMES[p.lift]);
 }

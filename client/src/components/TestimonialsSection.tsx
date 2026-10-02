@@ -205,14 +205,14 @@ export default function TestimonialsSection() {
                     <div className="relative overflow-hidden rounded-lg" style={{ aspectRatio: '3/4' }}>
                       <img
                         src={review.photos.before}
-                        alt="Before transformation"
+                        alt={`${review.name} before coaching transformation`}
                         className="w-full h-full object-cover object-top transition-transform duration-500 hover:scale-105"
                       />
                     </div>
                     <div className="relative overflow-hidden rounded-lg" style={{ aspectRatio: '3/4' }}>
                       <img
                         src={review.photos.after}
-                        alt="After transformation"
+                        alt={`${review.name} after coaching transformation`}
                         className="w-full h-full object-cover object-top transition-transform duration-500 hover:scale-105"
                       />
                     </div>

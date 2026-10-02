@@ -137,7 +137,7 @@ function ImageComparisonSlider({ transformation, resetKey }: SliderProps) {
       >
         {/* After (bottom layer) */}
         <div className="absolute inset-0 overflow-hidden" style={{ backgroundColor: "#1c0f07" }}>
-          <img src={transformation.after} alt="After" draggable={false} style={transformation.afterStyle} />
+          <img src={transformation.after} alt={`${transformation.name} after coaching with Lover Fighter Fitness — ${transformation.tag}`} draggable={false} style={transformation.afterStyle} />
         </div>
 
         {/* Before (clipped left) */}
@@ -145,7 +145,7 @@ function ImageComparisonSlider({ transformation, resetKey }: SliderProps) {
           className="absolute inset-0 overflow-hidden"
           style={{ clipPath: `inset(0 ${100 - pct}% 0 0)`, backgroundColor: "#1c0f07" }}
         >
-          <img src={transformation.before} alt="Before" draggable={false} style={transformation.beforeStyle} />
+          <img src={transformation.before} alt={`${transformation.name} before coaching with Lover Fighter Fitness`} draggable={false} style={transformation.beforeStyle} />
         </div>
 
         {/* Divider */}

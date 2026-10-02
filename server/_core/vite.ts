@@ -3,6 +3,7 @@ import fs from "fs";
 import { type Server } from "http";
 import path from "path";
 import { fileURLToPath } from "url";
+import { routeStatus, seoBody, seoHead } from "./seo";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -70,6 +71,7 @@ export function serveStatic(app: Express) {
   app.use(
     express.static(distPath, {
       redirect: false,
+      index: false, // "/" must reach the catch-all below for its SEO injection
       setHeaders(res, filePath) {
         // Hashed build assets never change; media is versioned by filename.
         if (filePath.includes(`${path.sep}assets${path.sep}`)) {
@@ -86,12 +88,19 @@ export function serveStatic(app: Express) {
     ? fs.readFileSync(path.resolve(distPath, "index.html"), "utf-8")
     : "";
   app.use("*", (req, res) => {
-    const meta = ROUTE_META[req.originalUrl.split("?")[0].replace(/\/+$/, "")];
-    if (!meta || !indexHtml) {
-      res.sendFile(path.resolve(distPath, "index.html"));
+    const route = req.originalUrl.split("?")[0].replace(/\/+$/, "");
+    const { status, noindex } = routeStatus(route);
+    if (noindex) res.setHeader("X-Robots-Tag", "noindex");
+    if (!indexHtml) {
+      res.status(status).sendFile(path.resolve(distPath, "index.html"));
       return;
     }
-    res.set("Content-Type", "text/html").send(withRouteMeta(indexHtml, meta));
+    const meta = ROUTE_META[route];
+    let html = meta ? withRouteMeta(indexHtml, meta) : indexHtml;
+    html = html
+      .replace("</head>", `    ${seoHead(route)}\n  </head>`)
+      .replace('<div id="root"></div>', `<div id="root">${seoBody(route)}</div>`);
+    res.status(status).set("Content-Type", "text/html").send(html);
   });
 }
 

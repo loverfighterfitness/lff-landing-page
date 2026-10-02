@@ -40,7 +40,7 @@ describe("squat", () => {
 
   it("steady presses drive a clean, perfect rep", () => {
     const r = new LiftRunner(squat, 1);
-    tapEvery(r, 12, (s) => s.reps === 1);
+    tapEvery(r, SQUAT.tempoTicks, (s) => s.reps === 1);
     expect(r.state.reps).toBe(1);
     expect(r.state.outcome).toBe("perfect");
     expect(r.state.score).toBe(SQUAT.startKg);
@@ -59,7 +59,7 @@ describe("squat", () => {
 
   it("grinding a rep slowly triggers the TUT trap", () => {
     const r = new LiftRunner(squat, 1);
-    tapEvery(r, 12, (s) => s.progress > 0.5);
+    tapEvery(r, SQUAT.tempoTicks, (s) => s.progress > 0.5);
     idle(r, SQUAT.tutIdleTicks);
     expect(r.state.tutTriggers).toBe(1);
     expect(r.state.outcome).toBe("tut");
@@ -69,9 +69,9 @@ describe("squat", () => {
 
   it("the TUT penalty comes off your best squat", () => {
     const r = new LiftRunner(squat, 1);
-    tapEvery(r, 12, (s) => s.reps === 1);
+    tapEvery(r, SQUAT.tempoTicks, (s) => s.reps === 1);
     idle(r, SQUAT.cooldownTicks);
-    tapEvery(r, 12, (s) => s.progress > 0.5);
+    tapEvery(r, SQUAT.tempoTicks, (s) => s.progress > 0.5);
     idle(r, SQUAT.tutIdleTicks);
     expect(r.state.score).toBe(SQUAT.startKg - SQUAT.tutPenaltyKg);
     expect(r.state.combo).toBe(0);

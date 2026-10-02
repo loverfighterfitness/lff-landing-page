@@ -43,23 +43,26 @@ export const BENCH = {
 
 export const SQUAT = {
   maxTicks: 9000,
-  drivePerPress: 0.12,
-  gravityPerTick: 0.002,
+  drivePerPress: 0.16,
+  gravityPerTick: 0.0015,
   /**
-   * Rhythm: a tap drives fully when it lands this many ticks after the last one (120 ms, ~8 taps/s),
-   * and loses drive the further off the beat it is, down to nothing at `tempoTolTicks` off.
+   * Rhythm: a tap drives fully when it lands this many ticks after the last one (250 ms, 4 taps/s —
+   * slow enough to follow the on-screen beat meter), and loses drive the further off the beat it is,
+   * down to nothing at `tempoTolTicks` off.
    */
-  tempoTicks: 12,
-  tempoTolTicks: 7,
+  tempoTicks: 25,
+  tempoTolTicks: 12,
+  /** Even a sloppy tap gives this much drive, so light reps can be ground out; the beat decides the heavy ones. */
+  minBeat: 0.3,
   /** Average beat quality a rep needs to count as PERFECT. */
   perfectTempo: 0.8,
   /** Heavier reps: each one gets less drive per tap and more pull back down. */
   driveDecayPerRep: 0.975,
   gravityGrowthPerRep: 1.02,
   /** A rep not locked out this long after its first tap is a failed rep, and the set ends. */
-  repTimeLimitTicks: 450,
+  repTimeLimitTicks: 600,
   /** Presses closer together than this strain your form. */
-  fastPressTicks: 9,
+  fastPressTicks: 14,
   strainPerFastPress: 0.2,
   strainDecayPerTick: 0.004,
   perfectStrainMax: 0.3,

@@ -151,6 +151,8 @@ const FLOOR = 236;
 
 /** Lifter sprite scale: a touch bigger on tall phones, where there's room for it. Set per frame. */
 let liftScale = SPRITE_SCALE;
+/** How far the scene is shifted down this frame (negative = up), so panels can stay on screen. */
+let sceneShift = 0;
 
 /** Bar whip after a heavy rep (sprite px for the plates): a quick damped bounce, bigger with kg. */
 function whip(cooldown: number, cooldownTicks: number, kg: number): number {
@@ -224,20 +226,30 @@ function drawSquat(ctx: CanvasRenderingContext2D, s: SquatState, character: Char
   ctx.fillRect(VIEW_W - 17, my + mh * (1 - Math.min(1, s.strain)), 8, mh * Math.min(1, s.strain));
   text(ctx, "UP", 13, my - 10, 5);
   text(ctx, "FORM", VIEW_W - 13, my - 10, 4);
-  // Beat ring: closes on the dot when the next tap is due; the dot shows how on-beat the last tap was.
-  const bx = VIEW_W / 2, by = 258;
-  const since = s.tick - s.lastPressTick;
+  // Beat meter, same language as the bench: after each tap the marker fills; tap again in the blue.
+  const bx = 20, by = 258, bw = 140, bh = 12;
+  const span = SQUAT.tempoTicks + SQUAT.tempoTolTicks;
+  const at = (t: number) => bx + (Math.min(span, t) / span) * bw;
+  const blue = SQUAT.tempoTolTicks * (1 - SQUAT.perfectTempo);
+  panel(ctx, bx - 4, by - 4, bw + 8, bh + 20);
+  ctx.fillStyle = INK;
+  ctx.fillRect(bx, by, bw, bh);
+  ctx.fillStyle = TAUPE;
+  ctx.fillRect(at(SQUAT.tempoTicks - SQUAT.tempoTolTicks * 0.6), by, at(SQUAT.tempoTicks + SQUAT.tempoTolTicks * 0.6) - at(SQUAT.tempoTicks - SQUAT.tempoTolTicks * 0.6), bh);
+  ctx.fillStyle = BLUE;
+  ctx.fillRect(at(SQUAT.tempoTicks - blue), by, at(SQUAT.tempoTicks + blue) - at(SQUAT.tempoTicks - blue), bh);
   if (s.repStart >= 0 && s.cooldown === 0) {
-    const r = Math.max(3, 14 * (1 - since / SQUAT.tempoTicks));
-    ctx.strokeStyle = since >= SQUAT.tempoTicks - 1 && since <= SQUAT.tempoTicks + 1 ? BLUE : STONE;
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.arc(bx, by, r, 0, Math.PI * 2);
-    ctx.stroke();
+    const x = at(s.tick - s.lastPressTick);
+    ctx.fillStyle = INK;
+    ctx.fillRect(x - 2, by - 4, 5, bh + 8);
+    ctx.fillStyle = CREAM;
+    ctx.fillRect(x - 1, by - 3, 3, bh + 6);
   }
-  ctx.fillStyle = s.repStart < 0 ? TAUPE : s.beat >= SQUAT.perfectTempo ? BLUE : s.beat > 0.3 ? CREAM : BAD;
-  ctx.fillRect(bx - 2, by - 2, 5, 5);
-  text(ctx, `REPS ${s.reps}`, VIEW_W / 2, 276, 8);
+  // How the last tap landed.
+  const fresh = s.repStart >= 0 && s.tick - s.lastPressTick < 30 && s.lastGap > 0;
+  const call = s.repStart < 0 ? "TAP TO DRIVE" : !fresh ? "" : s.beat >= SQUAT.perfectTempo ? "ON BEAT" : s.lastGap < SQUAT.tempoTicks ? "TOO EARLY" : "TOO LATE";
+  if (call) text(ctx, call, VIEW_W / 2, by + bh + 4, 5, call === "ON BEAT" ? BLUE : call === "TAP TO DRIVE" ? CREAM : BAD);
+  text(ctx, `REPS ${s.reps}`, VIEW_W / 2, 296, 7);
 }
 
 function drawDeadlift(ctx: CanvasRenderingContext2D, s: DeadliftState, character: Character) {
@@ -284,11 +296,19 @@ function demo(ctx: CanvasRenderingContext2D, lift: "bench" | "squat" | "deadlift
     ctx.fillRect(x + pos - 1, y - 2, 3, h + 4);
     if (hit) text(ctx, "TAP!", x + w + 12, y, 5, BLUE, "left");
   } else if (lift === "squat") {
+    // The beat meter at half speed: the marker fills, a tap lands in the blue, it resets.
     ctx.fillRect(x, y, w, h);
-    const fill = (t % 220) / 220;
+    const span = SQUAT.tempoTicks + SQUAT.tempoTolTicks;
+    const at = (v: number) => (v / span) * w;
+    ctx.fillStyle = TAUPE;
+    ctx.fillRect(x + at(SQUAT.tempoTicks - SQUAT.tempoTolTicks * 0.6), y, at(SQUAT.tempoTolTicks * 1.2), h);
+    const blue = SQUAT.tempoTolTicks * (1 - SQUAT.perfectTempo);
+    ctx.fillStyle = BLUE;
+    ctx.fillRect(x + at(SQUAT.tempoTicks - blue), y, at(blue * 2), h);
+    const since = (t / 2) % SQUAT.tempoTicks;
     ctx.fillStyle = CREAM;
-    ctx.fillRect(x, y, w * fill, h);
-    if (t % 24 < 12) text(ctx, "TAP TAP", x + w + 8, y, 5, BLUE, "left");
+    ctx.fillRect(x + at(since) - 1, y - 2, 3, h + 4);
+    if (since > SQUAT.tempoTicks - 4) text(ctx, "TAP!", x + w + 8, y, 5, BLUE, "left");
   } else {
     ctx.fillRect(x, y, w, h);
     ctx.fillStyle = TAUPE;
@@ -306,7 +326,7 @@ function drawIntro(ctx: CanvasRenderingContext2D, c: Circuit, character: Charact
   if (c.phase.kind !== "intro") return;
   const p = c.phase;
   // The explainer sits above the lifter's head (no HUD during the intro), never over it.
-  const top = FLOOR - poseHeight(character, "stance", liftScale) - 80;
+  const top = Math.max(4 - sceneShift, FLOOR - poseHeight(character, "stance", liftScale) - 80);
   panel(ctx, 10, top, VIEW_W - 20, 74, 0.97);
   text(ctx, LIFT_NAMES[p.lift], VIEW_W / 2, top + 8, 10, BLUE);
   wrap(ctx, LIFT_TIPS[p.lift], VIEW_W / 2, top + 24, 150, 5);
@@ -334,9 +354,11 @@ export function drawFrame(ctx: CanvasRenderingContext2D, c: Circuit, character: 
   // Tall phones get a taller canvas: the gym background covers it, the scene shifts down so its
   // floor lands on the background's floor (plus a little, to use the space), the lifter is drawn
   // a bit bigger, and the HUD stays pinned to the top.
-  const h = Math.max(VIEW_H, ctx.canvas.height / PIXEL_RATIO);
+  const h = ctx.canvas.height / PIXEL_RATIO;
   const extra = h - VIEW_H;
-  const sceneY = Math.round(Math.min(extra, FLOOR * (h / VIEW_H - 1) + extra * 0.35));
+  // Shorter-than-320 views (wider phones) shift the scene up; taller ones move it down onto the floor.
+  const sceneY = extra < 0 ? extra : Math.round(Math.min(extra, FLOOR * (h / VIEW_H - 1) + extra * 0.35));
+  sceneShift = sceneY;
   liftScale = SPRITE_SCALE * Math.min(1.2, 1 + extra / 350);
   ctx.setTransform(PIXEL_RATIO, 0, 0, PIXEL_RATIO, 0, 0);
   ctx.imageSmoothingEnabled = false;

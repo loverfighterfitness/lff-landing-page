@@ -22,6 +22,8 @@ export interface SquatState extends LiftStateBase {
   waitTicks: number;
   /** On-beat quality of the last tap (0..1) and the running sum/count for this rep. */
   beat: number;
+  /** Gap before the last tap, in ticks (early/late feedback). */
+  lastGap: number;
   beatSum: number;
   beatTaps: number;
 }
@@ -38,7 +40,7 @@ export const squat: LiftSim<SquatState> = {
     return {
       tick: 0, done: false, score: 0, combo: 0, perfects: 0, outcome: null, outcomeTick: 0,
       progress: 0, strain: 0, lastPressTick: -1000, idleTicks: 0, reps: 0, cooldown: 0, tutTriggers: 0, formBreaks: 0,
-      kg: SQUAT.startKg, bestKg: 0, repStart: -1, waitTicks: 0, beat: 0, beatSum: 0, beatTaps: 0,
+      kg: SQUAT.startKg, bestKg: 0, repStart: -1, waitTicks: 0, beat: 0, lastGap: 0, beatSum: 0, beatTaps: 0,
     };
   },
 
@@ -61,6 +63,8 @@ export const squat: LiftSim<SquatState> = {
       const gap = s.tick - s.lastPressTick;
       // The first tap of a rep sets the beat; after that, drive depends on staying on it.
       s.beat = s.repStart < 0 ? 0.6 : Math.max(0, 1 - Math.abs(gap - SQUAT.tempoTicks) / SQUAT.tempoTolTicks);
+      const drive = Math.max(SQUAT.minBeat, s.beat);
+      s.lastGap = s.repStart < 0 ? 0 : gap;
       if (s.repStart >= 0) {
         s.beatSum += s.beat;
         s.beatTaps++;
@@ -80,7 +84,7 @@ export const squat: LiftSim<SquatState> = {
         s.cooldown = SQUAT.formBreakCooldownTicks;
         return;
       }
-      s.progress += SQUAT.drivePerPress * SQUAT.driveDecayPerRep ** s.reps * s.beat;
+      s.progress += SQUAT.drivePerPress * SQUAT.driveDecayPerRep ** s.reps * drive;
       if (s.progress >= 1) {
         const tempo = s.beatTaps ? s.beatSum / s.beatTaps : 0;
         const perfect = s.strain <= SQUAT.perfectStrainMax && tempo >= SQUAT.perfectTempo;

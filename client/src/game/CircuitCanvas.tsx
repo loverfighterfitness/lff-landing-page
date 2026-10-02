@@ -7,7 +7,8 @@ import { attachInput } from "./input";
 import { PIXEL_RATIO } from "./poses";
 import { drawFrame, loadPoses, VIEW_H, VIEW_W } from "./render";
 
-/** Tallest view (logical px) before we letterbox; covers 9:21 phones. */
+/** View height range (logical px): wider phones go a little under 320, tall ones up to 9:21. */
+const MIN_VIEW_H = 300;
 const MAX_VIEW_H = 420;
 
 export type CircuitResult = { logs: RunLogs; scores: LiftScores; perfects: number };
@@ -40,7 +41,7 @@ export default function CircuitCanvas({
     const resize = () => {
       const vw = window.innerWidth;
       const vh = window.innerHeight;
-      const h = Math.round(Math.min(MAX_VIEW_H, Math.max(VIEW_H, (VIEW_W * vh) / vw)));
+      const h = Math.round(Math.min(MAX_VIEW_H, Math.max(MIN_VIEW_H, (VIEW_W * vh) / vw)));
       if (canvas.height !== h * PIXEL_RATIO) canvas.height = h * PIXEL_RATIO;
       const s = Math.min(vw / VIEW_W, vh / h);
       canvas.style.width = `${VIEW_W * s}px`;

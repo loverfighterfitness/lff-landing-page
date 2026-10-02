@@ -43,34 +43,29 @@ export const BENCH = {
 
 export const SQUAT = {
   maxTicks: 9000,
-  drivePerPress: 0.16,
-  gravityPerTick: 0.0015,
   /**
-   * Rhythm: a tap drives fully when it lands this many ticks after the last one (250 ms, 4 taps/s —
-   * slow enough to follow the on-screen beat meter), and loses drive the further off the beat it is,
-   * down to nothing at `tempoTolTicks` off.
+   * Mash to drive up, as fast as you like. Each tap's drive depends on rhythm: how close its gap is
+   * to your own recent tapping speed. Steady = full drive; erratic = barely moves the bar.
    */
-  tempoTicks: 25,
-  tempoTolTicks: 12,
-  /** Even a sloppy tap gives this much drive, so light reps can be ground out; the beat decides the heavy ones. */
-  minBeat: 0.3,
-  /** Average beat quality a rep needs to count as PERFECT. */
-  perfectTempo: 0.8,
+  drivePerPress: 0.09,
+  gravityPerTick: 0.002,
+  /** A tap this far off your running gap (as a fraction of it) gives the minimum drive. */
+  rhythmTol: 0.7,
+  /** How quickly the running gap follows your taps (0..1). */
+  rhythmFollow: 0.35,
+  /** Even a sloppy tap gives this much drive. */
+  minBeat: 0.2,
+  /** Average rhythm a rep needs to count as PERFECT. */
+  perfectTempo: 0.75,
   /** Heavier reps: each one gets less drive per tap and more pull back down. */
-  driveDecayPerRep: 0.975,
-  gravityGrowthPerRep: 1.02,
+  driveDecayPerRep: 0.97,
+  gravityGrowthPerRep: 1.03,
   /** A rep not locked out this long after its first tap is a failed rep, and the set ends. */
   repTimeLimitTicks: 600,
-  /** Presses closer together than this strain your form. */
-  fastPressTicks: 14,
-  strainPerFastPress: 0.2,
-  strainDecayPerTick: 0.004,
-  perfectStrainMax: 0.3,
   startKg: 50,
   perfectJump: 10,
   goodJump: 5,
   cooldownTicks: 40,
-  formBreakCooldownTicks: 60,
   /** Sitting in a rep this long without pressing = chasing "time under tension". */
   tutIdleTicks: 150,
   /** Chasing TUT costs kg off your best squat. */

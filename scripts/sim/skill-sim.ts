@@ -12,10 +12,10 @@ import type { SquatState } from "../../shared/game/squat";
 
 type Skill = { name: string; sigma: number; tapMu: number; tapSd: number };
 const SKILLS: Skill[] = [
-  { name: "elite", sigma: 1.2, tapMu: 25, tapSd: 1.2 },
-  { name: "strong", sigma: 2.5, tapMu: 25.5, tapSd: 2.5 },
-  { name: "average", sigma: 4, tapMu: 26.5, tapSd: 4 },
-  { name: "casual", sigma: 7, tapMu: 22, tapSd: 7 },
+  { name: "elite", sigma: 1.2, tapMu: 8, tapSd: 0.7 },
+  { name: "strong", sigma: 2.5, tapMu: 9, tapSd: 1.3 },
+  { name: "average", sigma: 4, tapMu: 10.5, tapSd: 2.2 },
+  { name: "casual", sigma: 7, tapMu: 10, tapSd: 3.5 },
 ];
 
 let rs = 1;

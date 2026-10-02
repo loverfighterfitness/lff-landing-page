@@ -222,34 +222,15 @@ function drawSquat(ctx: CanvasRenderingContext2D, s: SquatState, character: Char
   ctx.fillRect(VIEW_W - 17, my, 8, mh);
   ctx.fillStyle = CREAM;
   ctx.fillRect(9, my + mh * (1 - s.progress), 8, mh * s.progress);
-  ctx.fillStyle = s.strain > 0.6 ? BAD : s.strain > 0.3 ? TAUPE : STONE;
-  ctx.fillRect(VIEW_W - 17, my + mh * (1 - Math.min(1, s.strain)), 8, mh * Math.min(1, s.strain));
+  // Rhythm meter: how steady your mashing is. Steady drives hard; erratic barely moves the bar.
+  const flow = s.repStart >= 0 ? s.flow : 0;
+  ctx.fillStyle = flow >= SQUAT.perfectTempo ? BLUE : flow >= 0.4 ? CREAM : BAD;
+  ctx.fillRect(VIEW_W - 17, my + mh * (1 - flow), 8, mh * flow);
   text(ctx, "UP", 13, my - 10, 5);
-  text(ctx, "FORM", VIEW_W - 13, my - 10, 4);
-  // Beat meter, same language as the bench: after each tap the marker fills; tap again in the blue.
-  const bx = 20, by = 258, bw = 140, bh = 12;
-  const span = SQUAT.tempoTicks + SQUAT.tempoTolTicks;
-  const at = (t: number) => bx + (Math.min(span, t) / span) * bw;
-  const blue = SQUAT.tempoTolTicks * (1 - SQUAT.perfectTempo);
-  panel(ctx, bx - 4, by - 4, bw + 8, bh + 20);
-  ctx.fillStyle = INK;
-  ctx.fillRect(bx, by, bw, bh);
-  ctx.fillStyle = TAUPE;
-  ctx.fillRect(at(SQUAT.tempoTicks - SQUAT.tempoTolTicks * 0.6), by, at(SQUAT.tempoTicks + SQUAT.tempoTolTicks * 0.6) - at(SQUAT.tempoTicks - SQUAT.tempoTolTicks * 0.6), bh);
-  ctx.fillStyle = BLUE;
-  ctx.fillRect(at(SQUAT.tempoTicks - blue), by, at(SQUAT.tempoTicks + blue) - at(SQUAT.tempoTicks - blue), bh);
-  if (s.repStart >= 0 && s.cooldown === 0) {
-    const x = at(s.tick - s.lastPressTick);
-    ctx.fillStyle = INK;
-    ctx.fillRect(x - 2, by - 4, 5, bh + 8);
-    ctx.fillStyle = CREAM;
-    ctx.fillRect(x - 1, by - 3, 3, bh + 6);
-  }
-  // How the last tap landed.
-  const fresh = s.repStart >= 0 && s.tick - s.lastPressTick < 30 && s.lastGap > 0;
-  const call = s.repStart < 0 ? "TAP TO DRIVE" : !fresh ? "" : s.beat >= SQUAT.perfectTempo ? "ON BEAT" : s.lastGap < SQUAT.tempoTicks ? "TOO EARLY" : "TOO LATE";
-  if (call) text(ctx, call, VIEW_W / 2, by + bh + 4, 5, call === "ON BEAT" ? BLUE : call === "TAP TO DRIVE" ? CREAM : BAD);
-  text(ctx, `REPS ${s.reps}`, VIEW_W / 2, 296, 7);
+  text(ctx, "BEAT", VIEW_W - 13, my - 10, 4);
+  const call = s.repStart < 0 ? "MASH TO DRIVE" : s.flow >= SQUAT.perfectTempo ? "STEADY!" : s.flow < 0.4 ? "OFF RHYTHM" : "";
+  if (call) tag(ctx, call, VIEW_W / 2, 258, 7, call === "STEADY!" ? BLUE : call === "OFF RHYTHM" ? BAD : CREAM);
+  text(ctx, `REPS ${s.reps}`, VIEW_W / 2, 278, 8);
 }
 
 function drawDeadlift(ctx: CanvasRenderingContext2D, s: DeadliftState, character: Character) {
@@ -296,19 +277,13 @@ function demo(ctx: CanvasRenderingContext2D, lift: "bench" | "squat" | "deadlift
     ctx.fillRect(x + pos - 1, y - 2, 3, h + 4);
     if (hit) text(ctx, "TAP!", x + w + 12, y, 5, BLUE, "left");
   } else if (lift === "squat") {
-    // The beat meter at half speed: the marker fills, a tap lands in the blue, it resets.
+    // Steady mashing fills the bar.
     ctx.fillRect(x, y, w, h);
-    const span = SQUAT.tempoTicks + SQUAT.tempoTolTicks;
-    const at = (v: number) => (v / span) * w;
-    ctx.fillStyle = TAUPE;
-    ctx.fillRect(x + at(SQUAT.tempoTicks - SQUAT.tempoTolTicks * 0.6), y, at(SQUAT.tempoTolTicks * 1.2), h);
-    const blue = SQUAT.tempoTolTicks * (1 - SQUAT.perfectTempo);
-    ctx.fillStyle = BLUE;
-    ctx.fillRect(x + at(SQUAT.tempoTicks - blue), y, at(blue * 2), h);
-    const since = (t / 2) % SQUAT.tempoTicks;
+    const fill = (t % 220) / 220;
     ctx.fillStyle = CREAM;
-    ctx.fillRect(x + at(since) - 1, y - 2, 3, h + 4);
-    if (since > SQUAT.tempoTicks - 4) text(ctx, "TAP!", x + w + 8, y, 5, BLUE, "left");
+    ctx.fillRect(x, y, w * fill, h);
+    if (t % 16 < 8) text(ctx, "MASH", x + w + 8, y - 4, 5, CREAM, "left");
+    text(ctx, "STEADY", x + w + 8, y + 4, 5, BLUE, "left");
   } else {
     ctx.fillRect(x, y, w, h);
     ctx.fillStyle = TAUPE;

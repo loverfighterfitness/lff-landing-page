@@ -26,8 +26,8 @@ describe("client Circuit", () => {
           const s = c.current?.state as DeadliftState;
           c.setDown(s.cooldown === 0 && !(s.pulling && s.gauge >= 0.8));
         } else {
-          // A scrappy human: roughly on the squat beat.
-          c.setDown(phaseTick % 26 < 2);
+          // A human mashing at a steady pace.
+          c.setDown(phaseTick % 9 < 2);
         }
         phaseTick++;
       }

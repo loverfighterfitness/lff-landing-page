@@ -44,7 +44,7 @@ export const LIFT_NAMES: Record<LiftId, string> = { bench: "BENCH PRESS", squat:
 
 export const LIFT_TIPS: Record<LiftId, string> = {
   bench: "TAP in the zone. Dead centre = PERFECT = +10KG. Faster every rep. 3 misses = done.",
-  squat: "TAP on the beat to drive up. On beat = PERFECT = +10KG. Heavier every rep. Fail one = done.",
+  squat: "MASH to drive up, fast as you like but STEADY. Off-rhythm taps barely move it. Fail a rep = done.",
   deadlift: "HOLD to pull, RELEASE in the zone. Dead centre = +10KG. Miss the zone = done.",
 };
 

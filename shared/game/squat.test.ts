@@ -11,6 +11,9 @@ function tapEvery(r: LiftRunner<SquatState>, gap: number, until: (s: SquatState)
   }
 }
 
+/** A steady mashing pace (90 ms between taps). */
+const STEADY = 9;
+
 describe("squat", () => {
   it("ends after standing idle with no input", () => {
     const s = replayLift(squat, 1, []);
@@ -29,18 +32,23 @@ describe("squat", () => {
     expect(s.reps).toBe(0);
   });
 
-  it("on-beat taps drive harder than off-beat taps", () => {
-    const drive = (gap: number) => {
+  it("steady taps drive harder than erratic ones", () => {
+    const run = (gaps: number[]) => {
       const events = [];
-      for (let i = 0, t = 0; i < 4; i++, t += gap) events.push({ tick: t, down: true }, { tick: t + 3, down: false });
-      return replayLift({ ...squat, maxTicks: 3 * gap + 1 }, 1, events).progress;
+      let t = 0;
+      for (const g of gaps) {
+        events.push({ tick: t, down: true }, { tick: t + 2, down: false });
+        t += g;
+      }
+      return replayLift({ ...squat, maxTicks: t - gaps[gaps.length - 1] + 1 }, 1, events).progress;
     };
-    expect(drive(SQUAT.tempoTicks)).toBeGreaterThan(drive(SQUAT.tempoTicks + 4));
+    // Same number of taps in about the same time; one steady, one all over the place.
+    expect(run([9, 9, 9, 9, 9, 9])).toBeGreaterThan(run([5, 14, 6, 13, 5, 11]));
   });
 
-  it("steady presses drive a clean, perfect rep", () => {
+  it("steady mashing drives a clean, perfect rep", () => {
     const r = new LiftRunner(squat, 1);
-    tapEvery(r, SQUAT.tempoTicks, (s) => s.reps === 1);
+    tapEvery(r, STEADY, (s) => s.reps === 1);
     expect(r.state.reps).toBe(1);
     expect(r.state.outcome).toBe("perfect");
     expect(r.state.score).toBe(SQUAT.startKg);
@@ -48,18 +56,15 @@ describe("squat", () => {
     expect(r.state.combo).toBe(1);
   });
 
-  it("mashing as fast as possible breaks form and loses the rep", () => {
+  it("there's no speed cap: steady mashing at the fastest allowed rate still lifts", () => {
     const r = new LiftRunner(squat, 1);
-    tapEvery(r, 5, (s) => s.formBreaks > 0);
-    expect(r.state.formBreaks).toBe(1);
-    expect(r.state.reps).toBe(0);
-    expect(r.state.outcome).toBe("formbreak");
-    expect(r.state.progress).toBe(0);
+    tapEvery(r, 6, (s) => s.reps === 1);
+    expect(r.state.reps).toBe(1);
   });
 
   it("grinding a rep slowly triggers the TUT trap", () => {
     const r = new LiftRunner(squat, 1);
-    tapEvery(r, SQUAT.tempoTicks, (s) => s.progress > 0.5);
+    tapEvery(r, STEADY, (s) => s.progress > 0.5);
     idle(r, SQUAT.tutIdleTicks);
     expect(r.state.tutTriggers).toBe(1);
     expect(r.state.outcome).toBe("tut");
@@ -69,9 +74,9 @@ describe("squat", () => {
 
   it("the TUT penalty comes off your best squat", () => {
     const r = new LiftRunner(squat, 1);
-    tapEvery(r, SQUAT.tempoTicks, (s) => s.reps === 1);
+    tapEvery(r, STEADY, (s) => s.reps === 1);
     idle(r, SQUAT.cooldownTicks);
-    tapEvery(r, SQUAT.tempoTicks, (s) => s.progress > 0.5);
+    tapEvery(r, STEADY, (s) => s.progress > 0.5);
     idle(r, SQUAT.tutIdleTicks);
     expect(r.state.score).toBe(SQUAT.startKg - SQUAT.tutPenaltyKg);
     expect(r.state.combo).toBe(0);

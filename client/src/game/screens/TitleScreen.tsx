@@ -22,6 +22,32 @@ function useShowOff() {
   return show;
 }
 
+/** Big live countdown to the end of the comp: the urgency is the point. */
+function Countdown({ endsAt }: { endsAt: number }) {
+  const [now, setNow] = useState(Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, []);
+  const ms = Math.max(0, endsAt - now);
+  const d = Math.floor(ms / 86_400_000);
+  const h = Math.floor((ms % 86_400_000) / 3_600_000);
+  const m = Math.floor((ms % 3_600_000) / 60_000);
+  const sec = Math.floor((ms % 60_000) / 1000);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return (
+    <div className="flex flex-col items-center gap-1" style={{ marginTop: -8 }}>
+      <span className="text-[8px]" style={{ color: CREAM, textShadow: `2px 2px 0 ${INK}` }}>
+        COMP ENDS IN
+      </span>
+      <span className="text-base" style={{ color: BLUE, textShadow: `2px 2px 0 ${INK}`, letterSpacing: 1 }}>
+        {d > 0 ? `${d}D ` : ""}
+        {pad(h)}:{pad(m)}:{pad(sec)}
+      </span>
+    </div>
+  );
+}
+
 export default function TitleScreen({ onPlay, onBoard }: { onPlay: () => void; onBoard: () => void }) {
   const [muted, setMutedState] = useState(isMuted());
   const show = useShowOff();
@@ -43,14 +69,13 @@ export default function TitleScreen({ onPlay, onBoard }: { onPlay: () => void; o
           {comp.open ? (
             <>
               HEAVIEST TOTAL ON <span style={{ color: BLUE }}>TEAM LFF</span> WINS A FREE TEE
-              <br />
-              {comp.line}
             </>
           ) : (
             <span style={{ color: BLUE }}>{comp.line}</span>
           )}
         </span>
       </p>
+      {comp.endsAt && <Countdown endsAt={comp.endsAt} />}
 
       {/* The roster on stage, overlapping like a fighting-game line-up (coach in front). */}
       <div className="w-full flex items-end justify-center" style={{ height: 290 }}>

@@ -6,7 +6,7 @@ import { jingle } from "../audio";
 import type { CircuitResult } from "../CircuitCanvas";
 import { CHARACTER_INFO, COACHING_CTA, IG_DM_URL, IG_PROFILE_URL, PRACTICE_LINE, RUBY_PODIUM_LINE, SHOP_CTA } from "../content";
 import { renderScoreCard, shareScoreCard } from "../scoreCard";
-import { BAD, BLUE } from "../theme";
+import { BAD, BLUE, CREAM } from "../theme";
 import { ArcadeTitle, Fighter, Panel, PixelButton, Screen } from "./ui";
 
 const SAVED_KEY = "lff-gym-entrant";
@@ -45,12 +45,15 @@ export default function ResultsScreen({
   const quote = info.winQuotes[total % info.winQuotes.length];
   const [sharing, setSharing] = useState(false);
   const [newPb, setNewPb] = useState(false);
+  // This device's best before this run (0 on a first run).
+  const [prevBest, setPrevBest] = useState(0);
 
   useEffect(() => {
     track("game_finish", Math.min(86400, total));
     // Personal best (per device): play the LFF sting.
     try {
       const best = Number(localStorage.getItem("lff-gym-pb") ?? 0);
+      setPrevBest(best);
       if (total > best) {
         localStorage.setItem("lff-gym-pb", String(total));
         if (best > 0) {
@@ -110,7 +113,12 @@ export default function ResultsScreen({
       <Fighter id={character} pose="victory" height={190} />
       {newPb && (
         <p className="text-[10px]" style={{ color: BLUE, animation: "lff-blink 0.6s steps(1) 6" }}>
-          NEW PB
+          NEW PB{prevBest > 0 ? ` · +${total - prevBest}KG` : ""}
+        </p>
+      )}
+      {!newPb && prevBest > total && (
+        <p className="text-[9px] text-center leading-loose" style={{ color: CREAM, textShadow: "2px 2px 0 #000" }}>
+          <span style={{ color: BLUE }}>{prevBest - total}KG</span> OFF YOUR PB ({prevBest}KG). GO AGAIN.
         </p>
       )}
       <p className="text-[10px] text-center leading-loose" style={{ textShadow: "2px 2px 0 #000" }}>"{quote}" - {info.name}</p>

@@ -13,7 +13,7 @@ const OG_IMAGE =
 
 // Every path the client router renders. Anything else gets a real 404 status.
 const KNOWN_PATHS = new Set(["", "/calculator", "/admin", "/admin/leads", "/shop", "/program", "/game", "/success", "/404"]);
-const NOINDEX_PATHS = new Set(["/admin", "/admin/leads", "/success", "/404"]);
+const NOINDEX_PATHS = new Set(["/admin", "/admin/leads", "/success", "/404", "/game"]);
 
 export function routeStatus(path: string): { status: number; noindex: boolean } {
   if (path.startsWith("/ref/")) return { status: 200, noindex: true };

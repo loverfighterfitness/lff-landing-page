@@ -122,6 +122,13 @@ const ROUTE_META: Record<string, RouteMeta> = {
       "An upper/lower split run twice a week, every exercise chosen through the four pillars of hypertrophy and progressed every week. Instant PDF download.",
     url: "https://www.loverfighterfitness.com/program",
   },
+  // Unlisted game: shared by link in IG DMs, so the preview sells it.
+  "/game": {
+    title: "LFF Lover Fighter | Outlift Team LFF, Win a Free Tee",
+    description: "Bench, squat, deadlift. 16-bit gym game from Lover Fighter Fitness. Heaviest total on the leaderboard wins a free LFF tee.",
+    url: "https://www.loverfighterfitness.com/game",
+    image: "https://www.loverfighterfitness.com/game/og.png?v=2026-10-02d",
+  },
   "/calculator": {
     title: "Macro Calculator | Lover Fighter Fitness",
     description:

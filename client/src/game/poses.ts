@@ -46,7 +46,7 @@ export function poseUrl(id: SpriteId, pose: Pose): string {
 /** Canvas pixels per logical pixel (the scene is laid out on a 180×320 grid). */
 export const PIXEL_RATIO = 3;
 /** Sprite pixels are drawn 2×2 on the canvas. */
-const SPRITE_SCALE = 2;
+export const SPRITE_SCALE = 2;
 
 type PoseMeta = { w: number; h: number; bar?: { y: number; x0: number; x1: number }; barEnd?: { x: number; y: number } };
 
@@ -121,8 +121,10 @@ export function drawPose(
   const s = opts.scale ?? SPRITE_SCALE;
   const w = img.naturalWidth * s;
   const h = img.naturalHeight * s;
-  const px = Math.round(x * PIXEL_RATIO - (opts.anchor === "left" ? 0 : w / 2));
-  const py = Math.round(floorY * PIXEL_RATIO - h);
+  // Honour the caller's transform (the scene is shifted down on tall phones), then draw at native px.
+  const t = ctx.getTransform();
+  const px = Math.round(t.a * x + t.e - (opts.anchor === "left" ? 0 : w / 2));
+  const py = Math.round(t.d * floorY + t.f - h);
   ctx.save();
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.imageSmoothingEnabled = false;
@@ -176,7 +178,7 @@ export function platesFor(kg: number) {
  * Draw plates on both ends of a front-view bar, matching `kg`. Skipped for art that has plates
  * drawn in (no bar metadata).
  */
-export function drawPlatesFront(ctx: CanvasRenderingContext2D, placed: Placed | null, kg: number) {
+export function drawPlatesFront(ctx: CanvasRenderingContext2D, placed: Placed | null, kg: number, bounce = 0) {
   const bar = placed?.meta?.bar;
   if (!placed || !bar) return;
   const { px, py, s } = placed;
@@ -187,18 +189,20 @@ export function drawPlatesFront(ctx: CanvasRenderingContext2D, placed: Placed | 
     // Plates load from the collar (about a quarter in from each end) outwards to the sleeve end.
     const sleeve = Math.round((bar.x1 - bar.x0) * 0.24);
     let x = side < 0 ? bar.x0 + sleeve : bar.x1 - sleeve;
-    for (const p of plates) {
+    plates.forEach((p, i) => {
       const left = side < 0 ? x - p.t : x;
+      // Heavy bars whip after a rep: the outer plates move most.
+      const yy = py + Math.round(bounce * (1 + i * 0.35)) * s;
       ctx.fillStyle = "#2A1F15";
-      ctx.fillRect(px + (left - 0.5) * s, py + (bar.y - p.h / 2 - 0.5) * s, (p.t + 1) * s, (p.h + 1) * s);
+      ctx.fillRect(px + (left - 0.5) * s, yy + (bar.y - p.h / 2 - 0.5) * s, (p.t + 1) * s, (p.h + 1) * s);
       ctx.fillStyle = PLATE_BODY;
-      ctx.fillRect(px + left * s, py + (bar.y - p.h / 2) * s, p.t * s, p.h * s);
+      ctx.fillRect(px + left * s, yy + (bar.y - p.h / 2) * s, p.t * s, p.h * s);
       // Brown band across the big plates, a brown edge on the small ones.
       ctx.fillStyle = PLATE_BAND;
-      if (p.kg >= 15) ctx.fillRect(px + left * s, py + (bar.y - 4) * s, p.t * s, 2 * s);
-      else ctx.fillRect(px + left * s, py + (bar.y - p.h / 2) * s, p.t * s, s);
+      if (p.kg >= 15) ctx.fillRect(px + left * s, yy + (bar.y - 4) * s, p.t * s, 2 * s);
+      else ctx.fillRect(px + left * s, yy + (bar.y - p.h / 2) * s, p.t * s, s);
       x = side < 0 ? x - p.t - 0.5 : x + p.t + 0.5;
-    }
+    });
   }
   ctx.restore();
 }

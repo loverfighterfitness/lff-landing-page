@@ -15,6 +15,9 @@ const KEYFRAMES = `
 @keyframes lff-pop { 0% { transform: scale(0.6); opacity: 0 } 70% { transform: scale(1.08) } 100% { transform: scale(1); opacity: 1 } }
 @keyframes lff-pulse { 0%, 100% { box-shadow: 0 0 0 2px ${BLUE}, 0 0 12px ${BLUE} } 50% { box-shadow: 0 0 0 2px ${BLUE}, 0 0 2px ${BLUE} } }
 @keyframes lff-pan { 0% { background-position: 50% 0% } 100% { background-position: 50% 100% } }
+@keyframes lff-confetti { 0% { transform: translate(0, 0); opacity: 1 } 100% { transform: translate(var(--dx), var(--dy)) rotate(200deg); opacity: 0 } }
+@keyframes lff-cheer { 0%, 100% { transform: translateY(0) } 30% { transform: translateY(-14px) } 55% { transform: translateY(0) } 75% { transform: translateY(-6px) } }
+@keyframes lff-handover { 0% { transform: translate(28px, -170px) scale(0.12) rotate(-28deg); opacity: 0 } 15% { opacity: 1 } 70% { transform: translate(0, 8px) scale(1.04) rotate(3deg) } 100% { transform: translate(0, 0) scale(1) rotate(0) } }
 `;
 
 /** Full-screen game page over the pixel gym, dimmed so text reads. */

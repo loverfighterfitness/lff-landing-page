@@ -25,7 +25,7 @@ describe("squat", () => {
   it("a rep not locked out in time is a failed rep and ends the set", () => {
     // Taps far too slow to drive the bar up: the rep clock runs out.
     const events = [];
-    for (let t = 0; t < SQUAT.repTimeLimitTicks + 100; t += 40) events.push({ tick: t, down: true }, { tick: t + 3, down: false });
+    for (let t = 0; t < SQUAT.repTimeLimitTicks + 200; t += 120) events.push({ tick: t, down: true }, { tick: t + 3, down: false });
     const s = replayLift(squat, 1, events);
     expect(s.done).toBe(true);
     expect(s.outcome).toBe("miss");

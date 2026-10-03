@@ -1,5 +1,5 @@
 import type { Character } from "@shared/game/types";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { track } from "@/lib/analytics";
 import { trpc } from "@/lib/trpc";
 import { jingle } from "../audio";
@@ -9,20 +9,11 @@ import { renderScoreCard, shareScoreCard } from "../scoreCard";
 import { BAD, BLUE, CREAM } from "../theme";
 import { ArcadeTitle, Fighter, Panel, PixelButton, Screen } from "./ui";
 
-const SAVED_KEY = "lff-gym-entrant";
-
-function loadSaved(): { handle: string } {
-  try {
-    return { handle: String((JSON.parse(localStorage.getItem(SAVED_KEY) ?? "") as { handle?: string }).handle ?? "") };
-  } catch {
-    return { handle: "" };
-  }
-}
-
 export default function ResultsScreen({
   character,
   runId,
   eventOpen,
+  handle,
   result,
   onAgain,
   onPosted,
@@ -30,12 +21,13 @@ export default function ResultsScreen({
   character: Character;
   runId: string | null;
   eventOpen: boolean;
+  /** Instagram handle entered at the start; the run posts under it automatically. */
+  handle: string;
   result: CircuitResult;
   onAgain: () => void;
   onPosted: (handle: string, rank: number | null) => void;
 }) {
-  const saved = loadSaved();
-  const [handle, setHandle] = useState(saved.handle);
+  const [posted, setPosted] = useState<{ rank: number | null } | null>(null);
   const [error, setError] = useState("");
   const submit = trpc.game.submitRun.useMutation();
   const total = result.scores.bench + result.scores.squat + result.scores.deadlift;
@@ -77,31 +69,30 @@ export default function ResultsScreen({
     }
   };
 
-  const post = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!runId) return;
+  const post = async () => {
+    if (!runId || !handle || submit.isPending) return;
     setError("");
-    if (!/^[A-Za-z0-9._]{1,30}$/.test(handle.trim().replace(/^@/, ""))) {
-      setError("Enter your Instagram handle (letters, numbers, . and _)");
-      return;
-    }
     try {
       const res = await submit.mutateAsync({ runId, handle, logs: result.logs });
       track("game_post", Math.min(86400, total));
-      try {
-        localStorage.setItem(SAVED_KEY, JSON.stringify({ handle }));
-      } catch {
-        /* ignore */
-      }
-      onPosted(handle.trim().replace(/^@/, ""), res.rank);
+      setPosted({ rank: res.rank });
     } catch (err) {
       // Network failures keep the run here so the player can retry.
       const msg = err instanceof Error ? err.message : "";
-      setError(msg && !msg.startsWith("[") && !msg.startsWith("{") ? msg : "Couldn't post your score. Check your Instagram handle.");
+      setError(msg && !msg.startsWith("[") && !msg.startsWith("{") ? msg : "Couldn't post your score.");
     }
   };
 
-  const canPost = !!runId && eventOpen;
+  // Every run in an open comp posts itself under the handle entered at the start.
+  const autoPosted = useRef(false);
+  useEffect(() => {
+    if (autoPosted.current || !runId || !eventOpen || !handle) return;
+    autoPosted.current = true;
+    void post();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const canPost = !!runId && eventOpen && !!handle;
 
   return (
     <Screen>
@@ -134,24 +125,31 @@ export default function ResultsScreen({
 
       {canPost ? (
         <Panel>
-        <form onSubmit={post} className="w-full flex flex-col gap-3 text-[10px]">
-          <p className="leading-loose">Post your total. The heaviest total when the comp closes wins a free tee.</p>
-          <input
-            required
-            value={handle}
-            onChange={(e) => setHandle(e.target.value)}
-            placeholder="@instagram"
-            className="w-full px-3 py-3 text-[10px]"
-            style={{ backgroundColor: "#0d0b09", color: "#EAE6D2", border: "2px solid #EAE6D2", fontFamily: "inherit" }}
-          />
-          <p className="text-[8px] leading-relaxed opacity-70">
-            Use your real handle: the winner gets a DM from @loverfighterfitness.
-          </p>
-          {error && <p style={{ color: BAD }} className="leading-relaxed">{error}</p>}
-          <PixelButton type="submit" disabled={submit.isPending}>
-            {submit.isPending ? "POSTING..." : error ? "RETRY" : "POST SCORE"}
-          </PixelButton>
-        </form>
+          <div className="w-full flex flex-col gap-3 text-[10px] text-center leading-loose">
+            {posted ? (
+              <>
+                <p>
+                  POSTED AS <span style={{ color: BLUE }}>@{handle}</span>
+                  {posted.rank ? (
+                    <>
+                      <br />
+                      <span className="text-sm" style={{ color: BLUE }}>RANK #{posted.rank}</span>
+                    </>
+                  ) : null}
+                </p>
+                <PixelButton onClick={() => onPosted(handle, posted.rank)}>SEE LEADERBOARD</PixelButton>
+              </>
+            ) : error ? (
+              <>
+                <p style={{ color: BAD }}>{error}</p>
+                <PixelButton onClick={() => void post()} disabled={submit.isPending}>
+                  {submit.isPending ? "POSTING..." : "RETRY"}
+                </PixelButton>
+              </>
+            ) : (
+              <p>POSTING YOUR TOTAL AS <span style={{ color: BLUE }}>@{handle}</span>...</p>
+            )}
+          </div>
         </Panel>
       ) : (
         <p className="text-[10px] text-center leading-loose opacity-80">

@@ -11,10 +11,14 @@ export default function SelectScreen({
   onPick,
   onBack,
   starting,
+  handle,
+  onChangeHandle,
 }: {
   onPick: (c: Character) => void;
   onBack: () => void;
   starting: boolean;
+  handle: string;
+  onChangeHandle: () => void;
 }) {
   const [picked, setPicked] = useState<Character>("levi");
   const [pose, setPose] = useState<Pose>("stance");
@@ -56,6 +60,11 @@ export default function SelectScreen({
         <p className="text-[8px] -mt-3" style={{ color: BLUE, textShadow: `2px 2px 0 ${INK}` }}>
           {comp.line}
         </p>
+      )}
+      {handle && (
+        <button type="button" onClick={onChangeHandle} className="text-[8px] -mt-2" style={{ color: CREAM, textShadow: `2px 2px 0 ${INK}` }}>
+          LIFTING AS <span style={{ color: BLUE }}>@{handle}</span> · <span className="underline">CHANGE</span>
+        </button>
       )}
 
       {/* Stage: the selected fighter, big. */}

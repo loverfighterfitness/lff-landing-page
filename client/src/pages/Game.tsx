@@ -4,6 +4,8 @@ import { trpc } from "@/lib/trpc";
 import { startMusic, stopMusic } from "@/game/audio";
 import CircuitCanvas, { type CircuitResult } from "@/game/CircuitCanvas";
 import { loadPoses } from "@/game/render";
+import { savedHandle } from "@/game/player";
+import HandleScreen from "@/game/screens/HandleScreen";
 import { track } from "@/lib/analytics";
 import { renderScoreCard, shareScoreCard } from "@/game/scoreCard";
 import Leaderboard from "@/game/screens/Leaderboard";
@@ -17,6 +19,7 @@ const FONT_HREF = "https://fonts.googleapis.com/css2?family=Press+Start+2P&displ
 type Run = { character: Character; seed: number; runId: string | null; eventOpen: boolean };
 type View =
   | { name: "title" }
+  | { name: "handle" }
   | { name: "select" }
   | { name: "play"; run: Run }
   | { name: "results"; run: Run; result: CircuitResult }
@@ -24,6 +27,8 @@ type View =
 
 export default function Game() {
   const [view, setView] = useState<View>({ name: "title" });
+  // Instagram handle, asked once before the first run and remembered on this device.
+  const [handle, setHandle] = useState(savedHandle);
   const startRun = trpc.game.startRun.useMutation();
 
   // Pixel font only loads on /game.
@@ -61,9 +66,28 @@ export default function Game() {
 
   switch (view.name) {
     case "title":
-      return <TitleScreen onPlay={() => setView({ name: "select" })} onBoard={() => setView({ name: "board" })} />;
+      return <TitleScreen onPlay={() => setView(handle ? { name: "select" } : { name: "handle" })} onBoard={() => setView({ name: "board" })} />;
+    case "handle":
+      return (
+        <HandleScreen
+          initial={handle}
+          onDone={(h) => {
+            setHandle(h);
+            setView({ name: "select" });
+          }}
+          onBack={() => setView({ name: "title" })}
+        />
+      );
     case "select":
-      return <SelectScreen onPick={begin} onBack={() => setView({ name: "title" })} starting={startRun.isPending} />;
+      return (
+        <SelectScreen
+          onPick={begin}
+          onBack={() => setView({ name: "title" })}
+          starting={startRun.isPending}
+          handle={handle}
+          onChangeHandle={() => setView({ name: "handle" })}
+        />
+      );
     case "play":
       return (
         <CircuitCanvas
@@ -79,6 +103,7 @@ export default function Game() {
           character={view.run.character}
           runId={view.run.runId}
           eventOpen={view.run.eventOpen}
+          handle={handle}
           result={view.result}
           onAgain={() => begin(view.run.character)}
           onPosted={(handle, rank) => setView({ name: "board", highlight: handle, posted: { character: view.run.character, result: view.result, rank } })}

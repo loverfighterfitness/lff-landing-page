@@ -92,7 +92,7 @@ export default function GameTab() {
             <table className="w-full text-xs">
               <thead style={muted}>
                 <tr className="text-left">
-                  <th className="py-1 pr-2">Handle</th><th className="pr-2">Email</th><th className="pr-2">Lifter</th>
+                  <th className="py-1 pr-2">Handle</th><th className="pr-2">Lifter</th>
                   <th className="pr-2 text-right">Bench</th><th className="pr-2 text-right">Squat</th><th className="pr-2 text-right">DL</th>
                   <th className="pr-2 text-right">Total</th><th className="pr-2">When</th><th />
                 </tr>
@@ -101,7 +101,6 @@ export default function GameTab() {
                 {runs.map((r) => (
                   <tr key={r.id} style={{ opacity: r.removed ? 0.4 : 1, borderTop: "1px solid rgba(234,230,210,0.12)" }}>
                     <td className="py-1.5 pr-2">@{r.handle}</td>
-                    <td className="pr-2">{r.email}{r.marketingOptIn ? " ✓" : ""}</td>
                     <td className="pr-2 capitalize">{r.character}</td>
                     <td className="pr-2 text-right">{r.benchScore}</td>
                     <td className="pr-2 text-right">{r.squatScore}</td>

@@ -56,8 +56,6 @@ function perfectBenchLogs() {
 const submission = (logs = perfectBenchLogs()) => ({
   runId: RUN_ID,
   handle: "@ruby.lifts",
-  email: "Ruby@Example.com",
-  marketingOptIn: true,
   logs,
 });
 
@@ -113,7 +111,7 @@ describe("game.submitRun", () => {
 
   it("re-scores the run server-side and saves it", async () => {
     db.getEventRuns.mockResolvedValue([
-      { email: "ruby@example.com", handle: "ruby.lifts", character: "ruby", total: BENCH.startKg } as never,
+      { handle: "Ruby.Lifts", character: "ruby", total: BENCH.startKg } as never,
     ]);
     const res = await publicCaller().game.submitRun(submission());
     expect(res.total).toBe(BENCH.startKg);
@@ -122,13 +120,13 @@ describe("game.submitRun", () => {
       expect.objectContaining({
         eventId: 1,
         handle: "ruby.lifts",
-        email: "ruby@example.com",
+        email: "",
         character: "ruby",
         benchScore: BENCH.startKg,
         total: BENCH.startKg,
         runTokenId: RUN_ID,
         inputLog: JSON.stringify(submission().logs),
-        marketingOptIn: true,
+        marketingOptIn: false,
       }),
     );
   });
@@ -173,22 +171,22 @@ describe("game.submitRun", () => {
     await expect(publicCaller().game.submitRun({ ...submission(), handle: "not a handle!" })).rejects.toThrow();
   });
 
-  it("rate-limits a single email", async () => {
-    for (let i = 0; i < 30; i++) await publicCaller().game.submitRun(submission());
+  it("rate-limits a single handle (whatever its case or @)", async () => {
+    for (let i = 0; i < 30; i++) await publicCaller().game.submitRun({ ...submission(), handle: i % 2 ? "@Ruby.Lifts" : "ruby.lifts" });
     await expect(publicCaller().game.submitRun(submission())).rejects.toThrow(/too many runs/i);
   });
 
-  it("does not rate-limit different emails from one IP", async () => {
+  it("does not rate-limit different handles from one IP", async () => {
     for (let i = 0; i < 31; i++) {
       await expect(
-        publicCaller().game.submitRun({ ...submission(), email: `player${i}@example.com` }),
+        publicCaller().game.submitRun({ ...submission(), handle: `player${i}` }),
       ).resolves.toBeDefined();
     }
   });
 });
 
 describe("game.leaderboard", () => {
-  it("never exposes emails", async () => {
+  it("only exposes handle, lifter and total", async () => {
     db.getEventRuns.mockResolvedValue([
       { email: "secret@example.com", handle: "amy", character: "levi", total: 999 } as never,
     ]);
@@ -210,7 +208,7 @@ describe("game.admin", () => {
     await expect(publicCaller().game.admin.overview()).rejects.toThrow();
   });
 
-  it("shows the current event's runs including emails", async () => {
+  it("shows the current event's runs", async () => {
     db.listEventRunsForAdmin.mockResolvedValue([{ id: 7, email: "a@x.com" } as never]);
     const res = await adminCaller().game.admin.overview();
     expect(res.event?.name).toBe("Launch comp");
@@ -234,9 +232,9 @@ describe("game.admin", () => {
 
   it("exports entrants as CSV", async () => {
     db.getEventRuns.mockResolvedValue([
-      { email: "a@x.com", handle: "amy", character: "ruby", total: 10, marketingOptIn: true } as never,
+      { handle: "amy", character: "ruby", total: 10 } as never,
     ]);
     const { csv } = await adminCaller().game.admin.entrantsCsv();
-    expect(csv).toContain('"amy","a@x.com","ruby",10,1,yes');
+    expect(csv).toContain('"amy","ruby",10,1');
   });
 });

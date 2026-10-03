@@ -6,7 +6,7 @@ import { CHARACTERS } from "@shared/game/types";
 import { checkRun } from "@shared/game/validate";
 import { clientIp } from "../_core/systemRouter";
 import { adminProcedure, publicProcedure, router } from "../_core/trpc";
-import { buildBoard, entrantsCsv } from "../gameBoard";
+import { buildBoard, entrantsCsv, playerKey } from "../gameBoard";
 import {
   createRunToken,
   getActiveEvent,
@@ -83,16 +83,14 @@ export const gameRouter = router({
       z.object({
         runId: z.string().uuid(),
         handle: handleSchema,
-        email: z.string().trim().toLowerCase().email().max(320),
-        marketingOptIn: z.boolean(),
         logs: z.object({ bench: logSchema, squat: logSchema, deadlift: logSchema }),
       }),
     )
     .mutation(async ({ ctx, input }) => {
       const now = Date.now();
       const ip = clientIp(ctx.req);
-      // Per email only: the Worker may make every visitor share one IP, so an IP limit would lock everyone out.
-      if (overLimit(`email:${input.email}`, now)) {
+      // Per handle only: the Worker may make every visitor share one IP, so an IP limit would lock everyone out.
+      if (overLimit(`handle:${playerKey(input.handle)}`, now)) {
         throw new TRPCError({ code: "TOO_MANY_REQUESTS", message: "Too many runs. Rest up and go again in a bit." });
       }
 
@@ -116,8 +114,9 @@ export const gameRouter = router({
       await insertRun({
         eventId: event.id,
         handle: input.handle,
-        email: input.email,
-        marketingOptIn: input.marketingOptIn,
+        // Entry is by Instagram handle only; the winner is contacted by DM.
+        email: "",
+        marketingOptIn: false,
         character: token.character,
         benchScore: check.scores.bench,
         squatScore: check.scores.squat,
@@ -129,7 +128,7 @@ export const gameRouter = router({
       });
 
       const board = buildBoard(await getEventRuns(event.id));
-      return { total: check.total, scores: check.scores, rank: board.ranks.get(input.email) ?? null };
+      return { total: check.total, scores: check.scores, rank: board.ranks.get(playerKey(input.handle)) ?? null };
     }),
 
   leaderboard: publicProcedure.query(async () => {

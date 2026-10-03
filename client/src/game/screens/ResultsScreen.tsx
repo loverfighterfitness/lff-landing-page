@@ -11,11 +11,11 @@ import { ArcadeTitle, Fighter, Panel, PixelButton, Screen } from "./ui";
 
 const SAVED_KEY = "lff-gym-entrant";
 
-function loadSaved(): { handle: string; email: string } {
+function loadSaved(): { handle: string } {
   try {
-    return JSON.parse(localStorage.getItem(SAVED_KEY) ?? "") as { handle: string; email: string };
+    return { handle: String((JSON.parse(localStorage.getItem(SAVED_KEY) ?? "") as { handle?: string }).handle ?? "") };
   } catch {
-    return { handle: "", email: "" };
+    return { handle: "" };
   }
 }
 
@@ -36,8 +36,6 @@ export default function ResultsScreen({
 }) {
   const saved = loadSaved();
   const [handle, setHandle] = useState(saved.handle);
-  const [email, setEmail] = useState(saved.email);
-  const [optIn, setOptIn] = useState(false);
   const [error, setError] = useState("");
   const submit = trpc.game.submitRun.useMutation();
   const total = result.scores.bench + result.scores.squat + result.scores.deadlift;
@@ -88,10 +86,10 @@ export default function ResultsScreen({
       return;
     }
     try {
-      const res = await submit.mutateAsync({ runId, handle, email, marketingOptIn: optIn, logs: result.logs });
+      const res = await submit.mutateAsync({ runId, handle, logs: result.logs });
       track("game_post", Math.min(86400, total));
       try {
-        localStorage.setItem(SAVED_KEY, JSON.stringify({ handle, email }));
+        localStorage.setItem(SAVED_KEY, JSON.stringify({ handle }));
       } catch {
         /* ignore */
       }
@@ -99,7 +97,7 @@ export default function ResultsScreen({
     } catch (err) {
       // Network failures keep the run here so the player can retry.
       const msg = err instanceof Error ? err.message : "";
-      setError(msg && !msg.startsWith("[") && !msg.startsWith("{") ? msg : "Couldn't post your score. Check your handle and email.");
+      setError(msg && !msg.startsWith("[") && !msg.startsWith("{") ? msg : "Couldn't post your score. Check your Instagram handle.");
     }
   };
 
@@ -146,21 +144,8 @@ export default function ResultsScreen({
             className="w-full px-3 py-3 text-[10px]"
             style={{ backgroundColor: "#0d0b09", color: "#EAE6D2", border: "2px solid #EAE6D2", fontFamily: "inherit" }}
           />
-          <input
-            required
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="email (private, only to contact the winner)"
-            className="w-full px-3 py-3 text-[10px]"
-            style={{ backgroundColor: "#0d0b09", color: "#EAE6D2", border: "2px solid #EAE6D2", fontFamily: "inherit" }}
-          />
-          <label className="flex items-start gap-2 leading-relaxed">
-            <input type="checkbox" checked={optIn} onChange={(e) => setOptIn(e.target.checked)} />
-            Send me LFF training tips and drops
-          </label>
           <p className="text-[8px] leading-relaxed opacity-70">
-            Your email stays private. It's only used to contact the winner, plus LFF tips if you ticked the box. Never shared.
+            Use your real handle: the winner gets a DM from @loverfighterfitness.
           </p>
           {error && <p style={{ color: BAD }} className="leading-relaxed">{error}</p>}
           <PixelButton type="submit" disabled={submit.isPending}>

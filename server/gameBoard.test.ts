@@ -1,8 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { buildBoard, entrantsCsv } from "./gameBoard";
 
-const run = (email: string, handle: string, character: string, total: number, marketingOptIn = false) =>
-  ({ email, handle, character, total, marketingOptIn });
+const run = (_email: string, handle: string, character: string, total: number) => ({ handle, character, total });
 
 describe("tie-breaks", () => {
   const at = (email: string, handle: string, createdAt: string, id: number) =>
@@ -23,13 +22,13 @@ describe("buildBoard", () => {
     const board = buildBoard([
       run("a@x.com", "amy", "ruby", 500),
       run("b@x.com", "bob", "benny", 900),
-      run("A@x.com", "amy", "levi", 700),
+      run("A@x.com", "@Amy", "levi", 700),
     ]);
     expect(board.rows).toEqual([
       { rank: 1, handle: "bob", character: "benny", total: 900 },
-      { rank: 2, handle: "amy", character: "levi", total: 700 },
+      { rank: 2, handle: "@Amy", character: "levi", total: 700 },
     ]);
-    expect(board.ranks.get("a@x.com")).toBe(2);
+    expect(board.ranks.get("amy")).toBe(2);
   });
 
   it("totals players and top score per team", () => {
@@ -43,16 +42,16 @@ describe("buildBoard", () => {
 });
 
 describe("entrantsCsv", () => {
-  it("one row per player with best score, run count and opt-in", () => {
+  it("one row per player with best score and run count", () => {
     const csv = entrantsCsv([
-      run("a@x.com", "amy", "ruby", 500, false),
-      run("a@x.com", "amy", "ruby", 800, true),
+      run("a@x.com", "amy", "ruby", 500),
+      run("a@x.com", "Amy", "ruby", 800),
       run("b@x.com", 'b"ob', "benny", 100),
     ]);
     expect(csv.split("\n")).toEqual([
-      "handle,email,character,best,runs,marketing_opt_in",
-      '"amy","a@x.com","ruby",800,2,yes',
-      '"b""ob","b@x.com","benny",100,1,no',
+      "handle,character,best,runs",
+      '"Amy","ruby",800,2',
+      '"b""ob","benny",100,1',
     ]);
   });
 });

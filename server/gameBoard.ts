@@ -1,7 +1,6 @@
 import { CHARACTERS, type Character } from "@shared/game/types";
 
 type RunLike = {
-  email: string;
   handle: string;
   character: string;
   total: number;
@@ -24,12 +23,15 @@ function compareRuns(a: RunLike, b: RunLike): number {
 export type BoardRow = { rank: number; handle: string; character: Character; total: number };
 export type TeamRow = { character: Character; players: number; top: number };
 
-/** Best run per player (by email), ranked. Emails stay server-side — only `ranks` is keyed by them. */
+/** A player is their Instagram handle (case-insensitive). */
+export const playerKey = (handle: string) => handle.trim().replace(/^@/, "").toLowerCase();
+
+/** Best run per player (by Instagram handle), ranked. `ranks` is keyed by playerKey. */
 export function buildBoard(runs: RunLike[]) {
   const best: RunLike[] = [];
   const seen = new Set<string>();
   for (const r of [...runs].sort(compareRuns)) {
-    const key = r.email.toLowerCase();
+    const key = playerKey(r.handle);
     if (seen.has(key)) continue;
     seen.add(key);
     best.push(r);
@@ -40,7 +42,7 @@ export function buildBoard(runs: RunLike[]) {
     character: r.character as Character,
     total: r.total,
   }));
-  const ranks = new Map(best.map((r, i) => [r.email.toLowerCase(), i + 1]));
+  const ranks = new Map(best.map((r, i) => [playerKey(r.handle), i + 1]));
   const teams: TeamRow[] = CHARACTERS.map((character) => {
     const mine = best.filter((r) => r.character === character);
     return { character, players: mine.length, top: mine[0]?.total ?? 0 };
@@ -52,22 +54,19 @@ const q = (v: string) => `"${v.replace(/"/g, '""')}"`;
 
 /** Entrants export for the admin: one row per player. */
 export function entrantsCsv(runs: RunLike[]): string {
-  const byEmail = new Map<string, { best: RunLike; runs: number; optIn: boolean }>();
+  const byHandle = new Map<string, { best: RunLike; runs: number }>();
   for (const r of runs) {
-    const key = r.email.toLowerCase();
-    const cur = byEmail.get(key);
-    if (!cur) byEmail.set(key, { best: r, runs: 1, optIn: !!r.marketingOptIn });
+    const key = playerKey(r.handle);
+    const cur = byHandle.get(key);
+    if (!cur) byHandle.set(key, { best: r, runs: 1 });
     else {
       cur.runs++;
-      cur.optIn ||= !!r.marketingOptIn;
       if (compareRuns(r, cur.best) < 0) cur.best = r;
     }
   }
-  const lines = ["handle,email,character,best,runs,marketing_opt_in"];
-  for (const { best, runs: count, optIn } of Array.from(byEmail.values()).sort((a, b) => compareRuns(a.best, b.best))) {
-    lines.push(
-      [q(best.handle), q(best.email.toLowerCase()), q(best.character), best.total, count, optIn ? "yes" : "no"].join(","),
-    );
+  const lines = ["handle,character,best,runs"];
+  for (const { best, runs: count } of Array.from(byHandle.values()).sort((a, b) => compareRuns(a.best, b.best))) {
+    lines.push([q(best.handle), q(best.character), best.total, count].join(","));
   }
   return lines.join("\n");
 }

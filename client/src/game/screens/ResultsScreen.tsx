@@ -4,7 +4,7 @@ import { track } from "@/lib/analytics";
 import { trpc } from "@/lib/trpc";
 import { jingle } from "../audio";
 import type { CircuitResult } from "../CircuitCanvas";
-import { CHARACTER_INFO, COACHING_CTA, IG_DM_URL, IG_PROFILE_URL, PRACTICE_LINE, RUBY_PODIUM_LINE, SHOP_CTA } from "../content";
+import { CHARACTER_INFO, COACHING_CTA, IG_DM_URL, IG_PROFILE_URL, PRACTICE_LINE, PRIZE, RUBY_PODIUM_LINE, SHOP_CTA } from "../content";
 import { renderScoreCard, shareScoreCard } from "../scoreCard";
 import { BAD, BLUE, CREAM } from "../theme";
 import { ArcadeTitle, Fighter, Panel, PixelButton, Screen } from "./ui";
@@ -158,6 +158,27 @@ export default function ResultsScreen({
             @loverfighterfitness
           </a>
         </p>
+      )}
+
+      {Date.now() < PRIZE.endsAt.getTime() && (
+        <Panel>
+          <div className="w-full flex flex-col items-center gap-3 text-center">
+            <p className="text-[11px]" style={{ color: BLUE }}>{PRIZE.title}</p>
+            <p className="text-[10px] leading-loose">{PRIZE.body}</p>
+            <p className="text-[10px]">
+              CODE <span className="text-sm" style={{ color: BLUE }}>{PRIZE.code}</span>
+            </p>
+            <a
+              href={PRIZE.url}
+              onClick={() => track("game_prize_claim")}
+              className="w-full block text-xs py-3"
+              style={{ backgroundColor: CREAM, color: "#2A1F15", boxShadow: `4px 4px 0 ${BLUE}` }}
+            >
+              {PRIZE.cta}
+            </a>
+            <p className="text-[8px] opacity-70">{PRIZE.fine}</p>
+          </div>
+        </Panel>
       )}
 
       <PixelButton variant="gold" onClick={share} disabled={sharing}>

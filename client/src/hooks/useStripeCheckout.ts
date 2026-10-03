@@ -2,6 +2,7 @@ import { useState } from "react";
 import { trpc } from "@/lib/trpc";
 import { resolvePaymentLink } from "@/lib/paymentLinks";
 import { track } from "@/lib/analytics";
+import { activePromo } from "@/lib/promo";
 
 export type ProductKey =
   | "standardCoaching"
@@ -43,6 +44,7 @@ export function useStripeCheckout() {
       const result = await createSession.mutateAsync({
         productKey: productKey as "standardCoaching" | "compPrepCoaching",
         referralCode,
+        promoCode: activePromo() ?? undefined,
       });
       if (result.url) window.location.href = result.url;
     } catch (err) {

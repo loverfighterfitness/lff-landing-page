@@ -14,6 +14,22 @@ function getStripe() {
   return new Stripe(ENV.stripeSecretKey, { apiVersion: "2026-02-25.clover" });
 }
 
+/**
+ * An active Stripe promotion code by its customer-facing code (e.g. "GAME"), or null.
+ * Stripe still enforces the code's own rules (expiry, first-time customers) at checkout.
+ */
+async function findPromotionCode(stripe: Stripe, code: string | undefined): Promise<{ id: string; code: string } | null> {
+  const clean = code?.trim().toUpperCase();
+  if (!clean || !/^[A-Z0-9_-]{2,32}$/.test(clean)) return null;
+  try {
+    const { data } = await stripe.promotionCodes.list({ code: clean, active: true, limit: 1 });
+    return data[0] ? { id: data[0].id, code: data[0].code } : null;
+  } catch (err) {
+    console.warn("[Stripe] promo lookup failed", clean, err);
+    return null;
+  }
+}
+
 export const stripeRouter = router({
   // One-off downloadable program (The Hypertrophy Meta). Hosted Stripe Checkout,
   // delivered by emailed signed link via the webhook. allow_promotion_codes lets
@@ -208,12 +224,14 @@ export const stripeRouter = router({
       z.object({
         productKey: z.enum(["standardCoaching", "compPrepCoaching"]),
         referralCode: z.string().max(32).optional(),
+        promoCode: z.string().max(32).optional(),
       })
     )
     .mutation(async ({ input }) => {
       const stripe = getStripe();
       const product = STRIPE_PRODUCTS[input.productKey as ProductKey];
       const siteUrl = ENV.siteUrl;
+      const promotionCode = input.referralCode ? null : await findPromotionCode(stripe, input.promoCode);
 
       const returnUrl = `${siteUrl}/success?session_id={CHECKOUT_SESSION_ID}&package=${input.productKey}${input.referralCode ? `&ref=${input.referralCode}` : ""}`;
 
@@ -223,16 +241,19 @@ export const stripeRouter = router({
         line_items: [{ price: product.priceId, quantity: 1 }],
         payment_method_types: ["card"],
         return_url: returnUrl,
-        allow_promotion_codes: !input.referralCode,
+        allow_promotion_codes: !input.referralCode && !promotionCode,
         metadata: {
           product_key: input.productKey,
           product_name: product.name,
           referral_code: input.referralCode ?? "",
+          promo_code: promotionCode?.code ?? "",
         },
       };
 
       if (input.referralCode) {
         sessionParams.discounts = [{ coupon: "LFF_REFERRAL_2WEEKS" }];
+      } else if (promotionCode) {
+        sessionParams.discounts = [{ promotion_code: promotionCode.id }];
       }
 
       const session = await stripe.checkout.sessions.create(sessionParams);
@@ -248,12 +269,16 @@ export const stripeRouter = router({
         productKey: z.enum(["standardCoaching", "compPrepCoaching"]),
         // Referral code — if present, apply the 2-weeks-free coupon
         referralCode: z.string().max(32).optional(),
+        // Promo code from a link (e.g. GAME, the game's consolation prize) — applied if Stripe has it active
+        promoCode: z.string().max(32).optional(),
       })
     )
     .mutation(async ({ input }) => {
       const stripe = getStripe();
       const product = STRIPE_PRODUCTS[input.productKey as ProductKey];
       const siteUrl = ENV.siteUrl;
+      // A referral wins over a promo: Checkout takes one discount.
+      const promotionCode = input.referralCode ? null : await findPromotionCode(stripe, input.promoCode);
 
       const sessionParams: Stripe.Checkout.SessionCreateParams = {
         mode: "subscription",
@@ -266,17 +291,20 @@ export const stripeRouter = router({
         payment_method_types: ["card"],
         success_url: `${siteUrl}/success?session_id={CHECKOUT_SESSION_ID}&package=${input.productKey}${input.referralCode ? `&ref=${input.referralCode}` : ""}`,
         cancel_url: `${siteUrl}/#coaching`,
-        allow_promotion_codes: !input.referralCode, // disable manual promo codes when referral coupon is applied
+        allow_promotion_codes: !input.referralCode && !promotionCode, // Stripe won't take both a preset discount and the code box
         metadata: {
           product_key: input.productKey,
           product_name: product.name,
           referral_code: input.referralCode ?? "",
+          promo_code: promotionCode?.code ?? "",
         },
       };
 
       // Apply the referral coupon (2 weeks free) if a valid referral code was used
       if (input.referralCode) {
         sessionParams.discounts = [{ coupon: "LFF_REFERRAL_2WEEKS" }];
+      } else if (promotionCode) {
+        sessionParams.discounts = [{ promotion_code: promotionCode.id }];
       }
 
       const session = await stripe.checkout.sessions.create(sessionParams);

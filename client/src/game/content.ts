@@ -60,6 +60,21 @@ export function SHOP_CTA(c: Character) {
   return `Rep the same ${CHARACTER_INFO[c].tee} tee as ${CHARACTER_INFO[c].name[0]}${CHARACTER_INFO[c].name.slice(1).toLowerCase()}`;
 }
 export const COACHING_CTA = "Want coaching built for you? DM me 'TRANSFORM'";
+
+/**
+ * Every finisher's consolation prize: half-price first month of coaching. Stripe promotion code GAME
+ * (coupon LFF_GAME_HALF_MONTH: 50% off for 1 month, both coaching packages, first-time customers,
+ * expires with the comp). The link pre-applies it at coaching checkout.
+ */
+export const PRIZE = {
+  code: "GAME",
+  endsAt: new Date("2026-10-17T09:30:00Z"),
+  title: "CONSOLATION PRIZE",
+  body: "Every finisher gets a half-price first month of LFF online coaching.",
+  fine: "New clients · ends 17 Oct",
+  cta: "CLAIM 50% OFF",
+  url: "/?promo=GAME#coaching",
+};
 export const NEXT_FIGHTER_TITLE = "THIS COULD BE YOU";
 export const NEXT_FIGHTER_BODY = "Join Team LFF and you could be the next playable fighter.";
 export const PRACTICE_LINE = "Next comp drops soon. Follow @loverfighterfitness so you don't miss it.";

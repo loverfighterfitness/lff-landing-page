@@ -9,6 +9,7 @@ import { motion, useMotionValue, useTransform, useSpring } from "framer-motion";
 import { Check, ArrowRight, Zap, Star, Loader2 } from "lucide-react";
 import { useRef, useState, useEffect } from "react";
 import { useStripeCheckout, type ProductKey } from "@/hooks/useStripeCheckout";
+import { capturePromo, PROMOS } from "@/lib/promo";
 
 interface Package {
   name: string;
@@ -324,6 +325,15 @@ function PackageCard({
 
 export default function CoachingSection() {
   const { checkout, loading } = useStripeCheckout();
+  // Promo arriving by link (e.g. the game's consolation prize): show it, and jump here.
+  const [promo, setPromo] = useState<string | null>(null);
+  useEffect(() => {
+    const code = capturePromo();
+    setPromo(code);
+    if (code && new URLSearchParams(window.location.search).has("promo")) {
+      setTimeout(() => document.getElementById("coaching")?.scrollIntoView({ behavior: "smooth" }), 300);
+    }
+  }, []);
 
   return (
     <section id="coaching" className="grain-overlay relative py-24 md:py-32" style={{ backgroundColor: '#54412F' }}>
@@ -359,6 +369,20 @@ export default function CoachingSection() {
               No upsells, no lock-in contracts. Pick your package and start training with a plan built specifically for you.
             </p>
           </motion.div>
+
+          {promo && (
+            <div
+              className="max-w-3xl mx-auto mb-10 rounded-2xl px-6 py-5 text-center"
+              style={{ backgroundColor: '#54412F', color: '#EAE6D2', boxShadow: '0 0 0 3px #A9D4F5' }}
+            >
+              <p className="font-black uppercase tracking-wide text-base md:text-lg" style={{ color: '#A9D4F5' }}>
+                {PROMOS[promo].headline}
+              </p>
+              <p className="mt-1 text-sm font-semibold" style={{ color: 'rgba(234,230,210,0.8)' }}>
+                {PROMOS[promo].detail}
+              </p>
+            </div>
+          )}
 
           {/* Cards */}
           <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto" style={{ perspective: "1400px" }}>

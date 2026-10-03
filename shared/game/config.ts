@@ -47,14 +47,14 @@ export const SQUAT = {
    * Mash to drive up, as fast as you like. Each tap's drive depends on rhythm: how close its gap is
    * to your own recent tapping speed. Steady = full drive; erratic = barely moves the bar.
    */
-  drivePerPress: 0.09,
-  gravityPerTick: 0.002,
+  drivePerPress: 0.12,
+  gravityPerTick: 0.0035,
   /** A tap this far off your running gap (as a fraction of it) gives the minimum drive. */
-  rhythmTol: 0.7,
+  rhythmTol: 1.0,
   /** How quickly the running gap follows your taps (0..1). */
   rhythmFollow: 0.35,
   /** Even a sloppy tap gives this much drive. */
-  minBeat: 0.2,
+  minBeat: 0.4,
   /** Average rhythm a rep needs to count as PERFECT. */
   perfectTempo: 0.75,
   /** Heavier reps: each one gets less drive per tap and more pull back down. */

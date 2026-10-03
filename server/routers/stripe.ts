@@ -241,7 +241,6 @@ export const stripeRouter = router({
         line_items: [{ price: product.priceId, quantity: 1 }],
         payment_method_types: ["card"],
         return_url: returnUrl,
-        allow_promotion_codes: !input.referralCode && !promotionCode,
         metadata: {
           product_key: input.productKey,
           product_name: product.name,
@@ -250,10 +249,13 @@ export const stripeRouter = router({
         },
       };
 
+      // Stripe rejects `allow_promotion_codes` (even false) alongside `discounts`: set exactly one.
       if (input.referralCode) {
         sessionParams.discounts = [{ coupon: "LFF_REFERRAL_2WEEKS" }];
       } else if (promotionCode) {
         sessionParams.discounts = [{ promotion_code: promotionCode.id }];
+      } else {
+        sessionParams.allow_promotion_codes = true;
       }
 
       const session = await stripe.checkout.sessions.create(sessionParams);
@@ -291,7 +293,6 @@ export const stripeRouter = router({
         payment_method_types: ["card"],
         success_url: `${siteUrl}/success?session_id={CHECKOUT_SESSION_ID}&package=${input.productKey}${input.referralCode ? `&ref=${input.referralCode}` : ""}`,
         cancel_url: `${siteUrl}/#coaching`,
-        allow_promotion_codes: !input.referralCode && !promotionCode, // Stripe won't take both a preset discount and the code box
         metadata: {
           product_key: input.productKey,
           product_name: product.name,
@@ -301,10 +302,13 @@ export const stripeRouter = router({
       };
 
       // Apply the referral coupon (2 weeks free) if a valid referral code was used
+      // Stripe rejects `allow_promotion_codes` (even false) alongside `discounts`: set exactly one.
       if (input.referralCode) {
         sessionParams.discounts = [{ coupon: "LFF_REFERRAL_2WEEKS" }];
       } else if (promotionCode) {
         sessionParams.discounts = [{ promotion_code: promotionCode.id }];
+      } else {
+        sessionParams.allow_promotion_codes = true;
       }
 
       const session = await stripe.checkout.sessions.create(sessionParams);

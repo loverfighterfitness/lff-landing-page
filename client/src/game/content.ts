@@ -66,6 +66,14 @@ export const COACHING_CTA = "Want coaching built for you? DM me 'TRANSFORM'";
  * (coupon LFF_GAME_HALF_MONTH: 50% off for 1 month, both coaching packages, first-time customers,
  * expires with the comp). The link pre-applies it at coaching checkout.
  */
+/**
+ * Grand prize: first verified lifter to YEAR_PRIZE_KG wins a year of coaching. One winner: when it's
+ * claimed, set `claimedBy` to their handle and the banners switch to "CLAIMED".
+ */
+export const YEAR_PRIZE = {
+  claimedBy: null as string | null,
+};
+
 export const PRIZE = {
   code: "GAME",
   endsAt: new Date("2026-10-17T09:30:00Z"),

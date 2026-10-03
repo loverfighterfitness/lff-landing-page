@@ -4,7 +4,8 @@ import { track } from "@/lib/analytics";
 import { trpc } from "@/lib/trpc";
 import { jingle } from "../audio";
 import type { CircuitResult } from "../CircuitCanvas";
-import { CHARACTER_INFO, COACHING_CTA, IG_DM_URL, IG_PROFILE_URL, PRACTICE_LINE, PRIZE, RUBY_PODIUM_LINE, SHOP_CTA } from "../content";
+import { CHARACTER_INFO, COACHING_CTA, IG_DM_URL, IG_PROFILE_URL, PRACTICE_LINE, PRIZE, RUBY_PODIUM_LINE, SHOP_CTA, YEAR_PRIZE } from "../content";
+import { YEAR_PRIZE_KG } from "@shared/game/config";
 import { renderScoreCard, shareScoreCard } from "../scoreCard";
 import { BAD, BLUE, CREAM } from "../theme";
 import { ArcadeTitle, Fighter, Panel, PixelButton, Screen } from "./ui";
@@ -159,6 +160,30 @@ export default function ResultsScreen({
           </a>
         </p>
       )}
+
+      {!YEAR_PRIZE.claimedBy &&
+        (total >= YEAR_PRIZE_KG ? (
+          <Panel>
+            <div className="w-full flex flex-col items-center gap-3 text-center text-[10px] leading-loose">
+              <p className="text-sm" style={{ color: BLUE, animation: "lff-blink 0.6s steps(1) 8" }}>{YEAR_PRIZE_KG}KG CLUB!</p>
+              <p>First verified lifter to {YEAR_PRIZE_KG}kg wins a year of coaching. DM "YEAR" now. We'll verify with a screen recording or a live rerun.</p>
+              <a
+                href={IG_DM_URL}
+                target="_blank"
+                rel="noreferrer"
+                onClick={() => track("game_year_prize_claim")}
+                className="w-full block text-xs py-3"
+                style={{ backgroundColor: CREAM, color: "#2A1F15", boxShadow: `4px 4px 0 ${BLUE}` }}
+              >
+                DM "YEAR" TO CLAIM
+              </a>
+            </div>
+          </Panel>
+        ) : (
+          <p className="text-[9px] text-center leading-loose" style={{ textShadow: "2px 2px 0 #000" }}>
+            <span style={{ color: BLUE }}>{YEAR_PRIZE_KG - total}KG</span> OFF A YEAR OF FREE COACHING. FIRST TO {YEAR_PRIZE_KG}KG WINS.
+          </p>
+        ))}
 
       {Date.now() < PRIZE.endsAt.getTime() && (
         <Panel>

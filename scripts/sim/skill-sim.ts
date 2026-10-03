@@ -11,7 +11,11 @@ import type { DeadliftState } from "../../shared/game/deadlift";
 import type { SquatState } from "../../shared/game/squat";
 
 type Skill = { name: string; sigma: number; tapMu: number; tapSd: number };
-const SKILLS: Skill[] = [
+const EXTRA: Skill[] = process.env.CEILING ? [
+  { name: "perfect", sigma: 0, tapMu: 5, tapSd: 0 },
+  { name: "superhum", sigma: 0.6, tapMu: 6, tapSd: 0.4 },
+] : [];
+const SKILLS: Skill[] = [...EXTRA,
   { name: "elite", sigma: 1.2, tapMu: 8, tapSd: 0.7 },
   { name: "strong", sigma: 2.5, tapMu: 9, tapSd: 1.3 },
   { name: "average", sigma: 4, tapMu: 10.5, tapSd: 2.2 },

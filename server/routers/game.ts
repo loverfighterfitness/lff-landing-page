@@ -2,11 +2,12 @@ import { createHash, randomInt, randomUUID } from "crypto";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { MAX_EVENTS_PER_LIFT } from "@shared/game/config";
-import { CHARACTERS } from "@shared/game/types";
+import { CHARACTERS, type RunLogs } from "@shared/game/types";
 import { checkRun } from "@shared/game/validate";
 import { clientIp } from "../_core/systemRouter";
 import { adminProcedure, publicProcedure, router } from "../_core/trpc";
 import { buildBoard, entrantsCsv, playerKey } from "../gameBoard";
+import { suspicionFlags } from "../gameSuspicion";
 import {
   createRunToken,
   getActiveEvent,
@@ -145,7 +146,20 @@ export const gameRouter = router({
   admin: router({
     overview: adminProcedure.query(async () => {
       const event = await getCurrentEvent();
-      return { event, runs: event ? await listEventRunsForAdmin(event.id) : [] };
+      const runs = event ? await listEventRunsForAdmin(event.id) : [];
+      // Flag runs to verify (year-prize scores, scripted-looking timing); the raw logs stay server-side.
+      return {
+        event,
+        runs: runs.map(({ inputLog, ...run }) => {
+          let flags: string[] = [];
+          try {
+            flags = suspicionFlags(JSON.parse(inputLog) as RunLogs, run.total);
+          } catch {
+            flags = ["input log unreadable"];
+          }
+          return { ...run, flags };
+        }),
+      };
     }),
 
     setRunRemoved: adminProcedure

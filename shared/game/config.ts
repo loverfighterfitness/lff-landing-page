@@ -86,3 +86,9 @@ export const DEADLIFT = {
   ignoreBelow: 0.05,
   cooldownTicks: 60,
 } as const;
+
+/**
+ * Grand prize: the FIRST verified lifter to post a total at or over this wins a year of coaching.
+ * One winner only. Runs at or over it are flagged in admin for a screen-recording / live-rerun check.
+ */
+export const YEAR_PRIZE_KG = 800;

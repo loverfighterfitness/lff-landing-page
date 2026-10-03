@@ -3,6 +3,8 @@ import { gameAsset } from "../theme";
 import { useEffect, useState } from "react";
 import { isMuted, jingle, setMuted } from "../audio";
 import { useCompStatus } from "../compStatus";
+import { YEAR_PRIZE } from "../content";
+import { YEAR_PRIZE_KG } from "@shared/game/config";
 import type { Pose } from "../poses";
 import { BLUE, CREAM, Fighter, INK, PixelButton, Screen } from "./ui";
 
@@ -76,6 +78,16 @@ export default function TitleScreen({ onPlay, onBoard }: { onPlay: () => void; o
         </span>
       </p>
       {comp.endsAt && <Countdown endsAt={comp.endsAt} />}
+      <p
+        className="text-[8px] text-center leading-loose px-3 py-1"
+        style={{ color: CREAM, backgroundColor: "rgba(42,31,21,0.85)", border: `2px solid ${BLUE}`, marginTop: -6 }}
+      >
+        {YEAR_PRIZE.claimedBy ? (
+          <>YEAR OF COACHING CLAIMED BY <span style={{ color: BLUE }}>@{YEAR_PRIZE.claimedBy}</span></>
+        ) : (
+          <>FIRST TO <span style={{ color: BLUE }}>{YEAR_PRIZE_KG}KG</span> WINS A <span style={{ color: BLUE }}>YEAR OF COACHING</span></>
+        )}
+      </p>
 
       {/* The roster on stage, overlapping like a fighting-game line-up (coach in front). */}
       <div className="w-full flex items-end justify-center" style={{ height: 290 }}>

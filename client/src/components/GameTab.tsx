@@ -94,7 +94,7 @@ export default function GameTab() {
                 <tr className="text-left">
                   <th className="py-1 pr-2">Handle</th><th className="pr-2">Lifter</th>
                   <th className="pr-2 text-right">Bench</th><th className="pr-2 text-right">Squat</th><th className="pr-2 text-right">DL</th>
-                  <th className="pr-2 text-right">Total</th><th className="pr-2">When</th><th />
+                  <th className="pr-2 text-right">Total</th><th className="pr-2">Check</th><th className="pr-2">When</th><th />
                 </tr>
               </thead>
               <tbody>
@@ -106,6 +106,15 @@ export default function GameTab() {
                     <td className="pr-2 text-right">{r.squatScore}</td>
                     <td className="pr-2 text-right">{r.deadliftScore}</td>
                     <td className="pr-2 text-right font-bold">{r.total}</td>
+                    <td className="pr-2">
+                      {r.flags.length ? (
+                        <span title={r.flags.join("\n")} style={{ color: "#F2C94C", cursor: "help" }}>
+                          ⚠ {r.flags.length}
+                        </span>
+                      ) : (
+                        <span style={muted}>ok</span>
+                      )}
+                    </td>
                     <td className="pr-2 whitespace-nowrap">{new Date(r.createdAt).toLocaleString()}</td>
                     <td>
                       <button className="underline" onClick={() => setRemoved.mutate({ id: r.id, removed: !r.removed })}>
@@ -116,6 +125,19 @@ export default function GameTab() {
                 ))}
               </tbody>
             </table>
+          </div>
+        )}
+        {runs.some((r) => r.flags.length) && (
+          <div className="mt-4 text-xs flex flex-col gap-2">
+            <h4 className="font-bold">Runs to verify</h4>
+            {runs.filter((r) => r.flags.length && !r.removed).map((r) => (
+              <div key={r.id} className="rounded-lg p-2" style={{ backgroundColor: "rgba(242,201,76,0.12)" }}>
+                <p className="font-bold">@{r.handle} · {r.total}kg</p>
+                <ul className="list-disc ml-4" style={muted}>
+                  {r.flags.map((f) => <li key={f}>{f}</li>)}
+                </ul>
+              </div>
+            ))}
           </div>
         )}
       </section>

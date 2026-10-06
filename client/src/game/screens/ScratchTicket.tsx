@@ -37,17 +37,17 @@ export default function ScratchTicket({ children, onRevealed }: { children: Reac
       for (let y = 0; y < height; y += 4) for (let x = (y / 4) % 2 ? 0 : 4; x < width; x += 8) ctx.fillRect(x, y, 4, 4);
       ctx.globalAlpha = 0.6;
       ctx.fillStyle = INK;
-      ctx.fillRect(0, height / 2 - 18, width, 36);
+      ctx.fillRect(0, height / 2 - 14, width, 28);
       ctx.globalAlpha = 1;
       ctx.fillStyle = CREAM;
-      ctx.font = `14px ${PIXEL_FONT}`;
+      ctx.font = `12px ${PIXEL_FONT}`;
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
       ctx.fillText("SCRATCH ME", width / 2, height / 2 + 1);
     };
     paint();
     // The pixel font may still be loading on first paint: repaint once it's in (unless already scratched).
-    void document.fonts?.load(`14px ${PIXEL_FONT}`).then(() => {
+    void document.fonts?.load(`12px ${PIXEL_FONT}`).then(() => {
       if (!state.current.strokes) paint();
     });
   }, []);
@@ -102,12 +102,12 @@ export default function ScratchTicket({ children, onRevealed }: { children: Reac
       style={{
         backgroundColor: CREAM,
         color: INK,
-        padding: "18px 16px",
+        padding: "10px 14px",
         // Ticket notches on both sides and a perforated inner edge.
         WebkitMask: "radial-gradient(circle 10px at 0 50%, transparent 98%, #000) left / 51% 100% no-repeat, radial-gradient(circle 10px at 100% 50%, transparent 98%, #000) right / 51% 100% no-repeat",
         mask: "radial-gradient(circle 10px at 0 50%, transparent 98%, #000) left / 51% 100% no-repeat, radial-gradient(circle 10px at 100% 50%, transparent 98%, #000) right / 51% 100% no-repeat",
         boxShadow: `inset 0 0 0 3px ${CREAM}, inset 0 0 0 5px ${BROWN}`,
-        minHeight: 150,
+        minHeight: 104,
       }}
     >
       {children}

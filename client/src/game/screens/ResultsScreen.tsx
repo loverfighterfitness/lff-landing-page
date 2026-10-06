@@ -149,10 +149,10 @@ export default function ResultsScreen({
       <div className="w-full flex-1 min-h-0 flex flex-col items-center justify-center gap-2">
         {prizeLive ? (
           <>
-            <Fighter id={character} pose="handover" height="min(170px, 22dvh)" bob={false} style={{ animation: "lff-cheer 0.9s ease-out 0.2s 2 both" }} />
+            <Fighter id={character} pose="handover" height="min(240px, 31dvh)" bob={false} style={{ animation: "lff-cheer 0.9s ease-out 0.2s 2 both" }} />
             <div className="w-full flex flex-col items-stretch gap-2" style={{ animation: "lff-handover 0.9s cubic-bezier(.2,.8,.3,1.2) 0.7s both" }}>
               <ScratchTicket onRevealed={() => { setScratched(true); track("game_prize_scratch"); }}>
-                <div className="flex flex-col items-center gap-2 text-center">
+                <div className="flex flex-col items-center gap-1 text-center">
                   <p className="text-[7px] tracking-widest" style={{ color: BROWN }}>LFF SCRATCHIE</p>
                   <p className="text-[11px] leading-relaxed" style={{ color: INK }}>HALF-PRICE FIRST MONTH</p>
                   <p className="text-[8px] leading-relaxed" style={{ color: BROWN }}>LFF ONLINE COACHING</p>

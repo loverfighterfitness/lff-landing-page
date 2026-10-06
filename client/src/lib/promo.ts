@@ -9,7 +9,7 @@ const KEY = "lff_promo_code";
 export const PROMOS: Record<string, { headline: string; detail: string }> = {
   GAME: {
     headline: "Game prize unlocked: half-price first month",
-    detail: "50% off every payment in your first month of coaching, applied automatically at checkout. New clients only, ends 17 Oct.",
+    detail: "50% off every payment in your first month of coaching, applied automatically at checkout. New clients only, ends 20 Oct.",
   },
 };
 

@@ -76,10 +76,10 @@ export const YEAR_PRIZE = {
 
 export const PRIZE = {
   code: "GAME",
-  endsAt: new Date("2026-10-17T09:30:00Z"),
+  endsAt: new Date("2026-10-20T03:30:00Z"),
   title: "CONSOLATION PRIZE",
   body: "Every finisher gets a half-price first month of LFF online coaching.",
-  fine: "New clients · ends 17 Oct",
+  fine: "New clients · ends 20 Oct",
   cta: "CLAIM 50% OFF",
   url: "/?promo=GAME#coaching",
 };

@@ -4,12 +4,12 @@ import { track } from "@/lib/analytics";
 import { trpc } from "@/lib/trpc";
 import { jingle } from "../audio";
 import type { CircuitResult } from "../CircuitCanvas";
-import { CHARACTER_INFO, COACHING_CTA, IG_DM_URL, IG_PROFILE_URL, PRACTICE_LINE, PRIZE, RUBY_PODIUM_LINE, SHOP_CTA, YEAR_PRIZE } from "../content";
+import { CHARACTER_INFO, IG_DM_URL, IG_PROFILE_URL, PRIZE, RUBY_PODIUM_LINE, YEAR_PRIZE } from "../content";
 import { YEAR_PRIZE_KG } from "@shared/game/config";
 import { renderScoreCard, shareScoreCard } from "../scoreCard";
 import { BAD, BLUE, BROWN, CREAM, INK } from "../theme";
 import ScratchTicket from "./ScratchTicket";
-import { ArcadeTitle, Fighter, Panel, PixelButton, Screen } from "./ui";
+import { ArcadeTitle, Fighter, PixelButton, Screen } from "./ui";
 
 export default function ResultsScreen({
   character,
@@ -101,122 +101,110 @@ export default function ResultsScreen({
   const shadow = { textShadow: "2px 2px 0 #000" };
 
   return (
-    <Screen>
-      <ArcadeTitle size={16} style={{ marginTop: 4, animation: "lff-pop 0.4s ease-out both" }}>
-        CIRCUIT COMPLETE
-      </ArcadeTitle>
-
-      {/* The result, in one place: total, the three lifts, then one line each for post / PB / the 800 chase. */}
-      <div className="w-full flex flex-col items-center gap-1 -mt-2">
-        <p className="text-3xl" style={{ color: BLUE, textShadow: `3px 3px 0 ${INK}` }}>{total}KG</p>
+    <Screen fit>
+      {/* Header: the result and one-line statuses. */}
+      <div className="w-full flex flex-col items-center gap-1 text-center">
+        <ArcadeTitle size={12} style={{ animation: "lff-pop 0.4s ease-out both" }}>CIRCUIT COMPLETE</ArcadeTitle>
+        <p className="text-2xl" style={{ color: BLUE, textShadow: `3px 3px 0 ${INK}` }}>{total}KG</p>
         <p className={small} style={shadow}>
-          BENCH {result.scores.bench} · SQUAT {result.scores.squat} · DEADLIFT {result.scores.deadlift}
+          B {result.scores.bench} · S {result.scores.squat} · D {result.scores.deadlift}
+          {newPb ? (
+            <span style={{ color: BLUE, animation: "lff-blink 0.6s steps(1) 6" }}> · NEW PB{prevBest > 0 ? ` +${total - prevBest}` : ""}</span>
+          ) : prevBest > total ? (
+            <> · PB {prevBest}</>
+          ) : null}
         </p>
-        {canPost ? (
-          posted ? (
-            <p className={small} style={shadow}>
-              POSTED AS <span style={{ color: BLUE }}>@{handle}</span>
-              {posted.rank ? <> · <span style={{ color: BLUE }}>RANK #{posted.rank}</span></> : null}
-            </p>
-          ) : error ? (
-            <p className={small} style={{ ...shadow, color: BAD }}>
-              {error}{" "}
-              <button type="button" className="underline" style={{ color: CREAM }} onClick={() => void post()} disabled={submit.isPending}>
-                {submit.isPending ? "POSTING..." : "RETRY"}
-              </button>
-            </p>
+        <p className={small} style={shadow}>
+          {canPost ? (
+            posted ? (
+              <>
+                @{handle}
+                {posted.rank ? <> · <span style={{ color: BLUE }}>RANK #{posted.rank}</span></> : " · POSTED"}
+              </>
+            ) : error ? (
+              <span style={{ color: BAD }}>
+                {error}{" "}
+                <button type="button" className="underline" style={{ color: CREAM }} onClick={() => void post()} disabled={submit.isPending}>
+                  {submit.isPending ? "POSTING..." : "RETRY"}
+                </button>
+              </span>
+            ) : (
+              <>POSTING AS @{handle}...</>
+            )
           ) : (
-            <p className={small} style={shadow}>POSTING AS <span style={{ color: BLUE }}>@{handle}</span>...</p>
-          )
-        ) : (
-          <p className={small} style={{ ...shadow, opacity: 0.85 }}>PRACTICE RUN · NOT ON THE LEADERBOARD</p>
-        )}
-        {newPb ? (
-          <p className={small} style={{ color: BLUE, animation: "lff-blink 0.6s steps(1) 6" }}>
-            NEW PB{prevBest > 0 ? ` · +${total - prevBest}KG` : ""}
-          </p>
-        ) : prevBest > total ? (
-          <p className={small} style={shadow}>{prevBest - total}KG OFF YOUR PB ({prevBest}KG)</p>
-        ) : null}
-        {!YEAR_PRIZE.claimedBy && total < YEAR_PRIZE_KG && (
-          <p className={small} style={shadow}>
-            <span style={{ color: BLUE }}>{YEAR_PRIZE_KG - total}KG</span> OFF A YEAR OF FREE COACHING
-          </p>
-        )}
-      </div>
-
-      {/* The fighter steps up holding out a scratchie (it then flies out of their hand, below). */}
-      <div className="w-full flex flex-col items-center">
-        <Fighter id={character} pose={prizeLive ? "handover" : "victory"} height={prizeLive ? 195 : 170} bob={false} style={{ animation: "lff-cheer 0.9s ease-out 0.2s 2 both" }} />
-        <p className={small} style={{ ...shadow, marginTop: 4 }}>"{quote}" - {info.name}</p>
-        {character === "ruby" && result.perfects >= 8 && <p className="text-lg">{RUBY_PODIUM_LINE}</p>}
-      </div>
-
-      {!YEAR_PRIZE.claimedBy && total >= YEAR_PRIZE_KG && (
-        <Panel>
-          <div className="w-full flex flex-col items-center gap-3 text-center text-[10px] leading-loose">
-            <p className="text-sm" style={{ color: BLUE, animation: "lff-blink 0.6s steps(1) 8" }}>{YEAR_PRIZE_KG}KG CLUB!</p>
-            <p>First verified lifter to {YEAR_PRIZE_KG}kg wins a year of coaching. DM "YEAR" now. We'll verify with a screen recording or a live rerun.</p>
-            <a
-              href={IG_DM_URL}
-              target="_blank"
-              rel="noreferrer"
-              onClick={() => track("game_year_prize_claim")}
-              className="w-full block text-xs py-3"
-              style={{ backgroundColor: CREAM, color: INK, boxShadow: `4px 4px 0 ${BLUE}` }}
-            >
-              DM "YEAR" TO CLAIM
-            </a>
-          </div>
-        </Panel>
-      )}
-
-      {prizeLive && (
-        <div className="w-full flex flex-col items-center gap-3" style={{ animation: "lff-handover 0.9s cubic-bezier(.2,.8,.3,1.2) 0.7s both" }}>
-          <p className="text-[10px]" style={{ ...shadow, color: CREAM }}>{info.name} HANDS YOU A SCRATCHIE</p>
-          <ScratchTicket onRevealed={() => { setScratched(true); track("game_prize_scratch"); }}>
-            <div className="flex flex-col items-center gap-2 text-center" style={{ fontFamily: "inherit" }}>
-              <p className="text-[8px] tracking-widest" style={{ color: BROWN }}>LFF SCRATCHIE · EVERY LIFTER WINS</p>
-              <p className="text-sm leading-relaxed" style={{ color: INK }}>HALF-PRICE FIRST MONTH</p>
-              <p className="text-[9px]" style={{ color: BROWN }}>OF LFF ONLINE COACHING</p>
-              <p className="text-[10px]">CODE <span className="text-base" style={{ color: "#4F82AE" }}>{PRIZE.code}</span></p>
-            </div>
-          </ScratchTicket>
-          {scratched && (
-            <>
-              <a
-                href={PRIZE.url}
-                onClick={() => track("game_prize_claim")}
-                className="w-full block text-center text-xs py-4"
-                style={{ backgroundColor: CREAM, color: INK, boxShadow: `4px 4px 0 ${BLUE}`, animation: "lff-pop 0.4s ease-out both" }}
-              >
-                {PRIZE.cta}
-              </a>
-              <p className="text-[8px] opacity-70">{PRIZE.fine}</p>
-            </>
+            <>PRACTICE RUN</>
           )}
-        </div>
-      )}
-
-      {/* Actions: one big, two small. */}
-      <PixelButton variant="gold" big onClick={onAgain}>RUN IT BACK</PixelButton>
-      <div className="w-full grid grid-cols-2 gap-3">
-        <PixelButton onClick={share} disabled={sharing}>{sharing ? "MAKING..." : "SHARE"}</PixelButton>
-        <PixelButton variant="ghost" onClick={() => onPosted(handle, posted?.rank ?? null)}>LEADERBOARD</PixelButton>
-      </div>
-
-      <div className="w-full flex flex-col items-center gap-2 text-[8px] text-center leading-relaxed opacity-80" style={shadow}>
-        <a href={`/shop?tee=${info.tee}`} onClick={() => track(`game_shop_click:${info.tee}`)} className="underline">
-          {SHOP_CTA(character)} {">"}
-        </a>
-        <a href={IG_DM_URL} onClick={() => track("game_dm_click")} target="_blank" rel="noreferrer" className="underline">
-          {COACHING_CTA}
-        </a>
-        {!canPost && (
-          <a href={IG_PROFILE_URL} target="_blank" rel="noreferrer" className="underline">
-            {PRACTICE_LINE}
+          {!YEAR_PRIZE.claimedBy && total < YEAR_PRIZE_KG && (
+            <> · <span style={{ color: BLUE }}>{YEAR_PRIZE_KG - total}KG</span> TO A YEAR FREE</>
+          )}
+        </p>
+        {!YEAR_PRIZE.claimedBy && total >= YEAR_PRIZE_KG && (
+          <a href={IG_DM_URL} target="_blank" rel="noreferrer" onClick={() => track("game_year_prize_claim")} className="text-[9px] underline" style={{ color: BLUE }}>
+            {YEAR_PRIZE_KG}KG CLUB! DM "YEAR" TO CLAIM A YEAR OF COACHING (VERIFIED)
           </a>
         )}
+      </div>
+
+      {/* Middle (takes the leftover height): the scratchie beside the fighter holding it out. */}
+      <div className="w-full flex-1 min-h-0 flex items-center justify-center gap-2">
+        {prizeLive ? (
+          <>
+            <div className="flex-1 min-w-0 flex flex-col items-stretch gap-2" style={{ animation: "lff-handover 0.9s cubic-bezier(.2,.8,.3,1.2) 0.7s both" }}>
+              <ScratchTicket onRevealed={() => { setScratched(true); track("game_prize_scratch"); }}>
+                <div className="flex flex-col items-center gap-2 text-center">
+                  <p className="text-[7px] tracking-widest" style={{ color: BROWN }}>LFF SCRATCHIE</p>
+                  <p className="text-[11px] leading-relaxed" style={{ color: INK }}>HALF-PRICE FIRST MONTH</p>
+                  <p className="text-[8px] leading-relaxed" style={{ color: BROWN }}>LFF ONLINE COACHING</p>
+                  <p className="text-[9px]">CODE <span className="text-sm" style={{ color: "#4F82AE" }}>{PRIZE.code}</span></p>
+                </div>
+              </ScratchTicket>
+              {scratched ? (
+                <a
+                  href={PRIZE.url}
+                  onClick={() => track("game_prize_claim")}
+                  className="block text-center text-[10px] py-3"
+                  style={{ backgroundColor: CREAM, color: INK, boxShadow: `3px 3px 0 ${BLUE}`, animation: "lff-pop 0.4s ease-out both" }}
+                >
+                  {PRIZE.cta}
+                </a>
+              ) : (
+                <p className="text-[8px] text-center leading-relaxed" style={shadow}>{info.name} HANDS YOU A SCRATCHIE</p>
+              )}
+              <p className="text-[7px] text-center opacity-70">{PRIZE.fine}</p>
+            </div>
+            <Fighter id={character} pose="handover" height="min(210px, 100%)" bob={false} style={{ animation: "lff-cheer 0.9s ease-out 0.2s 2 both", maxWidth: "42%", objectFit: "contain" }} />
+          </>
+        ) : (
+          <div className="h-full flex flex-col items-center justify-center gap-2">
+            <Fighter id={character} pose="victory" height="min(220px, 85%)" bob={false} style={{ animation: "lff-cheer 0.9s ease-out 0.2s 2 both" }} />
+            <p className={small} style={shadow}>"{quote}" - {info.name}</p>
+            {character === "ruby" && result.perfects >= 8 && <p className="text-lg">{RUBY_PODIUM_LINE}</p>}
+          </div>
+        )}
+      </div>
+
+      {/* Actions, always on screen. */}
+      <div className="w-full flex flex-col gap-2">
+        <PixelButton variant="gold" onClick={onAgain}>RUN IT BACK</PixelButton>
+        <div className="w-full grid grid-cols-2 gap-2">
+          <PixelButton onClick={share} disabled={sharing}>{sharing ? "MAKING..." : "SHARE"}</PixelButton>
+          <PixelButton variant="ghost" onClick={() => onPosted(handle, posted?.rank ?? null)}>LEADERBOARD</PixelButton>
+        </div>
+        <p className="text-[7px] text-center leading-relaxed opacity-80" style={shadow}>
+          <a href={`/shop?tee=${info.tee}`} onClick={() => track(`game_shop_click:${info.tee}`)} className="underline">
+            SHOP THE {info.tee.toUpperCase()} TEE
+          </a>
+          {" · "}
+          <a href={IG_DM_URL} onClick={() => track("game_dm_click")} target="_blank" rel="noreferrer" className="underline">
+            DM 'TRANSFORM' FOR COACHING
+          </a>
+          {!canPost && (
+            <>
+              {" · "}
+              <a href={IG_PROFILE_URL} target="_blank" rel="noreferrer" className="underline">FOLLOW FOR THE NEXT COMP</a>
+            </>
+          )}
+        </p>
       </div>
     </Screen>
   );

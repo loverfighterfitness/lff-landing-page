@@ -17,14 +17,18 @@ const KEYFRAMES = `
 @keyframes lff-pan { 0% { background-position: 50% 0% } 100% { background-position: 50% 100% } }
 @keyframes lff-confetti { 0% { transform: translate(0, 0); opacity: 1 } 100% { transform: translate(var(--dx), var(--dy)) rotate(200deg); opacity: 0 } }
 @keyframes lff-cheer { 0%, 100% { transform: translateY(0) } 30% { transform: translateY(-14px) } 55% { transform: translateY(0) } 75% { transform: translateY(-6px) } }
-@keyframes lff-handover { 0% { transform: translate(-30px, -205px) scale(0.12) rotate(-18deg); opacity: 0 } 15% { opacity: 1 } 70% { transform: translate(0, 8px) scale(1.04) rotate(3deg) } 100% { transform: translate(0, 0) scale(1) rotate(0) } }
+@keyframes lff-handover { 0% { transform: translate(110px, -60px) scale(0.12) rotate(-18deg); opacity: 0 } 15% { opacity: 1 } 70% { transform: translate(0, 8px) scale(1.04) rotate(3deg) } 100% { transform: translate(0, 0) scale(1) rotate(0) } }
 `;
 
-/** Full-screen game page over the pixel gym, dimmed so text reads. */
-export function Screen({ children, dim = 0.6, bg = gameAsset("gym_bg.png") }: { children: ReactNode; dim?: number; bg?: string }) {
+/**
+ * Full-screen game page over the pixel gym, dimmed so text reads.
+ * `fit` locks it to exactly one phone screen (no scrolling): children share the height, and one of
+ * them can take the leftover space with `flex-1 min-h-0`.
+ */
+export function Screen({ children, dim = 0.6, bg = gameAsset("gym_bg.png"), fit = false }: { children: ReactNode; dim?: number; bg?: string; fit?: boolean }) {
   return (
     <div
-      className="min-h-[100dvh] w-full flex flex-col items-center px-4 py-6 gap-5 relative overflow-hidden"
+      className={`${fit ? "h-[100dvh]" : "min-h-[100dvh]"} w-full flex flex-col items-center px-4 ${fit ? "py-3" : "py-6 gap-5"} relative overflow-hidden`}
       style={{
         color: CREAM,
         fontFamily: PIXEL_FONT,
@@ -38,7 +42,7 @@ export function Screen({ children, dim = 0.6, bg = gameAsset("gym_bg.png") }: { 
       <style>{KEYFRAMES}</style>
       {/* LFF film grain, same as the site and carousels. */}
       <div className="pointer-events-none absolute inset-0" style={{ backgroundImage: GRAIN, backgroundSize: "180px 180px", opacity: 0.06 }} />
-      <div className="w-full max-w-md flex flex-col items-center gap-5 relative z-10">{children}</div>
+      <div className={`w-full max-w-md flex flex-col items-center relative z-10 ${fit ? "flex-1 min-h-0 gap-2" : "gap-5"}`}>{children}</div>
     </div>
   );
 }
@@ -89,7 +93,8 @@ export function Fighter({
 }: {
   id: SpriteId | Character;
   pose: Pose;
-  height: number;
+  /** px, or any CSS length (e.g. "min(280px, 36dvh)") to scale with the screen. */
+  height: number | string;
   bob?: boolean;
   delay?: number;
   flip?: boolean;

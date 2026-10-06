@@ -13,12 +13,18 @@ export default function SelectScreen({
   starting,
   handle,
   onChangeHandle,
+  error,
+  onPractice,
 }: {
   onPick: (c: Character) => void;
   onBack: () => void;
   starting: boolean;
   handle: string;
   onChangeHandle: () => void;
+  /** The last run couldn't be registered (no signal): say so, and allow LIFT! again. */
+  error?: string;
+  /** Play anyway as a practice run that won't post. */
+  onPractice?: () => void;
 }) {
   const [picked, setPicked] = useState<Character>("levi");
   const [pose, setPose] = useState<Pose>("stance");
@@ -136,9 +142,19 @@ export default function SelectScreen({
         </button>
       </div>
 
+      {error && (
+        <p className="text-[9px] text-center leading-relaxed px-2 py-2" style={{ color: CREAM, backgroundColor: "rgba(181,82,63,0.85)" }}>
+          {error}
+        </p>
+      )}
       <PixelButton variant="gold" big onClick={confirm} disabled={starting || locked}>
         {starting || locked ? "LOADING PLATES..." : "LIFT!"}
       </PixelButton>
+      {error && onPractice && (
+        <button type="button" onClick={onPractice} className="text-[8px] underline opacity-70 -mt-2">
+          PLAY A PRACTICE RUN INSTEAD (WON'T COUNT)
+        </button>
+      )}
       <p className="text-[8px] opacity-70 text-center leading-loose">Same lifts, same rules. Pick your team.</p>
       <PixelButton variant="ghost" onClick={onBack}>
         BACK

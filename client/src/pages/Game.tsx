@@ -51,16 +51,38 @@ export default function Game() {
     };
   }, []);
 
-  const begin = async (character: Character) => {
+  // Shown on fighter select when a run couldn't be registered with the server.
+  const [startError, setStartError] = useState<{ message: string; character: Character; n: number } | null>(null);
+
+  const begin = async (character: Character, practice = false) => {
     track(`game_start:${character}`);
     startMusic();
-    try {
-      const res = await startRun.mutateAsync({ character });
-      setView({ name: "play", run: { character, seed: res.seed, runId: res.runId, eventOpen: res.eventOpen } });
-    } catch {
-      // Server down: still playable as a practice run.
-      const seed = Math.floor(Math.random() * 2 ** 32);
-      setView({ name: "play", run: { character, seed, runId: null, eventOpen: false } });
+    setStartError(null);
+    if (practice) {
+      setView({ name: "play", run: { character, seed: Math.floor(Math.random() * 2 ** 32), runId: null, eventOpen: false } });
+      return;
+    }
+    // A run only counts if the server issued it, so retry a flaky connection rather than silently
+    // falling back to practice (players were finishing great runs that could never post).
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        const res = await startRun.mutateAsync({ character });
+        setView({ name: "play", run: { character, seed: res.seed, runId: res.runId, eventOpen: res.eventOpen } });
+        return;
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : "";
+        if (/too many runs/i.test(msg) || attempt === 2) {
+          track("game_start_failed");
+          setStartError({
+            message: /too many runs/i.test(msg) ? msg : "Can't reach the leaderboard. Check your signal and tap LIFT! again.",
+            character,
+            n: (startError?.n ?? 0) + 1,
+          });
+          setView({ name: "select" });
+          return;
+        }
+        await new Promise((r) => setTimeout(r, 700 * (attempt + 1)));
+      }
     }
   };
 
@@ -85,7 +107,10 @@ export default function Game() {
     case "select":
       return (
         <SelectScreen
-          onPick={begin}
+          key={startError?.n ?? 0}
+          onPick={(c) => void begin(c)}
+          error={startError?.message}
+          onPractice={startError ? () => void begin(startError.character, true) : undefined}
           onBack={() => setView({ name: "title" })}
           starting={startRun.isPending}
           handle={handle}

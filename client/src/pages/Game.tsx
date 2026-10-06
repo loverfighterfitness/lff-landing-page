@@ -64,9 +64,13 @@ export default function Game() {
     }
   };
 
+  // Every way into a run goes through the handle screen first if we don't have one yet
+  // (e.g. a new player who opened the leaderboard before playing), so comp runs always post.
+  const toPlay = () => setView(handle ? { name: "select" } : { name: "handle" });
+
   switch (view.name) {
     case "title":
-      return <TitleScreen onPlay={() => setView(handle ? { name: "select" } : { name: "handle" })} onBoard={() => setView({ name: "board" })} />;
+      return <TitleScreen onPlay={toPlay} onBoard={() => setView({ name: "board" })} />;
     case "handle":
       return (
         <HandleScreen
@@ -104,6 +108,7 @@ export default function Game() {
           runId={view.run.runId}
           eventOpen={view.run.eventOpen}
           handle={handle}
+          onHandle={setHandle}
           result={view.result}
           onAgain={() => begin(view.run.character)}
           onPosted={(handle, rank) => setView({ name: "board", highlight: handle, posted: { character: view.run.character, result: view.result, rank } })}
@@ -117,7 +122,7 @@ export default function Game() {
             <Leaderboard highlightHandle={view.highlight} />
           </Panel>
           {view.posted && <ShareRankButton {...view.posted} />}
-          <PixelButton variant={view.posted ? "cream" : "gold"} onClick={() => setView({ name: "select" })}>{view.highlight ? "RUN IT BACK" : "PLAY"}</PixelButton>
+          <PixelButton variant={view.posted ? "cream" : "gold"} onClick={toPlay}>{view.highlight ? "RUN IT BACK" : "PLAY"}</PixelButton>
           <PixelButton variant="ghost" onClick={() => setView({ name: "title" })}>TITLE</PixelButton>
         </Screen>
       );

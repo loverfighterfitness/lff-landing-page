@@ -8,6 +8,7 @@ import { CHARACTER_INFO, IG_DM_URL, IG_PROFILE_URL, PRIZE, RUBY_PODIUM_LINE, YEA
 import { YEAR_PRIZE_KG } from "@shared/game/config";
 import { renderScoreCard, shareScoreCard } from "../scoreCard";
 import { BAD, BLUE, BROWN, CREAM, INK } from "../theme";
+import { cleanHandle, HANDLE_RE, saveHandle } from "../player";
 import ScratchTicket from "./ScratchTicket";
 import { ArcadeTitle, Fighter, PixelButton, Screen } from "./ui";
 
@@ -16,6 +17,7 @@ export default function ResultsScreen({
   runId,
   eventOpen,
   handle,
+  onHandle,
   result,
   onAgain,
   onPosted,
@@ -25,6 +27,8 @@ export default function ResultsScreen({
   eventOpen: boolean;
   /** Instagram handle entered at the start; the run posts under it automatically. */
   handle: string;
+  /** Called when the handle is entered here (safety net for a comp run that started without one). */
+  onHandle: (handle: string) => void;
   result: CircuitResult;
   onAgain: () => void;
   onPosted: (handle: string, rank: number | null) => void;
@@ -71,11 +75,11 @@ export default function ResultsScreen({
     }
   };
 
-  const post = async () => {
-    if (!runId || !handle || submit.isPending) return;
+  const post = async (as = handle) => {
+    if (!runId || !as || submit.isPending) return;
     setError("");
     try {
-      const res = await submit.mutateAsync({ runId, handle, logs: result.logs });
+      const res = await submit.mutateAsync({ runId, handle: as, logs: result.logs });
       track("game_post", Math.min(86400, total));
       setPosted({ rank: res.rank });
     } catch (err) {
@@ -95,6 +99,20 @@ export default function ResultsScreen({
   }, []);
 
   const canPost = !!runId && eventOpen && !!handle;
+  // A comp run with no handle (shouldn't happen, but never lose a score): ask for it here, then post.
+  const needsHandle = !!runId && eventOpen && !handle;
+  const [handleInput, setHandleInput] = useState("");
+  const postWithHandle = (e: React.FormEvent) => {
+    e.preventDefault();
+    const h = cleanHandle(handleInput);
+    if (!HANDLE_RE.test(h)) {
+      setError("Enter your Instagram handle (letters, numbers, . and _)");
+      return;
+    }
+    saveHandle(h);
+    onHandle(h);
+    void post(h);
+  };
   const prizeLive = Date.now() < PRIZE.endsAt.getTime();
   const [scratched, setScratched] = useState(false);
   const small = "text-[9px] text-center leading-loose";
@@ -131,7 +149,7 @@ export default function ResultsScreen({
             ) : (
               <>POSTING AS @{handle}...</>
             )
-          ) : (
+          ) : needsHandle ? null : (
             <>PRACTICE RUN</>
           )}
           {!YEAR_PRIZE.claimedBy && total < YEAR_PRIZE_KG && (
@@ -145,6 +163,25 @@ export default function ResultsScreen({
         )}
       </div>
 
+      {needsHandle && (
+        <form onSubmit={postWithHandle} className="w-full flex gap-2 text-[10px]">
+          <input
+            required
+            value={handleInput}
+            onChange={(e) => setHandleInput(e.target.value)}
+            placeholder="@instagram to post this score"
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck={false}
+            className="flex-1 min-w-0 px-2 py-2"
+            style={{ backgroundColor: "#0d0b09", color: CREAM, border: `2px solid ${CREAM}`, fontFamily: "inherit" }}
+          />
+          <button type="submit" className="px-3" style={{ backgroundColor: CREAM, color: INK }} disabled={submit.isPending}>
+            {submit.isPending ? "..." : "POST"}
+          </button>
+        </form>
+      )}
+      {needsHandle && error && <p className="text-[8px] text-center" style={{ color: BAD }}>{error}</p>}
       {/* Middle (takes the leftover height): the scratchie beside the fighter holding it out. */}
       <div className="w-full flex-1 min-h-0 flex flex-col items-center justify-center gap-2">
         {prizeLive ? (

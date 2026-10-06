@@ -146,10 +146,11 @@ export default function ResultsScreen({
       </div>
 
       {/* Middle (takes the leftover height): the scratchie beside the fighter holding it out. */}
-      <div className="w-full flex-1 min-h-0 flex items-center justify-center gap-2">
+      <div className="w-full flex-1 min-h-0 flex flex-col items-center justify-center gap-2">
         {prizeLive ? (
           <>
-            <div className="flex-1 min-w-0 flex flex-col items-stretch gap-2" style={{ animation: "lff-handover 0.9s cubic-bezier(.2,.8,.3,1.2) 0.7s both" }}>
+            <Fighter id={character} pose="handover" height="min(170px, 22dvh)" bob={false} style={{ animation: "lff-cheer 0.9s ease-out 0.2s 2 both" }} />
+            <div className="w-full flex flex-col items-stretch gap-2" style={{ animation: "lff-handover 0.9s cubic-bezier(.2,.8,.3,1.2) 0.7s both" }}>
               <ScratchTicket onRevealed={() => { setScratched(true); track("game_prize_scratch"); }}>
                 <div className="flex flex-col items-center gap-2 text-center">
                   <p className="text-[7px] tracking-widest" style={{ color: BROWN }}>LFF SCRATCHIE</p>
@@ -172,7 +173,6 @@ export default function ResultsScreen({
               )}
               <p className="text-[7px] text-center opacity-70">{PRIZE.fine}</p>
             </div>
-            <Fighter id={character} pose="handover" height="min(210px, 100%)" bob={false} style={{ animation: "lff-cheer 0.9s ease-out 0.2s 2 both", maxWidth: "42%", objectFit: "contain" }} />
           </>
         ) : (
           <div className="h-full flex flex-col items-center justify-center gap-2">

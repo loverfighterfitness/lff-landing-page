@@ -17,7 +17,7 @@ const KEYFRAMES = `
 @keyframes lff-pan { 0% { background-position: 50% 0% } 100% { background-position: 50% 100% } }
 @keyframes lff-confetti { 0% { transform: translate(0, 0); opacity: 1 } 100% { transform: translate(var(--dx), var(--dy)) rotate(200deg); opacity: 0 } }
 @keyframes lff-cheer { 0%, 100% { transform: translateY(0) } 30% { transform: translateY(-14px) } 55% { transform: translateY(0) } 75% { transform: translateY(-6px) } }
-@keyframes lff-handover { 0% { transform: translate(110px, -60px) scale(0.12) rotate(-18deg); opacity: 0 } 15% { opacity: 1 } 70% { transform: translate(0, 8px) scale(1.04) rotate(3deg) } 100% { transform: translate(0, 0) scale(1) rotate(0) } }
+@keyframes lff-handover { 0% { transform: translate(-25px, -120px) scale(0.12) rotate(-18deg); opacity: 0 } 15% { opacity: 1 } 70% { transform: translate(0, 8px) scale(1.04) rotate(3deg) } 100% { transform: translate(0, 0) scale(1) rotate(0) } }
 `;
 
 /**

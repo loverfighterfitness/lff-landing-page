@@ -8,7 +8,7 @@ import { gameAsset } from "./theme";
  * the floor.
  */
 export const POSES = [
-  "idle", "stance", "flex", "victory", "point",
+  "idle", "stance", "flex", "victory", "point", "handover",
   "squat_top", "squat_mid", "squat_bottom",
   "dl_bottom", "dl_mid", "dl_top",
   "bench_up", "bench_mid", "bench_down",
@@ -18,14 +18,14 @@ export type SpriteId = Character | "bro";
 
 /** Which poses exist on disk for each sprite set. Missing poses fall back (see FALLBACK). */
 const AVAILABLE: Record<SpriteId, readonly Pose[]> = {
-  levi: ["stance", "flex", "victory", "squat_top", "squat_mid", "squat_bottom", "dl_bottom", "dl_mid", "dl_top", "bench_up", "bench_mid", "bench_down"],
-  ruby: ["stance", "flex", "victory", "squat_top", "squat_mid", "squat_bottom", "dl_bottom", "dl_mid", "dl_top", "bench_up", "bench_mid", "bench_down"],
-  benny: ["stance", "flex", "victory", "squat_top", "squat_mid", "squat_bottom", "dl_bottom", "dl_mid", "dl_top", "bench_up", "bench_mid", "bench_down"],
+  levi: ["stance", "flex", "victory", "handover", "squat_top", "squat_mid", "squat_bottom", "dl_bottom", "dl_mid", "dl_top", "bench_up", "bench_mid", "bench_down"],
+  ruby: ["stance", "flex", "victory", "handover", "squat_top", "squat_mid", "squat_bottom", "dl_bottom", "dl_mid", "dl_top", "bench_up", "bench_mid", "bench_down"],
+  benny: ["stance", "flex", "victory", "handover", "squat_top", "squat_mid", "squat_bottom", "dl_bottom", "dl_mid", "dl_top", "bench_up", "bench_mid", "bench_down"],
   bro: ["idle", "point"],
 };
 
 const FALLBACK: Partial<Record<Pose, Pose>> = {
-  stance: "idle", idle: "stance", flex: "stance", victory: "flex", point: "idle",
+  stance: "idle", idle: "stance", flex: "stance", victory: "flex", point: "idle", handover: "victory",
   squat_mid: "squat_top", dl_mid: "dl_bottom", bench_mid: "bench_down",
 };
 

@@ -145,9 +145,9 @@ export default function ResultsScreen({
         )}
       </div>
 
-      {/* The fighter celebrates and hands over a scratchie. */}
+      {/* The fighter steps up holding out a scratchie (it then flies out of their hand, below). */}
       <div className="w-full flex flex-col items-center">
-        <Fighter id={character} pose="victory" height={170} bob={false} style={{ animation: "lff-cheer 0.9s ease-out 0.2s 2 both" }} />
+        <Fighter id={character} pose={prizeLive ? "handover" : "victory"} height={prizeLive ? 195 : 170} bob={false} style={{ animation: "lff-cheer 0.9s ease-out 0.2s 2 both" }} />
         <p className={small} style={{ ...shadow, marginTop: 4 }}>"{quote}" - {info.name}</p>
         {character === "ruby" && result.perfects >= 8 && <p className="text-lg">{RUBY_PODIUM_LINE}</p>}
       </div>

@@ -84,7 +84,7 @@ export default function TitleScreen({ onPlay, onBoard }: { onPlay: () => void; o
         {YEAR_PRIZE.claimedBy ? (
           <>YEAR OF COACHING CLAIMED BY <span style={{ color: BLUE }}>@{YEAR_PRIZE.claimedBy}</span></>
         ) : (
-          <>FIRST TO <span style={{ color: BLUE }}>{YEAR_PRIZE_KG}KG</span> WINS A <span style={{ color: BLUE }}>YEAR OF COACHING</span></>
+          <>FIRST TO <span style={{ color: BLUE }}>{YEAR_PRIZE_KG}KG</span> WINS A <span style={{ color: BLUE }}>YEAR OF COACHING</span><br />SCREEN-RECORD YOUR RUN TO CLAIM</>
         )}
       </p>
 

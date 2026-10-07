@@ -89,6 +89,8 @@ export const DEADLIFT = {
 
 /**
  * Grand prize: the FIRST verified lifter to post a total at or over this wins a year of coaching.
- * One winner only. Runs at or over it are flagged in admin for a screen-recording / live-rerun check.
+ * One winner only, and the run must be screen recorded (shown on the title and results screens).
+ * Runs at or over it are flagged in admin for that check. Was 800 until 7 Oct 2026: mtl.lch hit
+ * 815 in a day and passed on the prize, so Levi raised it.
  */
-export const YEAR_PRIZE_KG = 800;
+export const YEAR_PRIZE_KG = 900;

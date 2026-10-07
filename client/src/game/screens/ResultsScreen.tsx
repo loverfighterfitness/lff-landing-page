@@ -158,7 +158,7 @@ export default function ResultsScreen({
         </p>
         {!YEAR_PRIZE.claimedBy && total >= YEAR_PRIZE_KG && (
           <a href={IG_DM_URL} target="_blank" rel="noreferrer" onClick={() => track("game_year_prize_claim")} className="text-[9px] underline" style={{ color: BLUE }}>
-            {YEAR_PRIZE_KG}KG CLUB! DM "YEAR" TO CLAIM A YEAR OF COACHING (VERIFIED)
+            {YEAR_PRIZE_KG}KG CLUB! DM "YEAR" + YOUR SCREEN RECORDING TO CLAIM A YEAR OF COACHING
           </a>
         )}
       </div>

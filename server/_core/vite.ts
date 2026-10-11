@@ -4,6 +4,8 @@ import { type Server } from "http";
 import path from "path";
 import { fileURLToPath } from "url";
 import { routeStatus, seoBody, seoHead } from "./seo";
+import { localPages } from "@shared/localPages";
+import { articles, LEARN_INDEX } from "@shared/articles";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -135,6 +137,23 @@ const ROUTE_META: Record<string, RouteMeta> = {
       "Work out your calories and macros for fat loss, maintenance or building muscle. Free calculator from Lover Fighter Fitness.",
     url: "https://www.loverfighterfitness.com/calculator",
   },
+  ...Object.fromEntries(
+    localPages.map(p => [
+      p.path,
+      { title: p.title, description: p.description, url: `https://www.loverfighterfitness.com${p.path}` },
+    ])
+  ),
+  [LEARN_INDEX.path]: {
+    title: LEARN_INDEX.title,
+    description: LEARN_INDEX.description,
+    url: `https://www.loverfighterfitness.com${LEARN_INDEX.path}`,
+  },
+  ...Object.fromEntries(
+    articles.map(a => [
+      `/learn/${a.slug}`,
+      { title: a.title, description: a.description, url: `https://www.loverfighterfitness.com/learn/${a.slug}` },
+    ])
+  ),
 };
 
 function escapeAttr(value: string) {

@@ -8,6 +8,7 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
 import AdminGate from "./components/AdminGate";
+import { localPages } from "@shared/localPages";
 
 // Everything except the homepage is split out so coaching visitors
 // don't download the shop, admin dashboards or chart libraries.
@@ -19,6 +20,9 @@ const Referral = lazy(() => import("./pages/Referral"));
 const Shop = lazy(() => import("./pages/Shop"));
 const Program = lazy(() => import("./pages/Program"));
 const Game = lazy(() => import("./pages/Game"));
+const LocalPage = lazy(() => import("./pages/LocalPage"));
+const LearnIndex = lazy(() => import("./pages/Learn").then(m => ({ default: m.LearnIndex })));
+const LearnArticle = lazy(() => import("./pages/Learn"));
 
 function Router() {
   // Client-side route changes count as page views (the first one is sent on load).
@@ -45,6 +49,13 @@ function Router() {
       <Route path={"/game"} component={Game} />
       <Route path={"/success"} component={Success} />
       <Route path={"/ref/:code"} component={Referral} />
+      <Route path={"/learn"} component={LearnIndex} />
+      <Route path={"/learn/:slug"} component={LearnArticle} />
+      {localPages.map(page => (
+        <Route key={page.path} path={page.path}>
+          <LocalPage page={page} />
+        </Route>
+      ))}
 
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />

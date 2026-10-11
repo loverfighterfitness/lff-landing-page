@@ -19,12 +19,12 @@ const GOAL_OPTIONS = [
 type GoalValue = (typeof GOAL_OPTIONS)[number]["value"];
 type ContactMethod = "text" | "instagram";
 
-export default function ContactSection() {
+export default function ContactSection({ source, defaultGoal }: { source?: string; defaultGoal?: GoalValue } = {}) {
   // This component is targeted by FloatingMobileCTA for scroll detection
   const [name, setName] = useState("");
   const [contactMethod, setContactMethod] = useState<ContactMethod>("text");
   const [phone, setPhone] = useState("");
-  const [goal, setGoal] = useState<GoalValue | "">("");
+  const [goal, setGoal] = useState<GoalValue | "">(defaultGoal ?? "");
   const [message, setMessage] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitted, setSubmitted] = useState(false);
@@ -65,6 +65,7 @@ export default function ContactSection() {
       phone: phone.trim(),
       goal: goal as GoalValue,
       message: message.trim() || undefined,
+      source,
     });
   };
 

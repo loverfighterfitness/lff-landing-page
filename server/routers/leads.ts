@@ -34,6 +34,8 @@ export const leadsRouter = router({
           "other",
         ]),
         message: z.string().max(1000).optional(),
+        /** Which page the form was on, e.g. "page:/comp-prep-coach-adelaide" */
+        source: z.string().regex(/^[a-z0-9:/_-]{1,64}$/).optional(),
       })
     )
     .mutation(async ({ input }) => {
@@ -44,7 +46,7 @@ export const leadsRouter = router({
           phone: input.phone,
           goal: input.goal,
           message: input.message ?? null,
-          source: "landing_page",
+          source: input.source ?? "landing_page",
         });
 
         // Notify Levi of the new enquiry — push to his phone + email (never fail the request)
@@ -61,7 +63,7 @@ export const leadsRouter = router({
           subject: `New coaching enquiry: ${input.name}`,
           html: `<div style="font-family:sans-serif;max-width:560px;padding:20px;background:#f9f7f2;border-radius:12px;color:#333">
             <h2 style="color:#54412F;margin:0 0 12px">New coaching enquiry</h2>
-            <p><b>Name:</b> ${esc(input.name)}<br><b>${via}:</b> ${esc(input.phone)}<br><b>Goal:</b> ${esc(goalLabel)}</p>
+            <p><b>Name:</b> ${esc(input.name)}<br><b>${via}:</b> ${esc(input.phone)}<br><b>Goal:</b> ${esc(goalLabel)}${input.source ? `<br><b>From:</b> ${esc(input.source)}` : ""}</p>
             ${input.message ? `<p><b>Message:</b><br>${esc(input.message)}</p>` : ""}
           </div>`,
         }).catch((e) => console.warn("[Leads] Email failed:", e));

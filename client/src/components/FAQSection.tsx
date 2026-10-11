@@ -6,7 +6,7 @@ import { useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { faqs } from "@shared/faqs";
 
-export default function FAQSection() {
+export default function FAQSection({ items = faqs }: { items?: { question: string; answer: string }[] } = {}) {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   const toggle = (i: number) => {
@@ -51,7 +51,7 @@ export default function FAQSection() {
           }}
         >
         <div className="space-y-3">
-          {faqs.map((faq, i) => {
+          {items.map((faq, i) => {
             const isOpen = openIndex === i;
             return (
               <div

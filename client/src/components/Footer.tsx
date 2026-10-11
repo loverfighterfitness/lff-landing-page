@@ -2,6 +2,7 @@
  * Footer — Single brown, minimal with centered logo
  */
 import { Instagram } from "lucide-react";
+import { localPages } from "@shared/localPages";
 
 const LOGO_TRANSPARENT = "https://d2xsxph8kpxj0f.cloudfront.net/310519663408040383/TeiTyUgvfabHNSBnznn263/LFFNEWLOGOCREAM_transparent_a5b72c81.png";
 
@@ -23,7 +24,7 @@ export default function Footer() {
 
             {/* Links */}
             <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-3 md:gap-8">
-              {["#coaching", "#results", "#about", "/shop", "#contact"].map((href, i) => (
+              {["/#coaching", "/#results", "/#about", "/shop", "#contact"].map((href, i) => (
                 <a
                   key={href}
                   href={href}
@@ -43,6 +44,22 @@ export default function Footer() {
               </a>
             </div>
           </div>
+
+          {/* Service pages — keeps them one click from every page for visitors and Google */}
+          <nav aria-label="Coaching services" className="mt-10 flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
+            {localPages.map(p => (
+              <a
+                key={p.path}
+                href={p.path}
+                className="text-lff-cream/45 text-xs tracking-wider hover:text-lff-cream/80 transition-colors"
+              >
+                {p.name}
+              </a>
+            ))}
+            <a href="/learn" className="text-lff-cream/45 text-xs tracking-wider hover:text-lff-cream/80 transition-colors">
+              Learn
+            </a>
+          </nav>
 
           {/* Copyright */}
           <div className="mt-8 text-center">

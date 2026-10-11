@@ -1,4 +1,6 @@
 import { faqs } from "@shared/faqs";
+import { localPages, localPageByPath, type LocalPage } from "@shared/localPages";
+import { articles, LEARN_INDEX, type Article } from "@shared/articles";
 
 // Server-rendered extras for crawlers: JSON-LD structured data, plus a plain-HTML
 // copy of the page's key content inside #root. React replaces #root's children on
@@ -12,7 +14,12 @@ const OG_IMAGE =
   "https://d2xsxph8kpxj0f.cloudfront.net/310519663408040383/TeiTyUgvfabHNSBnznn263/lff-og-image-real_e16693c0.png";
 
 // Every path the client router renders. Anything else gets a real 404 status.
-const KNOWN_PATHS = new Set(["", "/calculator", "/admin", "/admin/leads", "/shop", "/program", "/game", "/success", "/404"]);
+const KNOWN_PATHS = new Set([
+  "", "/calculator", "/admin", "/admin/leads", "/shop", "/program", "/game", "/success", "/404",
+  ...localPages.map(p => p.path),
+  LEARN_INDEX.path,
+  ...articles.map(a => `/learn/${a.slug}`),
+]);
 const NOINDEX_PATHS = new Set(["/admin", "/admin/leads", "/success", "/404", "/game"]);
 
 export function routeStatus(path: string): { status: number; noindex: boolean } {
@@ -103,9 +110,78 @@ const shopProducts = {
   ].map((item, i) => ({ "@type": "ListItem", position: i + 1, item })),
 };
 
+function localStructuredData(page: LocalPage): object[] {
+  const url = `${SITE}${page.path}`;
+  const service = {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    name: page.name,
+    serviceType: page.serviceType,
+    description: page.description,
+    url,
+    provider: { "@id": `${SITE}/#business` },
+    areaServed: page.areaServed.map(name => ({ "@type": "Place", name })),
+    ...(page.offer && {
+      offers: {
+        "@type": "Offer",
+        price: page.offer.price,
+        priceCurrency: "AUD",
+        description: page.offer.description,
+      },
+    }),
+  };
+  const faq = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: page.faqs.map(f => ({
+      "@type": "Question",
+      name: f.question,
+      acceptedAnswer: { "@type": "Answer", text: f.answer },
+    })),
+  };
+  const breadcrumbs = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Lover Fighter Fitness", item: `${SITE}/` },
+      { "@type": "ListItem", position: 2, name: page.name, item: url },
+    ],
+  };
+  return [service, faq, breadcrumbs];
+}
+
+function articleStructuredData(a: Article): object[] {
+  const url = `${SITE}/learn/${a.slug}`;
+  return [
+    {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      headline: a.h1,
+      description: a.description,
+      datePublished: a.date,
+      url,
+      mainEntityOfPage: url,
+      image: OG_IMAGE,
+      author: { "@type": "Person", name: "Levi Hurst", url: SITE, jobTitle: "Coach" },
+      publisher: { "@id": `${SITE}/#business` },
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Lover Fighter Fitness", item: `${SITE}/` },
+        { "@type": "ListItem", position: 2, name: "Learn", item: `${SITE}/learn` },
+        { "@type": "ListItem", position: 3, name: a.h1, item: url },
+      ],
+    },
+  ];
+}
+
 const STRUCTURED_DATA: Record<string, object[]> = {
   "": [business, faqPage],
   "/shop": [shopProducts],
+  ...Object.fromEntries(localPages.map(p => [p.path, localStructuredData(p)])),
+  ...Object.fromEntries(articles.map(a => [`/learn/${a.slug}`, articleStructuredData(a)])),
 };
 
 function esc(text: string) {
@@ -127,11 +203,53 @@ const STATIC_CONTENT: Record<string, string> = {
 <p>Ruby Frang placed 2nd at her first bodybuilding show (ICN SA) after comp prep with LFF. Kim went from a size XL to a size M in four months.</p>
 <h2>Frequently asked questions</h2>
 ${faqs.map(f => `<h3>${esc(f.question)}</h3><p>${esc(f.answer)}</p>`).join("\n")}
+<p>${localPages.map(p => `<a href="${p.path}" style="color:#EAE6D2">${esc(p.name)}</a>`).join(" · ")} · <a href="/learn" style="color:#EAE6D2">Learn</a></p>
 <p><a href="/shop" style="color:#EAE6D2">LFF Merch</a> · <a href="/program" style="color:#EAE6D2">The Hypertrophy Meta program</a> · <a href="/calculator" style="color:#EAE6D2">Macro calculator</a> · <a href="https://www.instagram.com/loverfighterfitness/" style="color:#EAE6D2">Instagram</a></p>`),
   "/shop": wrap(`
 <h1 style="font-family:Montserrat,sans-serif;font-weight:800;margin:0 0 12px">LFF Merch</h1>
 <p>Official Lover Fighter Fitness merch: heavyweight drop-shoulder tees ($45), lifting straps ($35), wrist cuffs ($25) and crew socks ($10). Local pickup in Mount Barker, shipping Australia-wide.</p>`),
 };
+
+function localStaticContent(page: LocalPage): string {
+  const section = (sec: LocalPage["sections"][number]) =>
+    [
+      `<h2>${esc(sec.heading)}</h2>`,
+      ...(sec.paragraphs ?? []).map(t => `<p>${esc(t)}</p>`),
+      sec.bullets ? `<ul>${sec.bullets.map(t => `<li>${esc(t)}</li>`).join("")}</ul>` : "",
+      sec.steps ? `<ol>${sec.steps.map(t => `<li>${esc(t)}</li>`).join("")}</ol>` : "",
+    ].join("\n");
+  return wrap(`
+<p>${esc(page.eyebrow)}</p>
+<h1 style="font-family:Montserrat,sans-serif;font-weight:800;margin:0 0 12px">${esc(page.h1)}</h1>
+${page.intro.map(t => `<p>${esc(t)}</p>`).join("\n")}
+<ul>${page.proof.map(p => `<li><strong>${esc(p.stat)}</strong> ${esc(p.label)}</li>`).join("")}</ul>
+${page.sections.map(section).join("\n")}
+<h2>Frequently asked questions</h2>
+${page.faqs.map(f => `<h3>${esc(f.question)}</h3><p>${esc(f.answer)}</p>`).join("\n")}
+<p>${page.related.map(path => `<a href="${path}" style="color:#EAE6D2">${esc(localPageByPath[path].name)}</a>`).join(" · ")} · <a href="/" style="color:#EAE6D2">Lover Fighter Fitness</a></p>`);
+}
+
+for (const page of localPages) STATIC_CONTENT[page.path] = localStaticContent(page);
+
+function articleStaticContent(a: Article): string {
+  const block = (b: Article["body"][number]) => {
+    if (b.type === "h2") return `<h2>${esc(b.text)}</h2>`;
+    if (b.type === "ul") return `<ul>${b.items.map(t => `<li>${esc(t)}</li>`).join("")}</ul>`;
+    return `<p>${esc(b.text)}</p>`;
+  };
+  return wrap(`
+<p><a href="/learn" style="color:#EAE6D2">Learn</a> · ${esc(a.topic)}</p>
+<h1 style="font-family:Montserrat,sans-serif;font-weight:800;margin:0 0 12px">${esc(a.h1)}</h1>
+<p>By Levi Hurst · ${a.date}</p>
+${a.body.map(block).join("\n")}
+<p><a href="${a.cta.path}" style="color:#EAE6D2">${esc(a.cta.text)}</a></p>`);
+}
+
+for (const a of articles) STATIC_CONTENT[`/learn/${a.slug}`] = articleStaticContent(a);
+STATIC_CONTENT[LEARN_INDEX.path] = wrap(`
+<h1 style="font-family:Montserrat,sans-serif;font-weight:800;margin:0 0 12px">${esc(LEARN_INDEX.h1)}</h1>
+<p>${esc(LEARN_INDEX.intro)}</p>
+${articles.map(a => `<h2><a href="/learn/${a.slug}" style="color:#EAE6D2">${esc(a.h1)}</a></h2><p>${esc(a.description)}</p>`).join("\n")}`);
 
 export function seoHead(path: string): string {
   return (STRUCTURED_DATA[path] ?? [])

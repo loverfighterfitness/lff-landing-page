@@ -1,4 +1,4 @@
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { calculatorLeads, InsertLead, InsertUser, leads, users } from "../drizzle/schema";
 
@@ -92,6 +92,18 @@ export async function insertLead(lead: InsertLead) {
   if (!db) throw new Error("Database not available");
   const result = await db.insert(leads).values(lead);
   return result;
+}
+
+/** True if a lead with this phone already exists for the given source (used to dedupe imports). */
+export async function leadExists(phone: string, source: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const rows = await db
+    .select({ id: leads.id })
+    .from(leads)
+    .where(and(eq(leads.phone, phone), eq(leads.source, source)))
+    .limit(1);
+  return rows.length > 0;
 }
 
 export async function getLeads(limit = 100) {

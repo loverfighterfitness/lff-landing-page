@@ -1,5 +1,6 @@
 /**
- * Enquiries Tab — "Let's chat" contact-form submissions from the homepage.
+ * Enquiries Tab — "Let's chat" contact-form submissions from the homepage,
+ * plus Snap PT call-sheet leads assigned to Levi (source = snap_call_sheet).
  */
 import { Instagram, Loader2, MessageSquare } from "lucide-react";
 import { trpc } from "@/lib/trpc";
@@ -39,7 +40,15 @@ export default function EnquiriesTab() {
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <p className="font-black text-lg">{lead.name}</p>
-                <p className="text-sm" style={muted}>{GOALS[lead.goal] ?? lead.goal}</p>
+                <p className="text-sm" style={muted}>
+                  {lead.source === "snap_call_sheet" ? (
+                    <span className="inline-block text-[10px] font-bold tracking-[0.12em] uppercase px-2 py-0.5 rounded-full" style={{ backgroundColor: CREAM, color: "#54412F" }}>
+                      Snap lead
+                    </span>
+                  ) : (
+                    GOALS[lead.goal] ?? lead.goal
+                  )}
+                </p>
               </div>
               <p className="text-xs" style={muted}>
                 {new Date(lead.createdAt).toLocaleString("en-AU", { day: "numeric", month: "short", year: "numeric", hour: "numeric", minute: "2-digit", timeZone: "Australia/Adelaide" })}

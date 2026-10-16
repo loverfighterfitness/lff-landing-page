@@ -7,6 +7,7 @@ import type { TrpcContext } from "./_core/context";
 vi.mock("./db", () => ({
   insertLead: vi.fn().mockResolvedValue(undefined),
   getLeads: vi.fn().mockResolvedValue([]),
+  leadExists: vi.fn().mockResolvedValue(false),
 }));
 
 vi.mock("./_core/notification", () => ({
@@ -14,7 +15,7 @@ vi.mock("./_core/notification", () => ({
 }));
 
 import { appRouter } from "./routers";
-import { insertLead, getLeads } from "./db";
+import { insertLead, getLeads, leadExists } from "./db";
 import { notifyOwner } from "./_core/notification";
 
 function createPublicCtx(): TrpcContext {
@@ -202,5 +203,36 @@ describe("leads.list", () => {
     const caller = appRouter.createCaller(createPublicCtx());
 
     await expect(caller.leads.list()).rejects.toMatchObject({ code: "UNAUTHORIZED" });
+  });
+});
+
+describe("leads.importSnap", () => {
+  const snap = { name: "Test Lead", phone: "0400 000 000", notes: "Discovery session", bookedBy: "Allana" };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("saves a new Snap lead with the snap source", async () => {
+    const caller = appRouter.createCaller(createAdminCtx());
+    const result = await caller.leads.importSnap(snap);
+
+    expect(result).toEqual({ created: true });
+    expect(insertLead).toHaveBeenCalledWith(
+      expect.objectContaining({ name: "Test Lead", phone: "0400 000 000", source: "snap_call_sheet" })
+    );
+  });
+
+  it("skips a lead that's already been imported", async () => {
+    vi.mocked(leadExists).mockResolvedValueOnce(true);
+    const caller = appRouter.createCaller(createAdminCtx());
+
+    expect(await caller.leads.importSnap(snap)).toEqual({ created: false });
+    expect(insertLead).not.toHaveBeenCalled();
+  });
+
+  it("throws UNAUTHORIZED without the admin password", async () => {
+    const caller = appRouter.createCaller(createPublicCtx());
+    await expect(caller.leads.importSnap(snap)).rejects.toMatchObject({ code: "UNAUTHORIZED" });
   });
 });

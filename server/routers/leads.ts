@@ -1,10 +1,13 @@
 import { z } from "zod";
 import { publicProcedure, router, protectedProcedure } from "../_core/trpc";
-import { insertLead, getLeads } from "../db";
+import { insertLead, getLeads, leadExists } from "../db";
 import { notifyOwner } from "../_core/notification";
 import { pushToAllDevices } from "../_core/push";
 import { sendEmail } from "../_core/email";
 import { TRPCError } from "@trpc/server";
+
+/** `leads.source` for rows imported from the Snap PT call sheet. */
+export const SNAP_SOURCE = "snap_call_sheet";
 
 const GOAL_LABELS: Record<string, string> = {
   lose_weight: "Lose Weight / Tone Up",
@@ -88,6 +91,61 @@ export const leadsRouter = router({
           message: "Something went wrong. Please try again.",
         });
       }
+    }),
+
+  /**
+   * Admin only — a Snap PT call-sheet lead assigned to Levi. Called by the
+   * Apps Script watcher (business-os/growth/pt-lead-alert.gs) with ?admin=<token>.
+   * Deduped on phone, so a re-sent row is a no-op and doesn't re-notify.
+   */
+  importSnap: protectedProcedure
+    .input(
+      z.object({
+        name: z.string().min(1).max(255),
+        phone: z.string().min(2).max(30),
+        email: z.string().max(320).optional(),
+        joined: z.string().max(64).optional(),
+        bookedBy: z.string().max(64).optional(),
+        notes: z.string().max(1000).optional(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      if (await leadExists(input.phone, SNAP_SOURCE)) return { created: false };
+
+      const message = [
+        input.notes,
+        input.email && `Email: ${input.email}`,
+        input.joined && `Joined Snap: ${input.joined}`,
+        input.bookedBy && `Booked by: ${input.bookedBy}`,
+      ]
+        .filter(Boolean)
+        .join("\n");
+      await insertLead({
+        name: input.name,
+        contactMethod: "text",
+        phone: input.phone,
+        goal: "general_fitness",
+        message: message || null,
+        source: SNAP_SOURCE,
+      });
+
+      await pushToAllDevices({
+        title: `New Snap lead: ${input.name}`,
+        body: `${input.phone}${input.notes ? ` · ${input.notes}` : ""}`.slice(0, 180),
+        url: "/admin/leads",
+      }).catch((e) => console.warn("[Leads] Snap push failed:", e));
+      const esc = (v: string) => v.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]!);
+      await sendEmail({
+        to: "loverfighterfitness@gmail.com",
+        subject: `New Snap lead: ${input.name}`,
+        html: `<div style="font-family:sans-serif;max-width:560px;padding:20px;background:#f9f7f2;border-radius:12px;color:#333">
+          <h2 style="color:#54412F;margin:0 0 12px">New Snap lead assigned to you</h2>
+          <p><b>Name:</b> ${esc(input.name)}<br><b>Mobile:</b> <a href="tel:${esc(input.phone.replace(/\s/g, ""))}">${esc(input.phone)}</a></p>
+          ${message ? `<p style="white-space:pre-wrap">${esc(message)}</p>` : ""}
+        </div>`,
+      }).catch((e) => console.warn("[Leads] Snap email failed:", e));
+
+      return { created: true };
     }),
 
   /**

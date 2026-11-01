@@ -7,3 +7,6 @@ dist/
 product shoot v1/
 website inspo : assets /
 public/shop/
+
+# The coach app build (client/public/app) ships expo-sqlite's wasm under an assets/node_modules path.
+!client/public/app/**/node_modules/

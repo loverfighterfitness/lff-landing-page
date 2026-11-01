@@ -70,6 +70,14 @@ export function serveStatic(app: Express) {
     );
   }
 
+  // The coach app keeps its data in SQLite on the web, which needs SharedArrayBuffer, which needs these
+  // two headers on everything it loads (expo-sqlite's documented hosting setup).
+  app.use("/app", (_req, res, next) => {
+    res.setHeader("Cross-Origin-Embedder-Policy", "credentialless");
+    res.setHeader("Cross-Origin-Opener-Policy", "same-origin");
+    next();
+  });
+
   app.use(
     express.static(distPath, {
       redirect: false,

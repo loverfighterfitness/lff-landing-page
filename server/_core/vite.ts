@@ -85,6 +85,15 @@ export function serveStatic(app: Express) {
     })
   );
 
+  // The LFF coaching app's web build (lff-coaching-app: `npm run export:web`, copied to client/public/app).
+  // Every /app route gets that app's own index; it is a signed-in coach tool, so never indexed.
+  const coachAppIndex = path.resolve(distPath, "app", "index.html");
+  app.get(["/app", "/app/"], (_req, res) => res.redirect(302, "/app/coach"));
+  app.get("/app/*", (_req, res) => {
+    res.setHeader("X-Robots-Tag", "noindex");
+    res.sendFile(coachAppIndex);
+  });
+
   // fall through to index.html if the file doesn't exist
   const indexHtml = fs.existsSync(path.resolve(distPath, "index.html"))
     ? fs.readFileSync(path.resolve(distPath, "index.html"), "utf-8")

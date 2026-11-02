@@ -403,8 +403,15 @@ function SmsJobRow({ job }: { job: any }) {
   );
 }
 
+const ADMIN_TABS = ["analytics", "enquiries", "leads", "sms", "referrals", "orders", "inventory", "game"] as const;
+type AdminTab = (typeof ADMIN_TABS)[number];
+
 export default function AdminLeads() {
-  const [activeTab, setActiveTab] = useState<"analytics" | "enquiries" | "leads" | "sms" | "referrals" | "orders" | "inventory" | "game">("analytics");
+  // Push notifications link to /admin/leads?tab=enquiries so a tap lands on the lead
+  const [activeTab, setActiveTab] = useState<AdminTab>(() => {
+    const tab = new URLSearchParams(window.location.search).get("tab");
+    return ADMIN_TABS.includes(tab as AdminTab) ? (tab as AdminTab) : "analytics";
+  });
   const push = usePushNotifications();
   const pushStatusQuery = trpc.push.status.useQuery(
     { endpoint: push.endpoint ?? undefined },
@@ -541,7 +548,7 @@ export default function AdminLeads() {
 
         {/* Tabs */}
         <div className="max-w-5xl mx-auto px-4 flex gap-1 pb-2 overflow-x-auto">
-          {(["analytics", "enquiries", "leads", "sms", "referrals", "orders", "inventory", "game"] as const).map((tab) => {
+          {ADMIN_TABS.map((tab) => {
             const tabLabels: Record<string, string> = {
               analytics: "Analytics",
               enquiries: "Enquiries",

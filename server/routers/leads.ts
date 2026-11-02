@@ -58,7 +58,7 @@ export const leadsRouter = router({
         pushToAllDevices({
           title: `New enquiry: ${input.name}`,
           body: `${goalLabel} · ${via}: ${input.phone}`,
-          url: "/admin/leads",
+          url: "/admin/leads?tab=enquiries",
         }).catch((e) => console.warn("[Leads] Push failed:", e));
         const esc = (v: string) => v.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]!);
         sendEmail({
@@ -132,7 +132,7 @@ export const leadsRouter = router({
       await pushToAllDevices({
         title: `New Snap lead: ${input.name}`,
         body: `${input.phone}${input.notes ? ` · ${input.notes}` : ""}`.slice(0, 180),
-        url: "/admin/leads",
+        url: "/admin/leads?tab=enquiries",
       }).catch((e) => console.warn("[Leads] Snap push failed:", e));
       const esc = (v: string) => v.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]!);
       await sendEmail({

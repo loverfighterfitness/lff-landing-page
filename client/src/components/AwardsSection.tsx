@@ -12,13 +12,12 @@ import { motion } from "framer-motion";
 
 const GROUND = "#4A3828"; // the clips' own ground, so a card and its clip are one surface
 
-/** ground: the clip's own background, where it differs from GROUND (the trophy's turn was rendered elsewhere). */
+/** ground: the clip's own background, where it differs from GROUND (none today: every clip is made the same way). */
 type Award = { file: string; name: string; line: string; ground?: string };
 
 const FEATURED: Award[] = [
   {
     file: "trophy",
-    ground: "#473623",
     name: "Thousand Pound Club",
     line: "Squat, bench and deadlift, one rep each, 1,000 lb in total. Film every lift and Levi watches all three before it counts.",
   },

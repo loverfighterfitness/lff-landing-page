@@ -133,7 +133,7 @@ export function welcomeEmailHtml(firstName: string | null, email: string): strin
           <p style="color:rgba(234,230,210,0.85);font-size:15px;line-height:1.6;margin:0 0 14px;">Welcome to LFF. Your coaching runs through the LFF Coaching app: your program, check-ins, food and messages with me, all in one place.</p>
           <p style="color:rgba(234,230,210,0.85);font-size:15px;line-height:1.6;margin:0 0 6px;"><strong style="color:#EAE6D2;">1.</strong> Download LFF Coaching from the App Store.</p>
           <p style="color:rgba(234,230,210,0.85);font-size:15px;line-height:1.6;margin:0 0 6px;"><strong style="color:#EAE6D2;">2.</strong> Sign in with this email: <strong style="color:#EAE6D2;">${esc(email)}</strong></p>
-          <p style="color:rgba(234,230,210,0.85);font-size:15px;line-height:1.6;margin:0 0 20px;"><strong style="color:#EAE6D2;">3.</strong> I'll be in touch within 24 hours to get your program built.</p>
+          <p style="color:rgba(234,230,210,0.85);font-size:15px;line-height:1.6;margin:0 0 20px;"><strong style="color:#EAE6D2;">3.</strong> I'll be in touch within 24 hours.</p>
           <a href="${APP_STORE_URL}" style="display:inline-block;background:rgba(234,230,210,0.95);color:#54412F;padding:12px 24px;border-radius:999px;font-size:11px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;text-decoration:none;">Get the app</a>
           <p style="color:rgba(234,230,210,0.55);font-size:13px;line-height:1.6;margin:20px 0 0;">Using a different email in the app? Just reply and tell me which one.</p>
           <p style="color:rgba(234,230,210,0.85);font-size:15px;line-height:1.6;margin:16px 0 0;">Levi</p>

@@ -158,7 +158,6 @@ export default function Success() {
               "Download LFF Coaching from the App Store",
               "Sign in with the email you just paid with",
               "Levi will reach out within 24 hours",
-              "Your custom program gets built",
               "Weekly check-ins begin — let's get to work",
             ].map((step, i) => (
               <li key={i} className="flex items-start gap-3">

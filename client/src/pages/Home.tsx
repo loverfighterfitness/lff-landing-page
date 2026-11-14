@@ -9,6 +9,7 @@ import Navbar from "@/components/Navbar";
 import HeroSection from "@/components/HeroSection";
 import SocialProofBar from "@/components/SocialProofBar";
 import AppShowcaseSection from "@/components/AppShowcaseSection";
+import AwardsSection from "@/components/AwardsSection";
 import CoachingSection from "@/components/CoachingSection";
 import TestimonialsSection from "@/components/TestimonialsSection";
 import BeforeAfterSection from "@/components/BeforeAfterSection";
@@ -81,6 +82,7 @@ export default function Home() {
       <TestimonialsSection />
       <AboutSection />
       <AppShowcaseSection />
+      <AwardsSection />
       <CoachingSection />
       <FAQSection />
       <ContactSection />

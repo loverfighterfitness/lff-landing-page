@@ -5,7 +5,7 @@
  *
  * Light on a phone: nothing loads until a card is about to scroll into view (the poster and the clip both), a clip
  * plays only while it's on screen, and with Reduce Motion on it stays on its poster.
- * Words: DRAFT, pending Levi's OK on the exact text.
+ * Words: as Levi OK'd them (2026-11-14).
  */
 import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";

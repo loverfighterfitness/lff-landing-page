@@ -567,14 +567,35 @@ function escapeHtml(s: string): string {
     .replace(/'/g, "&#39;");
 }
 
-/** Levi's alert: the console line, plus an email (the console alone reaches nobody). */
+/**
+ * Levi's alert: the console line, a push to every device subscribed in the admin (as shop orders do), and an email
+ * (sent only once GMAIL_APP_PASSWORD is set). The console alone reaches nobody.
+ */
 async function alertLevi(subject: string, text: string, html?: string) {
   await notifyOwner({ title: subject, content: text });
+  await pushToAdmins(subject, text, "/admin/leads");
   await sendEmail({
     to: ENV.gmailUser,
     subject,
     html: html ?? `<p style="font-family:-apple-system,sans-serif;font-size:14px;">${escapeHtml(text)}</p>`,
   }).catch((e) => console.warn("[Email] Levi alert failed:", e));
+}
+
+/** Web push to the admin's subscribed devices; skipped quietly when the database is down. Never throws. */
+async function pushToAdmins(title: string, body: string, url: string) {
+  try {
+    const db = await getDb();
+    if (!db) return;
+    const subs = await db.select().from(pushSubscriptions);
+    for (const sub of subs) {
+      const result = await sendPushNotification({ endpoint: sub.endpoint, keys: sub.keys }, { title, body, url });
+      if (result.error === "subscription_expired") {
+        await db.delete(pushSubscriptions).where(eq(pushSubscriptions.endpoint, sub.endpoint));
+      }
+    }
+  } catch (e) {
+    console.warn("[Push] Levi alert push failed:", e);
+  }
 }
 
 /**

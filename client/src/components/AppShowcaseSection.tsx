@@ -1,6 +1,6 @@
 /**
  * App Showcase — Interactive phone carousel
- * Shows HubFit in action with 3D tilt, mouse parallax, auto-rotate,
+ * Shows the LFF Coaching app (App Store screenshots, demo data) with 3D tilt, mouse parallax, auto-rotate,
  * clickable feature tabs, animated labels.
  * Replaces the old WhySection "What You Get" grid.
  */
@@ -15,7 +15,7 @@ const features = [
     title: "DASHBOARD",
     description:
       "Tasks, check-ins, habits and challenges — all in one view. Open the app, know exactly what to do today.",
-    image: "/app/dashboard.png",
+    image: "/app-screens/today.png",
     accent: "#EAE6D2",
   },
   {
@@ -24,7 +24,7 @@ const features = [
     title: "YOUR PROGRAM",
     description:
       "Built from scratch for your body, your goals, your equipment. Every set, rep and rest period mapped out for you.",
-    image: "/app/program.png",
+    image: "/app-screens/workout.png",
     accent: "#C9A87C",
   },
   {
@@ -33,7 +33,7 @@ const features = [
     title: "CHECK-INS",
     description:
       "Daily and weekly check-ins that I review personally. Training, nutrition, energy, sleep — I see everything.",
-    image: "/app/checkins.png",
+    image: "/app-screens/checkin.png",
     accent: "#EAE6D2",
   },
   {
@@ -42,7 +42,7 @@ const features = [
     title: "NUTRITION",
     description:
       "Log food, track macros, hit your targets. Full nutrition dashboard with meal breakdown and macro goals.",
-    image: "/app/nutrition.png",
+    image: "/app-screens/food.png",
     accent: "#C9A87C",
   },
   {
@@ -51,7 +51,7 @@ const features = [
     title: "PROGRESS",
     description:
       "Weight, photos, body stats, steps — tracked over time. See the line trending the way you want it to.",
-    image: "/app/weight.png",
+    image: "/app-screens/progress.png",
     accent: "#C9A87C",
   },
   {
@@ -60,7 +60,7 @@ const features = [
     title: "COMMUNITY",
     description:
       "You're never training alone. Challenges, polls, wins and banter — the whole LFF crew in one feed.",
-    image: "/app/community.png",
+    image: "/app-screens/community.png",
     accent: "#EAE6D2",
   },
 ];
@@ -141,7 +141,7 @@ export default function AppShowcaseSection() {
             RUNS IT ALL
           </h2>
           <p className="text-lff-cream/60 text-base md:text-lg leading-relaxed mt-6 max-w-xl">
-            HubFit — custom-built for LFF clients. Every tool you need, one clean app.
+            LFF Coaching — the app built for LFF clients. Every tool you need, one clean app.
           </p>
         </motion.div>
 

@@ -9,7 +9,18 @@ import { notifyOwner } from "../_core/notification";
 import { sendEmail } from "../_core/email";
 import { sendPushNotification } from "../_core/push";
 import { deliverProgram } from "../program/delivery";
-import { isProgramOrder } from "./products";
+import { STRIPE_PRODUCTS, isProgramOrder } from "./products";
+import {
+  COACHING_KEYS,
+  type CoachingKey,
+  coachingAlertHtml,
+  inviteBuyerToApp,
+  resolveCoachingKey,
+  inviteLine,
+  shouldWelcome,
+  WELCOME_SUBJECT,
+  welcomeEmailHtml,
+} from "./appInvite";
 import { getDb } from "../db";
 import { eq } from "drizzle-orm";
 import {
@@ -62,6 +73,14 @@ export async function handleStripeWebhook(req: Request, res: Response) {
         break;
       }
 
+      // Coaching (the only subscriptions): invite the buyer to the LFF Coaching app, welcome them, alert Levi.
+      // Before the shop branch, which would otherwise claim a coaching Payment Link checkout.
+      const coachingKey = await resolveCoachingKey(stripe, session);
+      if (coachingKey) {
+        await handleCoachingOrder(session, coachingKey);
+        break;
+      }
+
       // Check if this is a shop order.
       // Payment Link checkouts (Instagram path — see Shop.tsx PAYMENT_LINKS)
       // have no shop metadata but always carry `payment_link`. Coaching
@@ -71,24 +90,19 @@ export async function handleStripeWebhook(req: Request, res: Response) {
         break;
       }
 
-      // Default: coaching payment notification
-      const productName = session.metadata?.product_name ?? "Unknown Package";
-      const customerEmail = session.customer_details?.email ?? "unknown";
-      const customerName = session.customer_details?.name ?? "Unknown";
-      const amountPaid = session.amount_total
-        ? `$${(session.amount_total / 100).toFixed(2)} AUD`
-        : "unknown";
-
-      console.log(
-        `[Webhook] Payment completed: ${productName} by ${customerName} (${customerEmail}) — ${amountPaid}`
+      // Anything else: tell Levi so nothing paid goes unnoticed.
+      await alertLevi(
+        `Payment · ${session.metadata?.product_name ?? "Unknown"}`,
+        `Stripe session ${session.id} completed but the site didn't recognise the product. Check Stripe.`
       );
+      break;
+    }
 
-      // Notify Levi of new client payment
-      await notifyOwner({
-        title: `New Client Payment — ${productName}`,
-        content: `${customerName} (${customerEmail}) just paid ${amountPaid} for ${productName}. Check your Stripe dashboard and reach out within 24 hours.`,
-      });
-
+    // A coaching subscription ended (cancelled, or failed payments ran out). Levi decides what happens in the app;
+    // nothing is locked automatically.
+    case "customer.subscription.deleted": {
+      const sub = event.data.object as Stripe.Subscription;
+      await handleSubscriptionEnded(stripe, sub);
       break;
     }
 
@@ -551,4 +565,77 @@ function escapeHtml(s: string): string {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#39;");
+}
+
+/** Levi's alert: the console line, plus an email (the console alone reaches nobody). */
+async function alertLevi(subject: string, text: string, html?: string) {
+  await notifyOwner({ title: subject, content: text });
+  await sendEmail({
+    to: ENV.gmailUser,
+    subject,
+    html: html ?? `<p style="font-family:-apple-system,sans-serif;font-size:14px;">${escapeHtml(text)}</p>`,
+  }).catch((e) => console.warn("[Email] Levi alert failed:", e));
+}
+
+/**
+ * A coaching purchase: the app invite first (it decides whether this is Stripe repeating itself), then the buyer's
+ * welcome email (once per session), then Levi's alert, which always goes out and says whether the invite did.
+ */
+export async function handleCoachingOrder(session: Stripe.Checkout.Session, productKey: CoachingKey) {
+  const productName = session.metadata?.product_name || STRIPE_PRODUCTS[productKey].name;
+  const email = session.customer_details?.email ?? null;
+  const customerName = session.customer_details?.name ?? null;
+  const amountPaid =
+    session.amount_total != null ? `$${(session.amount_total / 100).toFixed(2)} AUD` : "unknown";
+
+  console.log(`[Webhook] Coaching payment: ${productName} (${session.id}) — ${amountPaid}`);
+
+  const outcome = await inviteBuyerToApp({ sessionId: session.id, email, name: customerName, productKey });
+  const line = inviteLine(outcome, email ?? "their email");
+
+  if (email && shouldWelcome(outcome)) {
+    const firstName = customerName?.trim().split(/\s+/)[0] || null;
+    await sendEmail({ to: email, subject: WELCOME_SUBJECT, html: welcomeEmailHtml(firstName, email) }).catch((e) =>
+      console.warn("[Email] Welcome email failed:", e)
+    );
+  }
+
+  const repeat = outcome.status === "done" && outcome.repeat;
+  const failed = outcome.status === "failed" || outcome.status === "no_email";
+  const subject = `${repeat ? "[Repeat] " : failed ? "[Invite by hand] " : ""}New client · ${productName} · ${customerName ?? email ?? "unknown"}`;
+  const text = `${customerName ?? "Unknown"} (${email ?? "no email"}) paid ${amountPaid} for ${productName}. ${line}`;
+  await alertLevi(
+    subject,
+    text,
+    coachingAlertHtml({
+      productName,
+      customerName: customerName ?? "Unknown",
+      customerEmail: email ?? "no email",
+      amountPaid,
+      inviteLine: line,
+      sessionId: session.id,
+    })
+  );
+}
+
+/** Only coaching subscriptions: the shop and the program are one-off payments, so they never end. */
+export async function handleSubscriptionEnded(stripe: Stripe, sub: Stripe.Subscription) {
+  const priceIds = sub.items.data.map((i) => i.price.id);
+  const key = COACHING_KEYS.find((k) => priceIds.includes(STRIPE_PRODUCTS[k].priceId));
+  if (!key) {
+    console.log(`[Webhook] Subscription ${sub.id} ended (not coaching)`);
+    return;
+  }
+  let who = typeof sub.customer === "string" ? sub.customer : sub.customer.id;
+  try {
+    const customer = await stripe.customers.retrieve(who);
+    if (!customer.deleted) who = `${customer.name ?? "Unknown"} (${customer.email ?? "no email"})`;
+  } catch (err) {
+    console.warn("[Webhook] Could not look up the customer:", err);
+  }
+  const productName = STRIPE_PRODUCTS[key].name;
+  await alertLevi(
+    `Coaching ended · ${productName}`,
+    `${who}'s ${productName} subscription has ended in Stripe. Their app still works: if they've finished with you, archive them in the coach web.`
+  );
 }

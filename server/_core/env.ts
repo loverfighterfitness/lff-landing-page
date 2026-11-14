@@ -13,4 +13,7 @@ export const ENV = {
   stripeWebhookSecret: process.env.STRIPE_WEBHOOK_SECRET ?? "",
   stripePublishableKey: process.env.VITE_STRIPE_PUBLISHABLE_KEY ?? "",
   siteUrl: process.env.SITE_URL ?? "https://www.loverfighterfitness.com",
+  /** LFF Coaching app: the coaching-purchase Edge Function and its shared secret (server/stripe/appInvite.ts). */
+  appInviteUrl: process.env.LFF_APP_INVITE_URL ?? "",
+  appInviteSecret: process.env.LFF_APP_INVITE_SECRET ?? "",
 };

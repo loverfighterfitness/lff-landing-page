@@ -1,10 +1,14 @@
 /**
  * Success Page — Shown after Stripe checkout completes
- * Confirms payment, directs client to check email for HubFit link
+ * Confirms payment, sends the client to the LFF Coaching app (App Store) and their welcome email.
+ * The webhook invites their email to the app (server/stripe/appInvite.ts).
  */
 import { motion } from "framer-motion";
-import { CheckCircle2, Instagram, ArrowLeft, Mail } from "lucide-react";
+import { CheckCircle2, Instagram, ArrowLeft, Mail, Smartphone } from "lucide-react";
 import { useEffect, useState } from "react";
+
+/** LFF Coaching on the App Store (app id 6829430402). Same link as server/stripe/appInvite.ts. */
+const APP_STORE_URL = "https://apps.apple.com/app/id6829430402";
 
 const LOGO_TRANSPARENT = "https://d2xsxph8kpxj0f.cloudfront.net/310519663408040383/TeiTyUgvfabHNSBnznn263/LFFNEWLOGOCREAM_transparent_a5b72c81.png";
 
@@ -121,8 +125,18 @@ export default function Success() {
             className="text-sm font-semibold leading-relaxed"
             style={{ color: "rgba(234,230,210,0.75)" }}
           >
-            An email is on its way with your <strong style={{ color: "#EAE6D2" }}>HubFit download link</strong> and everything you need to get set up. Check your inbox (and spam just in case).
+            An email is on its way with your <strong style={{ color: "#EAE6D2" }}>LFF Coaching app link</strong> and everything you need to get set up. Check your inbox (and spam just in case).
           </p>
+          <a
+            href={APP_STORE_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-5 flex items-center justify-center gap-2 w-full py-3.5 rounded-full font-black text-sm tracking-widest uppercase transition-all duration-300 hover:opacity-85"
+            style={{ backgroundColor: "#EAE6D2", color: "#54412F" }}
+          >
+            <Smartphone size={16} />
+            Get the LFF Coaching app
+          </a>
         </motion.div>
 
         {/* What happens next */}
@@ -141,7 +155,8 @@ export default function Success() {
           </p>
           <ul className="space-y-3">
             {[
-              "Download HubFit from the link in your email",
+              "Download LFF Coaching from the App Store",
+              "Sign in with the email you just paid with",
               "Levi will reach out within 24 hours",
               "Your custom program gets built",
               "Weekly check-ins begin — let's get to work",

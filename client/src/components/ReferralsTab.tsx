@@ -165,7 +165,7 @@ function CodeCard({ code }: { code: any }) {
                       style={{ backgroundColor: "rgba(234,180,0,0.15)", color: "#fbbf24", border: "1px solid rgba(234,180,0,0.25)" }}
                     >
                       <Gift size={12} />
-                      <span>Reward {code.referrerName} with 2 weeks free — apply manually in Square/HubFit</span>
+                      <span>Reward {code.referrerName} with 2 weeks free — apply it in Stripe</span>
                     </div>
                   )}
                 </div>

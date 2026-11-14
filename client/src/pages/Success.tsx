@@ -135,7 +135,7 @@ export default function Success() {
             style={{ backgroundColor: "#EAE6D2", color: "#54412F" }}
           >
             <Smartphone size={16} />
-            Get the LFF Coaching app
+            Get the app
           </a>
         </motion.div>
 

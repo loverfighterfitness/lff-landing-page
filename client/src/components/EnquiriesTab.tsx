@@ -5,6 +5,7 @@
 import { useState } from "react";
 import { Check, Copy, Instagram, Loader2, MessageSquare } from "lucide-react";
 import { trpc } from "@/lib/trpc";
+import { leadShortcutLink, smsLink, snapIntro } from "@shared/snapLead";
 
 const CREAM = "#EAE6D2";
 const muted = { color: "rgba(234,230,210,0.72)" };
@@ -18,22 +19,7 @@ const GOALS: Record<string, string> = {
   other: "Other",
 };
 
-/** Levi's first text to a Snap call-sheet lead, with their first name filled in. */
-export function snapIntro(fullName: string) {
-  const first = fullName.trim().split(/\s+/)[0] ?? "";
-  const name = first.charAt(0).toUpperCase() + first.slice(1).toLowerCase();
-  return [
-    `Hey ${name} ! I'm Levi, Personal Trainer at Snap Fitness Aston Hills.`,
-    "",
-    "I was just wondering when you'd like to do your free discovery session that we're doing for all new sign ups. It's just a chat in club to answer any questions you might have about the gym and explain my services 😊",
-    "",
-    "My services include:",
-    "- Online coaching",
-    "- Custom programs",
-    "- Face to face sessions",
-    "- and more!",
-  ].join("\n");
-}
+export { snapIntro } from "@shared/snapLead";
 
 function CopyIntro({ text }: { text: string }) {
   const [copied, setCopied] = useState(false);
@@ -69,8 +55,9 @@ export default function EnquiriesTab() {
         const insta = lead.contactMethod === "instagram";
         const handle = lead.phone.replace(/^@/, "");
         const intro = lead.source === "snap_call_sheet" ? snapIntro(lead.name) : null;
-        // "?&body=" prefills the text on both iOS and Android
-        const smsHref = `sms:${lead.phone.replace(/\s/g, "")}${intro ? `?&body=${encodeURIComponent(intro)}` : ""}`;
+        const smsHref = smsLink(lead.phone, intro);
+        // Snap leads: the main button runs the LFF Lead Shortcut (save contact → Messages with the intro)
+        const textHref = intro ? leadShortcutLink(lead) : smsHref;
         return (
           <li key={lead.id} className="rounded-2xl p-5" style={{ backgroundColor: "rgba(234,230,210,0.07)", border: "1px solid rgba(234,230,210,0.14)", color: CREAM }}>
             <div className="flex flex-wrap items-start justify-between gap-3">
@@ -93,7 +80,7 @@ export default function EnquiriesTab() {
             {lead.message && <p className="text-sm mt-3 whitespace-pre-wrap">{lead.message}</p>}
             <div className="flex flex-wrap gap-2">
             <a
-              href={insta ? `https://instagram.com/${handle}` : smsHref}
+              href={insta ? `https://instagram.com/${handle}` : textHref}
               target={insta ? "_blank" : undefined}
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 mt-4 text-xs font-bold tracking-[0.12em] uppercase px-4 py-2 rounded-full"
@@ -102,6 +89,16 @@ export default function EnquiriesTab() {
               {insta ? <Instagram size={13} /> : <MessageSquare size={13} />}
               {insta ? `@${handle}` : intro ? `Text ${lead.phone}` : lead.phone}
             </a>
+            {intro && (
+              <a
+                href={smsHref}
+                className="inline-flex items-center gap-2 mt-4 text-xs font-bold tracking-[0.12em] uppercase px-4 py-2 rounded-full"
+                style={{ border: `1px solid ${CREAM}`, color: CREAM }}
+              >
+                <MessageSquare size={13} />
+                Text only
+              </a>
+            )}
             {intro && <CopyIntro text={intro} />}
             </div>
           </li>

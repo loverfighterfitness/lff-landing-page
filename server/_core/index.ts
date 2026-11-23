@@ -10,6 +10,7 @@ import { serveStatic, setupVite } from "./vite";
 import { handleStripeWebhook } from "../stripe/webhook";
 import { handleAnalyticsIngest } from "../analytics";
 import { handleProgramDownload } from "../program/delivery";
+import { handleLeadVCard } from "../leadVCard";
 import { startSmsScheduler } from "../smsScheduler";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -65,6 +66,8 @@ async function startServer() {
   );
   // Secure download for the purchased program PDF (validates a signed token)
   app.get("/api/program/download", handleProgramDownload);
+  // Admin only: a lead as a contact card (.vcf), for the CRM's "Save contact" button
+  app.get("/api/leads/:id/contact.vcf", handleLeadVCard);
   // development mode uses Vite, production mode uses static files
   if (process.env.NODE_ENV === "development") {
     await setupVite(app, server);

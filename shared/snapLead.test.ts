@@ -1,10 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { emailFromMessage, leadShortcutLink, smsLink, snapIntro } from "./snapLead";
-
-const decode = (link: string) => {
-  const url = new URL(link);
-  return { name: url.searchParams.get("name"), input: url.searchParams.get("input"), data: JSON.parse(url.searchParams.get("text")!) };
-};
+import { emailFromMessage, leadContact, leadVCard, smsLink, snapIntro } from "./snapLead";
 
 describe("emailFromMessage", () => {
   it("pulls the Email line out of an imported lead message", () => {
@@ -16,17 +11,11 @@ describe("emailFromMessage", () => {
   });
 });
 
-describe("leadShortcutLink", () => {
-  it("runs LFF Lead with the contact fields and the prefilled sms link", () => {
-    const { name, input, data } = decode(
-      leadShortcutLink({ name: "JO-ANNE  o'brien smith", phone: "0416 132 571", message: "Email: jo@x.com" })
-    );
-    expect(name).toBe("LFF Lead");
-    expect(input).toBe("text");
-    expect(data).toMatchObject({ first: "Jo-Anne", last: "O'Brien Smith", phone: "0416132571", email: "jo@x.com" });
-    expect(data.sms).toBe(smsLink("0416132571", snapIntro("JO-ANNE  o'brien smith")));
-    expect(decodeURIComponent(data.sms)).toContain("Hey Jo-anne !");
-    expect(data.vcard.split("\r\n")).toEqual([
+describe("leadContact + leadVCard", () => {
+  it("title-cases the name, strips phone spaces and builds the card", () => {
+    const c = leadContact({ name: "JO-ANNE  o'brien smith", phone: "0416 132 571", message: "Email: jo@x.com" });
+    expect(c).toEqual({ first: "Jo-Anne", last: "O'Brien Smith", phone: "0416132571", email: "jo@x.com" });
+    expect(leadVCard(c).split("\r\n")).toEqual([
       "BEGIN:VCARD",
       "VERSION:3.0",
       "N:O'Brien Smith;Jo-Anne;;;",
@@ -38,8 +27,16 @@ describe("leadShortcutLink", () => {
     ]);
   });
   it("handles a single name and no email", () => {
-    const { data } = decode(leadShortcutLink({ name: "Tane", phone: "0402284352" }));
-    expect(data).toMatchObject({ first: "Tane", last: "", email: "" });
-    expect(data.vcard).not.toContain("EMAIL");
+    const c = leadContact({ name: "Tane", phone: "0402284352" });
+    expect(c).toMatchObject({ first: "Tane", last: "", email: "" });
+    expect(leadVCard(c)).not.toContain("EMAIL");
+  });
+});
+
+describe("smsLink", () => {
+  it("carries the whole intro", () => {
+    const link = smsLink("0416 132 571", snapIntro("jo"));
+    expect(link.startsWith("sms:0416132571?&body=")).toBe(true);
+    expect(decodeURIComponent(link.split("body=")[1])).toBe(snapIntro("jo"));
   });
 });

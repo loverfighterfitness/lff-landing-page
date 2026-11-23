@@ -106,6 +106,13 @@ export async function leadExists(phone: string, source: string) {
   return rows.length > 0;
 }
 
+export async function getLeadById(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const rows = await db.select().from(leads).where(eq(leads.id, id)).limit(1);
+  return rows[0];
+}
+
 export async function getLeads(limit = 100) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");

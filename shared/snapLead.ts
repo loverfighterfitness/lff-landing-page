@@ -1,11 +1,7 @@
 /**
- * Snap PT call-sheet leads: Levi's intro text, and the one-tap link that runs
- * his "LFF Lead" iPhone Shortcut (saves the contact, then opens Messages with
- * the intro typed in). Setup: business-os/growth/lff-lead-shortcut.md
+ * Snap PT call-sheet leads: Levi's intro text, the prefilled sms link, and the
+ * contact card behind the CRM's "Save contact" button (server/leadVCard.ts).
  */
-
-/** Name of the Shortcut on Levi's iPhone. Must match exactly. */
-export const LEAD_SHORTCUT_NAME = "LFF Lead";
 
 const titleCase = (word: string) =>
   word
@@ -40,8 +36,7 @@ export function emailFromMessage(message?: string | null) {
   return m ? m[1] : "";
 }
 
-/** A vCard 3.0 contact card. iOS Shortcuts can't put variables in Add New Contact's
- *  phone/email fields, so the Shortcut saves this card instead. */
+/** A vCard 3.0 contact card. iPhone opens it with "Create New Contact". */
 export function leadVCard(c: { first: string; last: string; phone: string; email: string }) {
   const esc = (v: string) => v.replace(/[\\;,]/g, (ch) => "\\" + ch);
   return [
@@ -58,21 +53,13 @@ export function leadVCard(c: { first: string; last: string; phone: string; email
     .join("\r\n");
 }
 
-/**
- * shortcuts:// link that runs the LFF Lead Shortcut with a JSON dictionary:
- * { first, last, phone, email, vcard, sms }. The Shortcut shows `vcard` to save, then opens `sms`.
- */
-export function leadShortcutLink(lead: { name: string; phone: string; message?: string | null }) {
+/** A lead's contact details: title-cased name split into first/last, mobile, email. */
+export function leadContact(lead: { name: string; phone: string; message?: string | null }) {
   const [first = "", ...rest] = lead.name.trim().split(/\s+/).map(titleCase);
-  const phone = lead.phone.replace(/\s/g, "");
-  const contact = { first, last: rest.join(" "), phone, email: emailFromMessage(lead.message) };
-  const payload = {
-    ...contact,
-    vcard: leadVCard(contact),
-    sms: smsLink(phone, snapIntro(lead.name)),
+  return {
+    first,
+    last: rest.join(" "),
+    phone: lead.phone.replace(/\s/g, ""),
+    email: emailFromMessage(lead.message),
   };
-  return (
-    `shortcuts://run-shortcut?name=${encodeURIComponent(LEAD_SHORTCUT_NAME)}` +
-    `&input=text&text=${encodeURIComponent(JSON.stringify(payload))}`
-  );
 }

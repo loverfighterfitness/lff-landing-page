@@ -40,18 +40,35 @@ export function emailFromMessage(message?: string | null) {
   return m ? m[1] : "";
 }
 
+/** A vCard 3.0 contact card. iOS Shortcuts can't put variables in Add New Contact's
+ *  phone/email fields, so the Shortcut saves this card instead. */
+export function leadVCard(c: { first: string; last: string; phone: string; email: string }) {
+  const esc = (v: string) => v.replace(/[\\;,]/g, (ch) => "\\" + ch);
+  return [
+    "BEGIN:VCARD",
+    "VERSION:3.0",
+    `N:${esc(c.last)};${esc(c.first)};;;`,
+    `FN:${esc([c.first, c.last].filter(Boolean).join(" "))}`,
+    `TEL;TYPE=CELL:${c.phone}`,
+    c.email && `EMAIL;TYPE=INTERNET:${c.email}`,
+    "NOTE:Snap lead (LFF)",
+    "END:VCARD",
+  ]
+    .filter(Boolean)
+    .join("\r\n");
+}
+
 /**
  * shortcuts:// link that runs the LFF Lead Shortcut with a JSON dictionary:
- * { first, last, phone, email, sms }. The Shortcut adds the contact, then opens `sms`.
+ * { first, last, phone, email, vcard, sms }. The Shortcut shows `vcard` to save, then opens `sms`.
  */
 export function leadShortcutLink(lead: { name: string; phone: string; message?: string | null }) {
   const [first = "", ...rest] = lead.name.trim().split(/\s+/).map(titleCase);
   const phone = lead.phone.replace(/\s/g, "");
+  const contact = { first, last: rest.join(" "), phone, email: emailFromMessage(lead.message) };
   const payload = {
-    first,
-    last: rest.join(" "),
-    phone,
-    email: emailFromMessage(lead.message),
+    ...contact,
+    vcard: leadVCard(contact),
     sms: smsLink(phone, snapIntro(lead.name)),
   };
   return (

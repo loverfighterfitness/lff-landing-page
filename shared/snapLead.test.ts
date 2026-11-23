@@ -26,9 +26,20 @@ describe("leadShortcutLink", () => {
     expect(data).toMatchObject({ first: "Jo-Anne", last: "O'Brien Smith", phone: "0416132571", email: "jo@x.com" });
     expect(data.sms).toBe(smsLink("0416132571", snapIntro("JO-ANNE  o'brien smith")));
     expect(decodeURIComponent(data.sms)).toContain("Hey Jo-anne !");
+    expect(data.vcard.split("\r\n")).toEqual([
+      "BEGIN:VCARD",
+      "VERSION:3.0",
+      "N:O'Brien Smith;Jo-Anne;;;",
+      "FN:Jo-Anne O'Brien Smith",
+      "TEL;TYPE=CELL:0416132571",
+      "EMAIL;TYPE=INTERNET:jo@x.com",
+      "NOTE:Snap lead (LFF)",
+      "END:VCARD",
+    ]);
   });
   it("handles a single name and no email", () => {
     const { data } = decode(leadShortcutLink({ name: "Tane", phone: "0402284352" }));
     expect(data).toMatchObject({ first: "Tane", last: "", email: "" });
+    expect(data.vcard).not.toContain("EMAIL");
   });
 });
